@@ -9,7 +9,9 @@
 
 set -euo pipefail
 
-SKILLS_ROOT="$(cd "$(dirname "$0")" && pwd)"
+SCRIPT="${BASH_SOURCE[0]}"
+while [ -L "$SCRIPT" ]; do SCRIPT="$(readlink "$SCRIPT")"; done
+SKILLS_ROOT="$(cd "$(dirname "$SCRIPT")" && pwd)"
 SEARCH_DIRS=("$SKILLS_ROOT/standards" "$SKILLS_ROOT/tools" "$SKILLS_ROOT/skills")
 
 # Extract a single frontmatter field value from a file

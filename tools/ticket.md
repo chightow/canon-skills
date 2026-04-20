@@ -10,6 +10,15 @@ tags: [project-management, tasks, cli, git]
 This project uses [ticket](https://github.com/wedow/ticket) (`tk`) for task management.
 Tickets are markdown files with YAML frontmatter stored in `.tickets/`.
 
+## Installation (required before use)
+
+```bash
+brew tap wedow/tools
+brew install ticket
+```
+
+Verify: `tk help`
+
 ## Key Commands
 
 ```bash

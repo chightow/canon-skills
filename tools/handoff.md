@@ -7,11 +7,29 @@ tags: [context, memory, handoff, multi-agent]
 
 # Handoff — Session Context Protocol
 
-This project uses a `HANDOFF.md` file in the repo root to preserve working context across sessions and agents. It bridges the gap between Claude, Codex, and any other agent that touches this repo.
+Preserves working context across sessions and agents using a `HANDOFF.md` file in the repo root. Bridges the gap between Claude, Codex, Pi, and any future agent — so the next session picks up where the last one left off.
 
-## Getting Started
+---
 
-**Step 1 — Register this skill in your project:**
+## The problem it solves
+
+AI agents don't share memory. When you switch from Codex to Claude (or vice versa), or when a context window fills up mid-session, the new agent starts completely cold. Without handoff, you spend the first 10 minutes re-explaining where things stand.
+
+`HANDOFF.md` is the shared state — a lightweight, git-tracked snapshot that any agent can read.
+
+---
+
+## Getting Started — Pick Your Level
+
+Choose the level that matches your project's complexity. Each level builds on the previous.
+
+---
+
+### Level 1 — Manual (any agent, no hooks)
+
+Best for: simple projects, occasional agent switching.
+
+**Step 1 — Register the skill in your project:**
 ```bash
 ~/Developer/AI-Skills/skills.sh add handoff /path/to/your/project
 ```
@@ -21,103 +39,168 @@ This project uses a `HANDOFF.md` file in the repo root to preserve working conte
 ~/Developer/AI-Skills/skills.sh status /path/to/your/project
 ```
 
-**Step 3 — Create `HANDOFF.md` in the repo root** (first time only):
+**Step 3 — Initialize `HANDOFF.md` in the repo root:**
 
-Tell the agent: "Initialize the handoff file" — it will create it from the template below. Or create it manually using the format in this file.
+Tell the agent: "Initialize the handoff file" — it creates it from the template. Or run:
+```bash
+curl -s https://raw.githubusercontent.com/<your-ai-skills-repo>/main/tools/handoff.md \
+  | awk '/^```markdown$/,/^```$/{if(!/^```/)print}' > HANDOFF.md
+```
+
+Or just create it manually using the template at the bottom of this file.
 
 **Step 4 — Use it:**
-- **At session start**: The agent reads `HANDOFF.md` automatically and tells you where things stand before doing anything.
-- **During a session**: The agent updates it when significant decisions are made or direction changes.
-- **At session end**: Tell the agent "wrap up" or "handoff" — it updates `HANDOFF.md` and commits it.
-- **Switching agents**: The next agent (Claude or Codex) reads the committed `HANDOFF.md` and picks up in context.
+- **Session start**: Tell the agent "Read HANDOFF.md and summarize where we are."
+- **During session**: The agent updates it when significant decisions are made.
+- **Session end**: Tell the agent "wrap up" — it updates `HANDOFF.md` and commits it.
+- **Next session / switching agents**: The next agent reads `HANDOFF.md` before starting work.
 
-## The problem it solves
+---
 
-AI agents don't share memory. When you switch from Codex to Claude (or vice versa), the new agent starts cold. `HANDOFF.md` is the shared state — a lightweight, git-tracked snapshot of where things stand.
+### Level 2 — Automated (Claude Code with hooks)
 
-## Agent Responsibilities
+Best for: long sessions, frequent context limit hits, heavy Claude Code usage.
 
-### On session start
-1. Check if `HANDOFF.md` exists in the repo root.
-2. If it exists, read it before doing anything else.
-3. Acknowledge the current state to the user before proceeding.
+Adds two hooks to Claude Code's global settings:
+- **`Stop` hook** — auto-saves a snapshot of git state to `HANDOFF.md` whenever Claude stops. Safety net for context window exhaustion.
+- **`UserPromptSubmit` hook** — injects `HANDOFF.md` into the first prompt of each session. Claude wakes up knowing where things stand without you having to ask.
 
-### During a session
-- Update `HANDOFF.md` when significant decisions are made.
-- Update it when a direction changes or a dead end is hit.
+**Step 1 — Complete Level 1 first.**
 
-### On session end (or when user says "handoff", "wrap up", "done for now")
-1. Update `HANDOFF.md` with current state.
-2. Commit it: `git add HANDOFF.md && git commit -m "Update handoff state"`
-3. Confirm to the user it's been committed.
+**Step 2 — Copy the two hook scripts to your AI-Skills repo:**
+```bash
+# Already included in AI-Skills at:
+ls ~/Developer/AI-Skills/scripts/
+# auto-handoff.sh   — Stop hook
+# handoff-inject.sh — UserPromptSubmit hook
+```
 
-## HANDOFF.md Format
+**Step 3 — Add the hooks to `~/.claude/settings.json`:**
+
+Open `~/.claude/settings.json` and add to the `"hooks"` object:
+```json
+{
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/Developer/AI-Skills/scripts/auto-handoff.sh"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/Developer/AI-Skills/scripts/handoff-inject.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+**Step 4 — Verify hooks are active:**
+```bash
+cat ~/.claude/settings.json | grep -A5 "Stop\|UserPromptSubmit"
+```
+
+**What happens automatically from here:**
+- Open a project → Claude reads `HANDOFF.md` silently on your first message (once per 4-hour window)
+- Context window fills → Stop hook saves current git state to `HANDOFF.md` and commits it
+- Next session → Claude picks up from the snapshot, no re-explaining needed
+
+---
+
+### Level 3 — Full multi-agent (Claude + Codex + Pi)
+
+Best for: teams or workflows that switch between multiple agents on the same repo.
+
+**The shared file is still `HANDOFF.md`** — all agents read and write the same file. What differs is how each agent's automation is wired.
+
+#### Codex
+
+Codex reads `AGENTS.md` natively. Since `skills.sh add handoff` already writes to `AGENTS.md`, Codex will follow the handoff instructions automatically.
+
+For the Stop hook equivalent, add to `~/.codex/config.toml`:
+```toml
+[hooks]
+on_session_end = "~/Developer/AI-Skills/scripts/auto-handoff.sh"
+```
+> Note: Codex hook support varies by version. Check `codex --help` or the Codex docs for your installed version.
+
+#### Pi
+
+Pi reads `~/.pi/agent/AGENTS.md` (or your project's `AGENTS.md`). Since handoff instructions are in `AGENTS.md` via `skills.sh add`, Pi follows them automatically.
+
+For session-end automation, check Pi's config for a `on_exit` or `hooks` key — wire it to `auto-handoff.sh` the same way.
+
+#### Manual fallback (any agent without hook support)
+
+Before ending any session, say: **"wrap up"** — the agent updates `HANDOFF.md` and commits it. This works in every agent that has loaded the handoff skill.
+
+---
+
+## How the hooks behave
+
+### `Stop` hook (`auto-handoff.sh`)
+
+- Runs every time Claude stops responding
+- **Skips silently** if the working tree is clean (nothing changed)
+- If there are uncommitted changes: appends a timestamped auto-snapshot to `HANDOFF.md`
+- Commits just `HANDOFF.md` — no other files touched
+- Safe to run frequently — idempotent
+
+### `UserPromptSubmit` hook (`handoff-inject.sh`)
+
+- Runs before every user message is sent to Claude
+- **Injects `HANDOFF.md` only once per 4-hour window** per project — not on every prompt
+- If no `HANDOFF.md` exists in the project: exits silently, no injection
+- Token cost: ~200-400 tokens on session start only, zero overhead after
+
+---
+
+## HANDOFF.md Template
 
 ```markdown
 # Handoff
 
-_Last updated: <date> by <agent> (<model>)_
+_Last updated: YYYY-MM-DD HH:MM by <agent> (<model>)_
 
 ## Current Focus
-<!-- One sentence: what are we working on right now -->
+One sentence: what are we working on right now.
 
 ## In Progress
-<!-- What's started but not finished — include file paths and ticket IDs if relevant -->
-- 
+- file/path or ticket-id: what's started but not finished
 
 ## Recent Decisions
-<!-- Key choices made and WHY — not what, why. Omit obvious things. -->
-- 
+- Decision made and WHY (not what — the diff shows what)
 
 ## Dead Ends
-<!-- What was tried and didn't work, so the next agent doesn't repeat it -->
-- 
+- What was tried and didn't work, so the next agent doesn't repeat it
 
 ## Open Questions
-<!-- Unresolved things that need a decision before proceeding -->
-- 
+- Unresolved things that need a decision before proceeding
 
 ## Next Steps
-<!-- Concrete next actions, in priority order -->
-1. 
+1. First concrete next action
+2. Second
 ```
 
-## Creating HANDOFF.md in a new repo
-
-If `HANDOFF.md` doesn't exist, create it from the template above and populate **Current Focus** and **Next Steps** before committing.
-
-```bash
-# Quick start
-cat > HANDOFF.md << 'EOF'
-# Handoff
-
-_Last updated: $(date +%Y-%m-%d) by <agent>_
-
-## Current Focus
-
-
-## In Progress
--
-
-## Recent Decisions
--
-
-## Dead Ends
--
-
-## Open Questions
--
-
-## Next Steps
-1.
-EOF
-```
+---
 
 ## Rules
 
-- Keep it short. This is a handoff note, not a journal.
-- **Current Focus** is one sentence max.
-- **Recent Decisions** captures the WHY — the diff already shows the what.
-- Prune stale entries. Dead ends and decisions older than the current feature branch can be removed.
-- Always commit `HANDOFF.md` before ending a session. An uncommitted handoff is useless.
-- Do not put secrets, credentials, or environment-specific values in this file.
+- **Keep it short.** This is a handoff note, not a journal. Prune old entries freely.
+- **Current Focus is one sentence max.**
+- **Decisions capture WHY** — the git diff already shows what changed.
+- **Always commit before ending a session.** An uncommitted handoff is useless.
+- **No secrets, credentials, or env-specific values** in this file — it's committed to git.
+- **The auto-snapshot section** (added by the Stop hook) is mechanical. Fill in Current Focus and Decisions manually for full context.

@@ -34,3 +34,23 @@ Claude Code loads this via `adapters/claude/CLAUDE.md`.
 
 See [standards/general.md](standards/general.md) for coding conventions.
 See [standards/git.md](standards/git.md) for git and commit conventions.
+
+## Skill Discovery & Registration
+
+To see all available skills:
+```bash
+~/Developer/AI-Skills/skills.sh list
+```
+
+To register a skill into the current project:
+```bash
+~/Developer/AI-Skills/skills.sh add <skill-name>
+~/Developer/AI-Skills/skills.sh add <skill-name> /path/to/project
+```
+
+To check what's registered in a project:
+```bash
+~/Developer/AI-Skills/skills.sh status
+```
+
+See [CATALOG.md](CATALOG.md) for a static snapshot of all available skills.

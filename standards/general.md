@@ -1,3 +1,10 @@
+---
+name: general
+description: Language-agnostic coding principles and security rules
+category: standards
+tags: [coding, quality, security]
+---
+
 # General Coding Standards
 
 ## Principles

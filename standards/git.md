@@ -1,3 +1,10 @@
+---
+name: git
+description: Commit, branch, and PR conventions
+category: standards
+tags: [git, commits, branches, pull-requests]
+---
+
 # Git & Commit Conventions
 
 ## Commits

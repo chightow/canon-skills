@@ -239,9 +239,28 @@ on_session_end = "~/Developer/AI-Skills/scripts/auto-handoff.sh"
 
 #### Pi
 
-Pi reads `~/.pi/agent/AGENTS.md` (or your project's `AGENTS.md`). Since handoff instructions are in `AGENTS.md` via `skills.sh add`, Pi follows them automatically.
+Pi uses TypeScript extensions with lifecycle events. The handoff extension is included in AI-Skills at `extensions/pi/handoff.ts`. It hooks into `session_start`, `input`, and `agent_end` — equivalent to Claude Code's `UserPromptSubmit` and `Stop` hooks.
 
-For session-end automation, check Pi's config for a `on_exit` or `hooks` key — wire it to `auto-handoff.sh` the same way.
+**Install globally** (applies to all Pi projects):
+```bash
+cp ~/Developer/AI-Skills/extensions/pi/handoff.ts ~/.pi/agent/extensions/handoff.ts
+```
+
+**Install per project** (applies to this project only):
+```bash
+mkdir -p .pi/extensions
+cp ~/Developer/AI-Skills/extensions/pi/handoff.ts .pi/extensions/handoff.ts
+```
+
+**Reload without restarting Pi:**
+```
+/reload
+```
+
+**What the extension does:**
+- `session_start` — resets the injection flag; warns if `HANDOFF.md` exceeds 80 lines
+- `input` — prepends `HANDOFF.md` to your first message of each session (once only)
+- `agent_end` — runs `auto-handoff.sh` to snapshot git state when working tree has changes
 
 #### Manual fallback (any agent without hook support)
 

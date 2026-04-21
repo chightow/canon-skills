@@ -194,6 +194,26 @@ cat ~/.codex/AGENTS.md   # should contain @RTK.md reference
 
 ---
 
+## Skill verification
+
+After registering skills, confirm each one is wired up and responding correctly.
+
+| Skill | How to verify | Expected response |
+|-------|--------------|-------------------|
+| `general` | `skills.sh status` | Listed under CLAUDE.md @-imports |
+| `git` | `skills.sh status` | Listed under CLAUDE.md @-imports |
+| `ticket` | `tk ls` | Empty list or existing tickets (no error) |
+| `handoff` | Tell Claude/Codex: "Initialize the handoff file" | `HANDOFF.md` created in project root |
+| `code-simplifier` | Tell Claude/Codex: "Simplify the changes" | Simplification report scoped to recent changes |
+| `code-reviewer` | Tell Claude/Codex: "Review my changes" | Structured report across seven dimensions |
+| `security-review` | Tell Claude/Codex: "Run a security review" | Findings report or explicit "nothing flagged" |
+| `polish` | Tell Claude/Codex: "Polish my changes" or `/polish` | Runs all three steps with skip reasoning for each |
+| `pdf` | Tell Claude/Codex: "Extract text from [file].pdf" | Extracted content or clear error if no PDF present |
+
+> **Standards skills** (`general`, `git`) have no invocation — they're applied automatically to every code change. Registration in `skills.sh status` is the only verification needed.
+
+---
+
 ## Staying updated
 
 When this repo is updated with improved skills or new scripts:

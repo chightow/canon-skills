@@ -68,11 +68,21 @@ cmd_add() {
     exit 1
   }
 
-  local name desc category
+  local name desc category depends
   name=$(fm_field "$skill_file" name)
   desc=$(fm_field "$skill_file" description)
   category=$(fm_field "$skill_file" category)
+  depends=$(fm_field "$skill_file" depends)
   local import_line="@$skill_file"
+
+  # Resolve dependencies first
+  if [ -n "$depends" ]; then
+    local deps
+    deps=$(echo "$depends" | tr -d '[]' | tr ',' '\n' | tr -d ' ')
+    while IFS= read -r dep; do
+      [ -n "$dep" ] && cmd_add "$dep" "$project_dir"
+    done <<< "$deps"
+  fi
 
   echo "Registering: $name ($category)"
 

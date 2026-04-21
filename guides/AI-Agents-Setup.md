@@ -147,10 +147,8 @@ cd /path/to/your-project
 ~/Developer/AI-Skills/skills.sh add general
 ~/Developer/AI-Skills/skills.sh add git
 
-# Quality pipeline — all four are required (polish orchestrates the other three)
-for s in code-simplifier code-reviewer security-review polish; do
-  ~/Developer/AI-Skills/skills.sh add $s
-done
+# Quality pipeline
+~/Developer/AI-Skills/scripts/init-polish.sh
 ```
 
 ### Verify registration

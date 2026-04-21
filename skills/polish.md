@@ -11,11 +11,9 @@ Run this after completing any task or closing a ticket. It executes three skills
 
 ## Getting Started
 
-**Step 1 — Register all four skills in your project** (polish + the three it orchestrates):
+**Step 1 — Register all required skills in your project:**
 ```bash
-for s in code-simplifier code-reviewer security-review polish; do
-  ~/Developer/AI-Skills/skills.sh add $s /path/to/your/project
-done
+~/Developer/AI-Skills/scripts/init-polish.sh /path/to/your/project
 ```
 
 **Step 2 — Verify:**
@@ -135,15 +133,7 @@ Address criticals before committing. Improvements and nitpicks at your discretio
 
 ## Prerequisites
 
-All four skills must be registered in the project:
-
 ```bash
-for s in code-simplifier code-reviewer security-review polish; do
-  ~/Developer/AI-Skills/skills.sh add $s /path/to/repo
-done
-```
-
-Verify:
-```bash
-~/Developer/AI-Skills/skills.sh status
+~/Developer/AI-Skills/scripts/init-polish.sh /path/to/repo
+~/Developer/AI-Skills/skills.sh status   # verify
 ```

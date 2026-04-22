@@ -34,6 +34,22 @@ Dependency order: AS-ynok and AS-wom4 are independent, AS-fpax depends on AS-wom
 
 - Config.md for storing install path — not needed; scripts self-locate via BASH_SOURCE at runtime
 
+<!-- HANDOFF-SNAPSHOT:START 2026-04-22 15:18 branch:main -->
+**Modified files:**
+```
+ M skills.sh
+```
+
+**Recent commits:**
+```
+32c564a addall: back up config files, fix duplicate dependency output
+9f6154e Fix addall showing duplicate skills from wrapup dependencies
+9877f5a Update setup guide with addall, --scan, and init re-run guidance
+6aa3c40 Update README with addall, --scan, and init re-run guidance
+b976a95 Add --scan flag and addall subcommand to skills.sh
+```
+<!-- HANDOFF-SNAPSHOT:END -->
+
 <!-- HANDOFF-SNAPSHOT:START 2026-04-22 13:11 branch:main -->
 **Modified files:**
 ```
@@ -47,21 +63,5 @@ Dependency order: AS-ynok and AS-wom4 are independent, AS-fpax depends on AS-wom
 02ca216 chore: auto-update handoff snapshot [2026-04-22 10:37]
 56f73a7 chore: auto-update handoff snapshot [2026-04-22 10:36]
 0bf6919 chore: auto-update handoff snapshot [2026-04-22 10:33]
-```
-<!-- HANDOFF-SNAPSHOT:END -->
-
-<!-- HANDOFF-SNAPSHOT:START 2026-04-22 12:52 branch:main -->
-**Modified files:**
-```
-?? temp.txt
-```
-
-**Recent commits:**
-```
-6c1a515 Rename to canon; make RTK/ticket optional; rename polish→wrapup
-02ca216 chore: auto-update handoff snapshot [2026-04-22 10:37]
-56f73a7 chore: auto-update handoff snapshot [2026-04-22 10:36]
-0bf6919 chore: auto-update handoff snapshot [2026-04-22 10:33]
-ff2ce72 chore: auto-update handoff snapshot [2026-04-22 10:09]
 ```
 <!-- HANDOFF-SNAPSHOT:END -->

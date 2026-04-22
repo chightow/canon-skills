@@ -214,6 +214,131 @@ After registering skills, confirm each one is wired up and responding correctly.
 
 ---
 
+## Day-to-Day Workflows
+
+### Ticketing with `tk`
+
+`tk` is a git-native task tracker. Tickets are markdown files in `.tickets/` — committed to the repo, visible in git log, and clickable in VS Code.
+
+**Both Claude and Codex read the same skill file** (`tools/ticket.md`) via `@`-import — one in `CLAUDE.md`, one in `AGENTS.md`. No agent-specific setup needed; skill updates propagate to both on next session start.
+
+#### Key commands
+
+```bash
+tk create "title" [-t bug|feature|task|epic|chore] [-p 0-4] [-d "desc"]
+tk ls                       # open tickets
+tk ls --status=in_progress  # filter by status
+tk show <id>                # full ticket detail
+tk start <id>               # mark in_progress
+tk close <id>               # mark closed (prefer: use approve workflow)
+tk reopen <id>              # reopen a closed ticket
+tk dep <id> <dep-id>        # id depends on dep-id
+tk dep tree <id>            # visualize dependency graph
+tk dep cycle                # detect circular dependencies
+```
+
+Priority: `0` = highest, `4` = lowest. Default is `2`.
+
+#### Standard workflow
+
+| Step | Who | Action |
+|------|-----|--------|
+| 1. Create | You | "Create a ticket to add X" — agent runs `tk create` |
+| 2. Start | Agent | `tk start <id>` before writing any code |
+| 3. Implement | Agent | Works on the ticket; prepends `<id>:` to every commit |
+| 4. Test | You | Review the changes |
+| 5. Approve | You | Say "approve `<id>`" — triggers the full pipeline |
+
+#### Approve pipeline
+
+Say **"approve `<id>`"** (or "ship it", "approve and close") after testing. The agent runs:
+
+1. `tk dep cycle` — aborts if cycles are detected
+2. `tk dep tree <id>` — warns if any dependencies are still open; asks whether to proceed or close them first
+3. Closes resolved dependencies bottom-up (leaves first, then parents)
+4. `tk close <id>`
+5. Runs `/polish` on all files modified since the ticket was started
+6. Runs `/simplify` on those same files
+7. Runs `/security-review` only if you pass `--security` or explicitly request it
+
+For multiple tickets: add all IDs — `"approve nw-01, nw-02, nw-03"`. The agent closes all of them first, then runs a single polish+simplify pass across the combined set of modified files.
+
+Agents are instructed never to call `tk close` directly — always through the approve pipeline so polish and simplify never get skipped.
+
+#### Dependency management
+
+```bash
+# Mark that ticket nw-05 cannot close until nw-03 is done
+tk dep nw-05 nw-03
+
+# Inspect the tree before approving
+tk dep tree nw-05
+
+# Check for cycles before closing a milestone
+tk dep cycle
+```
+
+If a dependency is still open when you approve, the agent will warn you and ask whether to close the dep first or proceed anyway.
+
+---
+
+### Polish — Quality Pipeline
+
+Polish is the quality gate that runs at the end of every approve. It can also be triggered manually at any time.
+
+#### How to trigger
+
+```
+/polish
+```
+Or: "Polish the changes" / "Polish ticket nw-42."
+
+#### Pipeline
+
+```
+code-simplifier → code-reviewer → security-review
+```
+
+Each step is skipped if it doesn't apply — the agent states why in one line when skipping.
+
+| Step | Skipped when |
+|------|-------------|
+| code-simplifier | Single-line change, or docs/config only |
+| code-reviewer | Single-line fix with no design implications, or purely mechanical change |
+| security-review | No security-sensitive files changed (auth, DB queries, user input, API endpoints, crypto, session management, file I/O, env/secret access) |
+
+#### What each step produces
+
+**Simplifier** — rewrites recently modified code for clarity without changing behavior: reduces nesting, eliminates redundancy, improves names, removes obvious comments. Scope is limited to files touched in the current session.
+
+**Reviewer** — structured report across seven dimensions: correctness, maintainability, readability, efficiency, security, edge cases, test coverage. Format: Critical → Improvements → Nitpicks → Recommendations.
+
+**Security review** — high-confidence findings only. Traces data flow end-to-end before flagging anything. Reports severity (Critical / High / Medium / Low) with location, pattern, evidence, impact, and fix.
+
+#### Final output format
+
+```
+## Polish Report — <ticket or task>
+
+### code-simplifier
+- <what was simplified and where>
+
+### code-reviewer
+- [Critical] ...
+- [Improvement] ...
+
+### security-review
+- [High] ...
+```
+
+Address criticals before committing. Improvements and nitpicks are at your discretion.
+
+#### Auto-trigger
+
+The `PostToolUse` hook (`auto-polish-trigger.sh`) watches for ticket close events and can trigger polish automatically. The approve workflow handles this explicitly — manual `/polish` is mainly for ad-hoc cleanup outside of the ticket flow.
+
+---
+
 ## Staying updated
 
 When this repo is updated with improved skills or new scripts:

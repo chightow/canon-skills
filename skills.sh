@@ -87,49 +87,42 @@ cmd_add() {
 
   echo "Registering: $name ($category)"
 
-  # --- CLAUDE.md: append @-import (top-level skills only) ---
-  local claude_file="$project_dir/CLAUDE.md"
   if [ -z "$as_dep" ]; then
+    local claude_file="$project_dir/CLAUDE.md"
     if grep -qF "$import_line" "$claude_file" 2>/dev/null; then
       echo "  [CLAUDE.md]  already registered"
     else
       echo "$import_line" >> "$claude_file"
       echo "  [CLAUDE.md]  added @-import"
     fi
-  fi
 
-  # --- AGENTS.md: managed block with skill table ---
-  local agents_file="$project_dir/AGENTS.md"
-  local block_begin="<!-- AI-SKILLS:BEGIN -->"
-  local block_end="<!-- AI-SKILLS:END -->"
-  local skill_row="| $name | $category | $skill_file |"
+    local agents_file="$project_dir/AGENTS.md"
+    local block_begin="<!-- AI-SKILLS:BEGIN -->"
+    local block_end="<!-- AI-SKILLS:END -->"
+    local skill_row="| $name | $category | $skill_file |"
 
-  if [ ! -f "$agents_file" ] || ! grep -qF "$block_begin" "$agents_file"; then
-    # Create or append the managed block
-    {
-      echo ""
-      echo "$block_begin"
-      echo "## Active AI-Skills"
-      echo "> Managed by \`skills.sh\` — use \`add\`/\`remove\` to change. Source: $SKILLS_ROOT"
-      echo ""
-      echo "| Skill | Category | Source |"
-      echo "|-------|----------|--------|"
-      echo "$skill_row"
-      echo "$block_end"
-    } >> "$agents_file"
-    echo "  [AGENTS.md]  created skill block"
-  elif grep -qF "| $name |" "$agents_file"; then
-    echo "  [AGENTS.md]  already registered"
-  else
-    # Insert new row before the end marker
-    awk -v row="$skill_row" -v end="$block_end" \
-      '$0 == end { print row } { print }' \
-      "$agents_file" > "$agents_file.tmp" && mv "$agents_file.tmp" "$agents_file"
-    echo "  [AGENTS.md]  added row to skill block"
-  fi
+    if [ ! -f "$agents_file" ] || ! grep -qF "$block_begin" "$agents_file"; then
+      {
+        echo ""
+        echo "$block_begin"
+        echo "## Active AI-Skills"
+        echo "> Managed by \`skills.sh\` — use \`add\`/\`remove\` to change. Source: $SKILLS_ROOT"
+        echo ""
+        echo "| Skill | Category | Source |"
+        echo "|-------|----------|--------|"
+        echo "$skill_row"
+        echo "$block_end"
+      } >> "$agents_file"
+      echo "  [AGENTS.md]  created skill block"
+    elif grep -qF "| $name |" "$agents_file"; then
+      echo "  [AGENTS.md]  already registered"
+    else
+      awk -v row="$skill_row" -v end="$block_end" \
+        '$0 == end { print row } { print }' \
+        "$agents_file" > "$agents_file.tmp" && mv "$agents_file.tmp" "$agents_file"
+      echo "  [AGENTS.md]  added row to skill block"
+    fi
 
-  # @-import so Codex and Pi load full skill content (top-level skills only)
-  if [ -z "$as_dep" ]; then
     if grep -qF "$import_line" "$agents_file" 2>/dev/null; then
       echo "  [AGENTS.md]  @-import already present"
     else

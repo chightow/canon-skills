@@ -58,18 +58,33 @@ tk dep tree <id>               # show dependency tree
 tk dep cycle                   # find dependency cycles
 ```
 
+## Approve Workflow
+
+**Trigger**: user says "approve", "approve `<id>`", "ship it", or equivalent after testing.
+
+This replaces manually asking to close, clean up, and review — one phrase covers the full pipeline:
+
+1. **Pre-flight** — run `tk dep cycle`. Abort if cycles are detected.
+2. **Dep validation** — run `tk dep tree <id>`. Warn if any dependencies are still open; ask user whether to proceed or close them first.
+3. **Close deps** — close all resolved dependencies bottom-up (leaves first, then parents).
+4. **Close ticket** — `tk close <id>`.
+5. **Polish** — run `/polish` on all files modified since the ticket was started.
+6. **Simplify** — run `/simplify` on those same files.
+7. **Security** — run `/security-review` only if the user passed `--security` or explicitly requested it.
+
+If multiple tickets are being approved at once, run steps 1–4 for all of them first, then run steps 5–7 once across the combined set of modified files.
+
 ## Agent Workflow
 
 - Before starting work: run `tk ls` to understand open tasks.
-- When picking up a task: run `tk start <id>`.
+- **When picking up a task: run `tk start <id>` before writing any code.** Never skip this — tickets must reflect actual state.
 - When creating sub-tasks: use `--parent <id>` to link them.
-- When done: run `tk close <id>`, then immediately run `/polish` on all modified files. Do not commit until polish completes.
-- Before `git commit`: confirm the relevant ticket is closed and `/polish` has been run.
+- Prepend the ticket ID to every commit message (e.g. `nw-5c46: add SSE connection`).
+- **Never run `tk close <id>` directly.** Always use the approve workflow so polish and simplify run consistently.
 - Don't create tickets for trivial 1-line fixes. Use judgment.
 - Prefer updating an existing ticket over creating a duplicate.
 
 ## Notes
 
 - Ticket IDs appear in git log (e.g. `nw-5c46: add SSE connection`). You can click them in VS Code.
-- Use `tk dep cycle` before closing a milestone to catch blocked chains.
 - Priority: 0 = highest, 4 = lowest. Default is 2.

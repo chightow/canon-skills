@@ -65,14 +65,11 @@ tk dep cycle                   # find dependency cycles
 This replaces manually asking to close, clean up, and review — one phrase covers the full pipeline:
 
 1. **Pre-flight** — run `tk dep cycle`. Abort if cycles are detected.
-2. **Dep validation** — run `tk dep tree <id>`. Warn if any dependencies are still open; ask user whether to proceed or close them first.
-3. **Close deps** — close all resolved dependencies bottom-up (leaves first, then parents).
-4. **Close ticket** — `tk close <id>`.
-5. **Polish** — run `/polish` on all files modified since the ticket was started.
-6. **Simplify** — run `/simplify` on those same files.
-7. **Security** — run `/security-review` only if the user passed `--security` or explicitly requested it.
-
-If multiple tickets are being approved at once, run steps 1–4 for all of them first, then run steps 5–7 once across the combined set of modified files.
+2. **Walk the tree** — run `tk dep tree <id>`. Close all dependencies bottom-up (leaves first, then parents). The user only ever specifies the root — never list deps manually.
+3. **Close ticket** — `tk close <id>`.
+4. **Polish** — run `/polish` on all files modified since the ticket was started.
+5. **Simplify** — run `/simplify` on those same files.
+6. **Security** — run `/security-review` only if the user passed `--security` or explicitly requested it.
 
 ## Agent Workflow
 

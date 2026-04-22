@@ -259,22 +259,21 @@ Priority: `0` = highest, `4` = lowest. Default is `2`.
 
 4b. Ask the agent to implement the dependency: *"Implement `<dep-id>`."*
 
-4c. Test the dependency work, then approve everything together: *"Approve `<id>` and `<dep-id>`."*
-    The agent closes dependencies bottom-up, then the parent, then runs the pipeline once across all modified files.
+4c. Test the dependency work, then just approve the root: *"Approve `<id>`."*
+    The agent walks the full dependency tree, closes leaves first, works up to the root, then runs the pipeline once across all modified files. You never need to track or list the deps yourself.
 
 #### Approve pipeline
 
 Say **"approve `<id>`"** (or "ship it", "approve and close") after testing. The agent runs:
 
 1. `tk dep cycle` — aborts if cycles are detected
-2. `tk dep tree <id>` — warns if any dependencies are still open; asks whether to proceed or close them first
-3. Closes resolved dependencies bottom-up (leaves first, then parents)
-4. `tk close <id>`
-5. Runs `/polish` on all files modified since the ticket was started
-6. Runs `/simplify` on those same files
-7. Runs `/security-review` only if you pass `--security` or explicitly request it
+2. `tk dep tree <id>` — walks the full tree; closes leaf dependencies first, then works up to the root
+3. `tk close <id>`
+4. Runs `/polish` on all files modified since the ticket was started
+5. Runs `/simplify` on those same files
+6. Runs `/security-review` only if you pass `--security` or explicitly request it
 
-For multiple tickets: add all IDs — `"approve nw-01, nw-02, nw-03"`. The agent closes all of them first, then runs a single polish+simplify pass across the combined set of modified files.
+You only ever need to approve the root ticket — the agent handles the rest.
 
 Agents are instructed never to call `tk close` directly — always through the approve pipeline so polish and simplify never get skipped.
 

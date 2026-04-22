@@ -145,7 +145,14 @@ cmd_add() {
       } >> "$agents_file"
       echo "  [AGENTS.md]  created skill block"
     elif grep -qF "| $name |" "$agents_file"; then
-      echo "  [AGENTS.md]  already registered"
+      if grep -qF "$skill_row" "$agents_file"; then
+        echo "  [AGENTS.md]  already registered"
+      else
+        awk -v name="| $name |" -v row="$skill_row" \
+          'index($0, name) { print row; next } { print }' \
+          "$agents_file" > "$agents_file.tmp" && mv "$agents_file.tmp" "$agents_file"
+        echo "  [AGENTS.md]  updated stale row path"
+      fi
     else
       awk -v row="$skill_row" -v end="$block_end" \
         '$0 == end { print row } { print }' \
@@ -153,8 +160,13 @@ cmd_add() {
       echo "  [AGENTS.md]  added row to skill block"
     fi
 
+    local skill_basename
+    skill_basename=$(basename "$skill_file")
     if grep -qF "$import_line" "$agents_file" 2>/dev/null; then
       echo "  [AGENTS.md]  @-import already present"
+    elif grep -qE "^@.+/$skill_basename$" "$agents_file" 2>/dev/null; then
+      sed -i '' "s|^@.*/$skill_basename$|$import_line|" "$agents_file"
+      echo "  [AGENTS.md]  updated stale @-import path"
     else
       echo "$import_line" >> "$agents_file"
       echo "  [AGENTS.md]  added @-import"

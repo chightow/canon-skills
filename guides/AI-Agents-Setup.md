@@ -252,6 +252,16 @@ Priority: `0` = highest, `4` = lowest. Default is `2`.
 4. **Approve** — Tell the agent: *"Approve `<id>`."*
    The agent runs the full pipeline (see below).
 
+**If during testing you discover a dependency** (something that needs to be done first):
+
+4a. Tell the agent: *"Create a ticket for Y and make it a dependency of `<id>`."*
+    The agent runs `tk create` for Y, then `tk dep <id> <dep-id>` to link them.
+
+4b. Ask the agent to implement the dependency: *"Implement `<dep-id>`."*
+
+4c. Test the dependency work, then approve everything together: *"Approve `<id>` and `<dep-id>`."*
+    The agent closes dependencies bottom-up, then the parent, then runs the pipeline once across all modified files.
+
 #### Approve pipeline
 
 Say **"approve `<id>`"** (or "ship it", "approve and close") after testing. The agent runs:

@@ -45,6 +45,8 @@ $SKILLS/skills.sh init        # Claude Code only
 $SKILLS/init-agent.sh all     # Claude Code + Codex + Pi
 ```
 
+> Re-run `skills.sh init` if you ever move or rename the canon folder — it rewires the hook paths in `~/.claude/settings.json`.
+
 > RTK and `tk` are optional. Setup detects them and wires their hooks if present; everything else works without them.
 
 **3. Register skills in a project**
@@ -52,6 +54,8 @@ $SKILLS/init-agent.sh all     # Claude Code + Codex + Pi
 ```bash
 cd /path/to/your-project
 
+$SKILLS/skills.sh addall        # register everything at once
+# or pick individually:
 $SKILLS/skills.sh add general   # coding standards — auto-applied, no invocation needed
 $SKILLS/skills.sh add git       # git conventions — auto-applied
 $SKILLS/skills.sh add wrapup    # quality pipeline
@@ -83,8 +87,10 @@ When canon is updated, every project picks up the new version automatically. No 
 ```
 skills.sh list                     List all available skills
 skills.sh add <skill> [dir]        Register a skill into a project (default: cwd)
+skills.sh addall [dir]             Register all skills into a project at once
 skills.sh remove <skill> [dir]     Unregister a skill from a project
 skills.sh status [dir]             Show what's registered in a project
+skills.sh --scan [dir]             Same as status — flag-style alias
 skills.sh init                     Wire Claude Code hooks to this install location
 skills.sh help <skill>             Show full documentation for a skill
 ```

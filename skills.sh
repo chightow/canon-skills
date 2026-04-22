@@ -311,6 +311,28 @@ PYEOF
   echo "  $SKILLS_ROOT/skills.sh add <skill> /path/to/your-project"
 }
 
+cmd_addall() {
+  local project_dir="${1:-$(pwd)}"
+  local names=()
+
+  for dir in "${SEARCH_DIRS[@]}"; do
+    [ -d "$dir" ] || continue
+    while IFS= read -r f; do
+      local name
+      name=$(fm_field "$f" name)
+      [ -n "$name" ] && names+=("$name")
+    done < <(find "$dir" -type f -name "*.md" 2>/dev/null | sort)
+  done
+
+  [ ${#names[@]} -eq 0 ] && { echo "No skills found."; exit 1; }
+
+  echo "Registering ${#names[@]} skill(s) into: $project_dir"
+  echo ""
+  for name in "${names[@]}"; do
+    cmd_add "$name" "$project_dir"
+  done
+}
+
 cmd_delete() {
   local skill="${1:-}"
   [ -z "$skill" ] && { echo "Usage: skills.sh delete <skill-name>"; exit 1; }
@@ -352,6 +374,31 @@ cmd_delete() {
 }
 
 # ── dispatch ────────────────────────────────────────────────────────────────
+
+# Handle: skills.sh --scan [dir]  or  skills.sh [dir] --scan
+_scan_dir=""
+_remaining_args=()
+for _arg in "$@"; do
+  if [ "$_arg" = "--scan" ]; then
+    _scan_dir="${_scan_dir:-__pending__}"
+  elif [ -z "$_scan_dir" ] || [ "$_scan_dir" = "__pending__" ]; then
+    if [ "$_scan_dir" = "__pending__" ] && [ -d "$_arg" ]; then
+      _scan_dir="$_arg"
+    else
+      _remaining_args+=("$_arg")
+    fi
+  else
+    _remaining_args+=("$_arg")
+  fi
+done
+
+if [ -n "$_scan_dir" ]; then
+  _scan_dir="${_scan_dir/__pending__/$(pwd)}"
+  set -- "${_remaining_args[@]+"${_remaining_args[@]}"}"
+  cmd_status "$_scan_dir"
+  exit $?
+fi
+
 cmd="${1:-list}"
 shift || true
 
@@ -363,22 +410,25 @@ esac
 case "$cmd" in
   list)   cmd_list   "$@" ;;
   add)    cmd_add    "$@" ;;
+  addall) cmd_addall "$@" ;;
   status) cmd_status "$@" ;;
   remove) cmd_remove "$@" ;;
   delete) cmd_delete "$@" ;;
   help)   cmd_help   "$@" ;;
   init)   cmd_init   "$@" ;;
   *)
-    echo "Usage: skills.sh <list|add|status|remove|delete|help|init> [skill] [project-dir]"
+    echo "Usage: skills.sh <list|add|addall|status|remove|delete|help|init> [skill] [project-dir]"
     echo ""
     echo "  list                    Show all available skills"
     echo "  add <skill> [dir]       Register a skill into a project (default: cwd)"
+    echo "  addall [dir]            Register all available skills into a project (default: cwd)"
     echo "  status [dir]            Show registered skills (default: cwd)"
     echo "  remove <skill> [dir]    Unregister a skill from a project (default: cwd)"
     echo "  delete <skill>          Permanently remove a skill from canon"
     echo "  help <skill>            Show full documentation for a skill"
     echo "  init                    Wire Claude Code hooks for this install location"
     echo "  <skill> --h             Same as: skills.sh help <skill>"
+    echo "  --scan [dir]            Show skills registered in a project (default: cwd)"
     exit 1
     ;;
 esac

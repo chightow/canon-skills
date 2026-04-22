@@ -114,6 +114,7 @@ cmd_add() {
     done <<< "$deps"
   fi
 
+  [ -n "$as_dep" ] && return 0
   echo "Registering: $name ($category)"
 
   if [ -z "$as_dep" ]; then
@@ -315,6 +316,17 @@ cmd_addall() {
   local project_dir="${1:-$(pwd)}"
   local names=()
   local seen=()
+  local backed_up=()
+
+  # Back up any existing config files that will be modified
+  for config_file in "CLAUDE.md" "AGENTS.md"; do
+    local full_path="$project_dir/$config_file"
+    if [ -f "$full_path" ]; then
+      local bak="$full_path.bak"
+      cp "$full_path" "$bak"
+      backed_up+=("$config_file")
+    fi
+  done
 
   for dir in "${SEARCH_DIRS[@]}"; do
     [ -d "$dir" ] || continue
@@ -334,6 +346,14 @@ cmd_addall() {
   for name in "${names[@]}"; do
     cmd_add "$name" "$project_dir"
   done
+
+  if [ ${#backed_up[@]} -gt 0 ]; then
+    echo ""
+    echo "Backups created (originals before this run):"
+    for f in "${backed_up[@]}"; do
+      echo "  $project_dir/$f.bak"
+    done
+  fi
 }
 
 cmd_delete() {

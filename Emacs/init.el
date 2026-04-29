@@ -1,3 +1,5 @@
+;; Emacs init file: Sunit Joshi
+
 ;; Start the server
 (server-start)
 

@@ -9,7 +9,7 @@
 (tool-bar-mode -1)               ; Disable tool bar
 (scroll-bar-mode -1)             ; Disable scroll bar
 (desktop-save-mode 1)
-
+(xterm-mouse-mode 1)
 (fido-vertical-mode t)
 (electric-pair-mode 1)
 
@@ -23,6 +23,10 @@
 (add-to-list 'package-archives '("melpa" . "https://melpa.org") t)
 
 (load-theme 'dracula t)
+
+;; Highlight color
+(custom-set-faces                                                                                                         
+ '(region ((t (:background "#44475a" :extend t)))))
 
 
 ;; Useful commands
@@ -53,10 +57,11 @@
 (global-set-key (kbd "M-<up>") 'move-line-up)
 (global-set-key (kbd "M-<down>") 'move-line-down)
 
+(global-set-key (kbd "C-_") 'undo)
+
 (global-display-line-numbers-mode)
 
 ;; select current line
-
 (defun select-current-line ()                                                                         
   "Select the entire current line."                                                                                       
   (interactive)
@@ -64,6 +69,25 @@
   (push-mark (line-end-position) t t))                                                                
 
 (global-set-key (kbd "C-c l") 'select-current-line)
+
+
+;; Comment region
+(global-set-key (kbd "C-c ;") 'comment-or-uncomment-region)
+
+
+;; Bound Ctr-G for esc-esc-esc
+
+;; (global-set-key (kbd "C-g") 'keyboard-escape-quit)
+
+;; (defun smart-quit ()                                                                                                      
+;;     "Abort current action, handling nested states."                                                    
+;;     (interactive)                                                                                                           
+;;     (if (minibufferp)
+;;         (abort-recursive-edit)                                                                                              
+;;       (keyboard-quit)))                                                                                
+
+;; (global-set-key (kbd "C-g") 'smart-quit)
+
 
 ;; format current buffer
 (defun format-current-buffer ()                                                                                           

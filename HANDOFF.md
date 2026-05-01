@@ -19,6 +19,23 @@ Nothing in progress.
 
 - Config.md for storing install path — not needed; scripts self-locate via BASH_SOURCE at runtime
 
+<!-- HANDOFF-SNAPSHOT:START 2026-05-01 09:22 branch:main -->
+**Modified files:**
+```
+ M Emacs/init.el
+?? .DS_Store
+```
+
+**Recent commits:**
+```
+63314b3 chore: auto-update handoff snapshot [2026-05-01 09:20]
+00d9163 chore: auto-update handoff snapshot [2026-05-01 09:18]
+15b701d chore: auto-update handoff snapshot [2026-05-01 09:17]
+21e5039 Add keybindings and mouse support to Emacs config
+7f06fcd Add author comment to init.el
+```
+<!-- HANDOFF-SNAPSHOT:END -->
+
 <!-- HANDOFF-SNAPSHOT:START 2026-05-01 09:20 branch:main -->
 **Modified files:**
 ```
@@ -33,22 +50,5 @@ Nothing in progress.
 21e5039 Add keybindings and mouse support to Emacs config
 7f06fcd Add author comment to init.el
 c691463 Add Emacs init.el to canon repo
-```
-<!-- HANDOFF-SNAPSHOT:END -->
-
-<!-- HANDOFF-SNAPSHOT:START 2026-05-01 09:18 branch:main -->
-**Modified files:**
-```
- M Emacs/init.el
-?? .DS_Store
-```
-
-**Recent commits:**
-```
-15b701d chore: auto-update handoff snapshot [2026-05-01 09:17]
-21e5039 Add keybindings and mouse support to Emacs config
-7f06fcd Add author comment to init.el
-c691463 Add Emacs init.el to canon repo
-a45a968 refactor(statusline): consolidate install into statusline.sh, remove init-statusline.sh
 ```
 <!-- HANDOFF-SNAPSHOT:END -->

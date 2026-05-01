@@ -120,6 +120,11 @@
   (indent-region (point-min) (point-max)))
 
 
+;; Auto-revert buffers when files change on disk
+(global-auto-revert-mode 1)
+(setq global-auto-revert-non-file-buffers t)
+(setq auto-revert-verbose nil)
+
 ;; Save on frame close and server kill                                                                                    
 (unless noninteractive
   (add-hook 'kill-emacs-hook #'desktop-save-in-desktop-dir)

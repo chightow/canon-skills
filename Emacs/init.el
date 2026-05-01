@@ -69,6 +69,8 @@
 ;; macOS terminals may send Option-W as this character instead of Meta-w.
 (global-set-key (kbd "∑") 'kill-ring-save)
 (global-set-key (kbd "C-c q") 'kill-emacs)
+(global-set-key (kbd "<wheel-up>") 'scroll-down-line)
+(global-set-key (kbd "<wheel-down>") 'scroll-up-line)
 
 (when (eq system-type 'darwin)
   (setq interprogram-cut-function

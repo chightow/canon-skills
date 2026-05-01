@@ -1,13 +1,15 @@
 ;; Emacs init file: Sunit Joshi
 
 ;; Start the server
-(server-start)
+(require 'server)
+(unless (server-running-p)
+  (server-start))
 
 ;; UI Improvements
 (setq inhibit-startup-screen t)  ; Disable splash screen
-(menu-bar-mode -1)               ; Disable menu bar
-(tool-bar-mode -1)               ; Disable tool bar
-(scroll-bar-mode -1)             ; Disable scroll bar
+(when (fboundp 'menu-bar-mode) (menu-bar-mode -1))
+(when (fboundp 'tool-bar-mode) (tool-bar-mode -1))
+(when (fboundp 'scroll-bar-mode) (scroll-bar-mode -1))
 (desktop-save-mode 1)
 (xterm-mouse-mode 1)
 (fido-vertical-mode t)
@@ -21,6 +23,7 @@
 ;; Initialize packages (for Emacs 27+)
 (require 'package)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org") t)
+(package-initialize)
 
 (use-package markdown-mode :ensure t)
 
@@ -61,6 +64,22 @@
 
 (global-set-key (kbd "M-<up>") 'move-line-up)
 (global-set-key (kbd "M-<down>") 'move-line-down)
+(global-set-key (kbd "M-w") 'kill-ring-save)
+
+;; macOS terminals may send Option-W as this character instead of Meta-w.
+(global-set-key (kbd "∑") 'kill-ring-save)
+(global-set-key (kbd "C-c q") 'kill-emacs)
+
+(when (eq system-type 'darwin)
+  (setq interprogram-cut-function
+        (lambda (text)
+          (with-temp-buffer
+            (insert text)
+            (call-process-region (point-min) (point-max) "pbcopy"))))
+  (setq interprogram-paste-function
+        (lambda ()
+          (let ((text (shell-command-to-string "pbpaste")))
+            (when (> (length text) 0) text)))))
 
 (global-set-key (kbd "C-_") 'undo)
 
@@ -100,8 +119,9 @@
 
 
 ;; Save on frame close and server kill                                                                                    
-(add-hook 'kill-emacs-hook #'desktop-save-in-desktop-dir)                                                                 
-(add-hook 'delete-frame-functions (lambda (_) (desktop-save-in-desktop-dir)))                         
+(unless noninteractive
+  (add-hook 'kill-emacs-hook #'desktop-save-in-desktop-dir)
+  (add-hook 'delete-frame-functions (lambda (_) (desktop-save-in-desktop-dir))))
 
 ;; Switch to last real buffer when emacsclient connects
 (add-hook 'server-after-make-frame-hook                                                                                   
@@ -110,4 +130,3 @@
                                      (not (string-prefix-p "*" (buffer-name b))))                                         
                                    (buffer-list))))                                                   
               (when buf (switch-to-buffer buf)))))
-

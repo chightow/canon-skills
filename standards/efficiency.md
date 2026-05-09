@@ -36,6 +36,7 @@ Include reasoning only when the fix isn't self-evident. Security and architectur
 
 ## Token Efficiency
 
+- 98%+ of token spend is re-reading prior conversation history, not generating responses. Every verbose output compounds across all future turns — keep it tight.
 - Before editing any file, read it first. Before modifying a function, grep for callers.
 - Reference exact file paths and line numbers — avoid re-reading files already in context.
 - Don't read `node_modules`, `.git`, `dist`, `build`, `__pycache__`, `.next` unless asked.

@@ -86,6 +86,21 @@
 (global-set-key (kbd "C-_") 'undo)
 
 (global-display-line-numbers-mode)
+(column-number-mode 1)
+
+(defun my/mode-line-buffer-name ()
+  "Show parent-dir/filename in mode line, or just buffer name for non-file buffers."
+  (if buffer-file-name
+      (let ((parent (file-name-nondirectory
+                     (directory-file-name
+                      (file-name-directory buffer-file-name))))
+            (fname (file-name-nondirectory buffer-file-name)))
+        (format "%s/%s" parent fname))
+    (buffer-name)))
+
+(setq-default mode-line-buffer-identification
+              '(:eval (propertize (my/mode-line-buffer-name)
+                                  'face 'mode-line-buffer-id)))
 
 ;; select current line
 (defun select-current-line ()                                                                         

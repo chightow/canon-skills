@@ -10,7 +10,7 @@ A shared library of AI agent skills, tools, standards, and automation scripts. Y
 
 ```
 canon/              ← this repo (shared library, clone once)
-  skills/           ← wrapup, pdf, shorts-director (+ hidden deps: code-reviewer, code-simplifier, security-review)
+  skills/           ← wrapup, capture, pdf (+ hidden deps: code-reviewer, code-simplifier, security-review)
   tools/            ← handoff, ticket (hidden deps, pulled in by wrapup)
   standards/        ← efficiency (coding, git, token-efficiency — one unified file)
   scripts/          ← hook automation (handoff, wrapup trigger, pre-commit)
@@ -172,6 +172,7 @@ cd /path/to/your-project
 $SKILLS/skills.sh add wrapup
 
 # Optional extras
+$SKILLS/skills.sh add capture      # mid-session knowledge capture → HANDOFF.md Discoveries
 $SKILLS/skills.sh add pdf          # PDF read/extract/merge/split
 ```
 
@@ -228,11 +229,12 @@ After registering skills, confirm each one is wired up and responding correctly.
 |-------|--------------|-------------------|
 | `efficiency` | `skills.sh status` | Listed under CLAUDE.md @-imports; `[current]` in AGENTS.md standards |
 | `wrapup` | `"Wrapup the changes"` or `/wrapup` | Runs simplifier → reviewer → security-review with skip reasoning |
+| `capture` | Make a non-obvious discovery mid-session | Agent writes to `## Discoveries` in HANDOFF.md without prompting |
 | `pdf` | `"Extract text from [file].pdf"` | Extracted content or clear error if no PDF present |
 | `ticket` (optional) | `tk ls` — only if `tk` is installed | Empty list or existing tickets (no error) |
 | `handoff` | `"Initialize the handoff file"` | `HANDOFF.md` created in project root |
 
-> `efficiency` has no invocation — applied automatically to every session. `ticket` and `handoff` are hidden deps of `wrapup`; they don't appear in `skills list` but are registered when wrapup is added.
+> `efficiency` has no invocation — applied automatically to every session. `ticket` and `handoff` are hidden deps of `wrapup`; they don't appear in `skills list` but are registered when wrapup is added. `capture` fires automatically — no invocation needed.
 
 ---
 
@@ -313,6 +315,26 @@ tk dep cycle
 ```
 
 If a dependency is still open when you approve, the agent will warn you and ask whether to close the dep first or proceed anyway.
+
+---
+
+### Knowledge Capture — Mid-Session Discoveries
+
+The `capture` skill ensures non-obvious findings are recorded immediately — not just at wrapup — so they survive context compaction and session switches.
+
+**Automatic** — no action needed. When the agent discovers something non-obvious (filter rules found by comparing data, numerical facts not in code, environment gotchas, architecture decisions with non-obvious WHY), it immediately:
+1. Appends to `HANDOFF.md` under `## Discoveries`
+2. Saves a project memory
+
+**Explicit trigger** — when you want to force-record something the agent missed:
+
+| Agent | Trigger |
+|---|---|
+| Claude Code | `/capture <text>` |
+| Codex | "Capture this" / "Record this in discoveries" |
+| Pi | Same as Codex — natural language |
+
+The `## Discoveries` section in `HANDOFF.md` is the persistent store. A future agent starting cold reads it to pick up every constraint and decision that required investigation to establish.
 
 ---
 

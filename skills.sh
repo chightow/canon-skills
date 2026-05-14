@@ -89,7 +89,7 @@ cmd_list() {
 upsert_at_import() {
   local file="$1" import_line="$2" skill_basename="$3" label="$4"
   if grep -qF "$import_line" "$file" 2>/dev/null; then
-    echo "  [$label]  already registered"
+    : # already registered — silent
   elif grep -qE "^@.+/$skill_basename$" "$file" 2>/dev/null; then
     sed -i '' "s|^@.*/$skill_basename$|$import_line|" "$file"
     echo "  [$label]  updated stale @-import path"
@@ -99,6 +99,29 @@ upsert_at_import() {
   fi
 }
 
+
+offer_tkt_path() {
+  local tools_dir="$SKILLS_ROOT/tools"
+
+  # Skip if tkt is already reachable
+  if command -v tkt &>/dev/null; then return 0; fi
+
+  # Detect rc file
+  local rc_file="$HOME/.zshrc"
+  [[ "${SHELL:-}" == */bash ]] && rc_file="$HOME/.bashrc"
+
+  # Skip if the tools dir is already configured in the rc file
+  if grep -qF "$tools_dir" "$rc_file" 2>/dev/null; then return 0; fi
+
+  echo "" > /dev/tty
+  printf "tkt is in %s but not on your PATH.\n" "$tools_dir" > /dev/tty
+  printf "Add to PATH in %s? [y/N] " "$rc_file" > /dev/tty
+  read -r answer </dev/tty
+  if [[ "$answer" =~ ^[Yy]$ ]]; then
+    printf '\n# canon tools (tkt)\nexport PATH="$PATH:%s"\n' "$tools_dir" >> "$rc_file"
+    echo "  Added. Run: source $rc_file" > /dev/tty
+  fi
+}
 
 cmd_add() {
   local skill="${1:-}"
@@ -170,7 +193,7 @@ cmd_add() {
     echo "  [AGENTS.md]  created skill block"
   elif grep -qF "| $name |" "$agents_file"; then
     if grep -qF "$skill_row" "$agents_file"; then
-      echo "  [AGENTS.md]  already registered"
+      : # already registered — silent
     else
       awk -v name="| $name |" -v row="$skill_row" \
         'index($0, name) { print row; next } { print }' \
@@ -188,6 +211,16 @@ cmd_add() {
 
   echo ""
   echo "Done. $desc"
+
+  if [[ "$name" == "wrapup" ]] && ! grep -qF "| ticket |" "$project_dir/AGENTS.md" 2>/dev/null; then
+    echo ""
+    echo "Adding ticket skill (used in wrapup's approve workflow)..."
+    cmd_add "ticket" "$project_dir"
+  fi
+
+  if [[ "$name" == "ticket" ]]; then
+    offer_tkt_path
+  fi
 }
 
 cmd_status() {
@@ -200,9 +233,9 @@ cmd_status() {
   echo ""
 
   # ── Registered skills ────────────────────────────────────────────────────
+  local skill_names=()
   if [ -f "$agents_file" ] && grep -qF "AI-SKILLS:BEGIN" "$agents_file" 2>/dev/null; then
     echo "Skills:"
-    local skill_names=()
     while IFS= read -r line; do
       local sname spath
       sname=$(echo "$line" | awk -F'|' '{gsub(/[[:space:]]/,"",$2); print $2}')
@@ -220,11 +253,33 @@ cmd_status() {
         (( issues++ )) || true
       fi
 
-      printf "  %-25s %s\n" "$sname" "[$tag]"
+      local suffix=""
+      if [[ "$sname" == "ticket" ]]; then
+        if command -v tkt &>/dev/null; then
+          suffix="  (tkt on PATH)"
+        else
+          suffix="  (tkt not on PATH)"
+        fi
+      fi
+
+      printf "  %-25s %s%s\n" "$sname" "[$tag]" "$suffix"
     done < <(sed -n '/AI-SKILLS:BEGIN/,/AI-SKILLS:END/p' "$agents_file" \
                | grep "^| " | grep -v "^| Skill")
   else
     echo "Skills: none"
+  fi
+
+  # ── wrapup-without-ticket suggestion ─────────────────────────────────────
+  local _has_wrapup=false _has_ticket=false
+  for _s in "${skill_names[@]+"${skill_names[@]}"}"; do
+    [[ "$_s" == "wrapup" ]] && _has_wrapup=true
+    [[ "$_s" == "ticket" ]] && _has_ticket=true
+  done
+  if $_has_wrapup && ! $_has_ticket; then
+    echo ""
+    echo "Tip: wrapup is registered but ticket is not."
+    echo "  tkt enables task tracking used in wrapup's approve workflow."
+    printf "  Add it: %s add ticket %s\n" "$(basename "$0")" "$project_dir"
   fi
 
   # ── @-imports in CLAUDE.md and AGENTS.md ────────────────────────────────
@@ -252,6 +307,19 @@ cmd_status() {
     echo "All up to date."
   else
     echo "$issues issue(s) found. Run: $(basename "$0") refresh $project_dir"
+  fi
+
+  # ── tkt PATH check (shown last so it's not buried) ───────────────────────
+  if $_has_ticket && ! command -v tkt &>/dev/null; then
+    local _tools_dir="$SKILLS_ROOT/tools"
+    local _rc_file="$HOME/.zshrc"
+    [[ "${SHELL:-}" == */bash ]] && _rc_file="$HOME/.bashrc"
+    if ! grep -qF "$_tools_dir" "$_rc_file" 2>/dev/null; then
+      echo ""
+      echo "Action needed: ticket is registered but tkt is not on your PATH."
+      printf "  Run: echo 'export PATH=\"\$PATH:%s\"' >> %s\n" "$_tools_dir" "$_rc_file"
+      printf "  Then: source %s\n" "$_rc_file"
+    fi
   fi
 }
 
@@ -328,16 +396,30 @@ cmd_refresh() {
     | grep "^| " | grep -v "^| Skill" \
     | awk -F'|' '{gsub(/[[:space:]]/, "", $2); print $2}')
 
-  local count
-  count=$(printf '%s\n' "$skills" | grep -c '.')
-  echo "Refreshing $count skill(s) in: $project_dir"
+  echo "Refreshing skills in: $project_dir"
   echo ""
 
+  local any_updated=false
   while IFS= read -r skill; do
     [ -z "$skill" ] && continue
-    (cmd_add "$skill" "$project_dir") || echo "  [warn] '$skill' not found in canon — skipping"
-    echo ""
+    local output
+    output=$( (cmd_add "$skill" "$project_dir") 2>&1 ) || {
+      printf "  %-22s  [not found — skipping]\n" "$skill"
+      continue
+    }
+    local changes
+    changes=$(printf '%s\n' "$output" | grep -E "added|updated|created" || true)
+    if [ -n "$changes" ]; then
+      printf "  %-22s  [updated]\n" "$skill"
+      printf '%s\n' "$changes" | sed 's/^/    /'
+      any_updated=true
+    else
+      printf "  %-22s  [ok]\n" "$skill"
+    fi
   done <<< "$skills"
+
+  echo ""
+  if $any_updated; then echo "Done."; else echo "All up to date."; fi
 }
 
 cmd_remove() {

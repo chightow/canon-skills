@@ -182,7 +182,7 @@ Patterns reviewed and ruled out (briefly, to show coverage).
 
 Address criticals before committing. Improvements and nitpicks at your discretion.
 
-If you ran `/wrapup` directly (not via the approve workflow) and a ticket is in-progress, use the approve workflow to close it — do not call `tk close` directly.
+If you ran `/wrapup` directly (not via the approve workflow) and a ticket is in-progress, use the approve workflow to close it — do not call `tkt close` directly.
 
 ---
 

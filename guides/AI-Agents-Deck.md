@@ -44,30 +44,29 @@ No shared definition of "done." Agent writes code for the wrong goal, or you dis
 
 ---
 
-# One install. Two commands. Everything else automatic.
+# One install. Two commands.
 
 ```bash
-$SKILLS/skills.sh add sprint   # registers the full lifecycle
+$SKILLS/skills.sh add sprint
 ```
 
-```
-"Sprint start — add rate limiting to the login endpoint"
+**sprint start** — *"sprint start"* / *"let's work on X"*
 
+```
 → ticket created
-→ blueprint.md written (files to touch, build plan)
-→ acceptance.md written (binary definition of done)
+→ blueprint.md + acceptance.md written
 → DECISIONS.md + HANDOFF.md read
 → sprint brief produced
-→ WAITS FOR APPROVAL before writing any code
+→ waits for approval before writing any code
 ```
 
-```
-"Sprint complete"
+**sprint complete** — *"sprint complete"* / *"approve"* / *"ship it"*
 
-→ wrapup runs (simplify → review → security)
+```
+→ wrapup: simplify → review → security
 → each acceptance criterion verified
-→ stops if any criterion fails — fixes, then re-verifies
-→ DECISIONS.md updated, HANDOFF.md updated, ticket closed
+→ stops and fixes if any criterion fails
+→ DECISIONS.md, HANDOFF.md, ticket closed
 ```
 
 ---
@@ -231,9 +230,16 @@ brew install rtk
 
 ```bash
 # Option 1 — pandoc (already installed, no extras needed)
+printf '<style>
+  .reveal pre { font-size: 0.68rem !important; }
+  .reveal pre code { max-height: 340px; overflow-y: auto; }
+  .reveal section { font-size: 0.95rem; }
+</style>' > /tmp/deck-style.html && \
 pandoc guides/AI-Agents-Deck.md \
   -t revealjs -s --slide-level=1 \
-  -V theme=white -V transition=slide -V width=1200 -V height=700 \
+  -V theme=white -V transition=slide \
+  -V width=1280 -V height=720 \
+  -H /tmp/deck-style.html \
   --metadata title="Canon — AI Agent Skills Library" \
   -o guides/AI-Agents-Deck.html
 

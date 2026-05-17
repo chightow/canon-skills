@@ -1,7 +1,7 @@
 ---
 name: capture
 description: Proactively record non-obvious discoveries to HANDOFF.md and memory — fires automatically mid-session, also invocable explicitly
-category: skills
+category: dev
 tags: [knowledge-management, handoff, memory]
 ---
 

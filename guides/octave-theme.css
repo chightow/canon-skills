@@ -196,14 +196,91 @@
   color: #F26B43;
 }
 
-/* ── Title slide — first section gets centered treatment ─── */
+/* ── Title slide ─────────────────────────────────────────── */
 .reveal .slides section:first-child {
   display: flex !important;
   flex-direction: column;
   justify-content: center;
+  background-image: url(octave-title-bg.png);
+  background-size: 75% auto;
+  background-position: bottom right;
+  background-repeat: no-repeat;
 }
 
 .reveal .slides section:first-child h1 {
   font-size: 2.4rem;
-  border-color: #F26B43;
+  border: none;
+  margin-top: 1rem;
 }
+
+.reveal .slides section:first-child h1::after {
+  content: '';
+  display: block;
+  width: 60px;
+  height: 3px;
+  background: #F26B43;
+  margin-top: 0.5rem;
+}
+
+.octave-logo {
+  height: 56px;
+  margin-bottom: 1.5rem;
+}
+
+/* ── PLAN → BUILD → SHIP flowchart ──────────────────────── */
+.lifecycle-flow {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin: 2rem 0 1.5rem;
+  font-family: 'Aptos', 'Segoe UI', system-ui, sans-serif;
+}
+
+.lifecycle-box {
+  border: 2px solid;
+  padding: 0.55rem 1.5rem;
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: 0.05em;
+  color: #FFFFFF;
+  white-space: nowrap;
+}
+
+.lifecycle-box.plan   { border-color: #00BCD4; color: #00BCD4; }
+.lifecycle-box.build  { border-color: #F59E0B; color: #F59E0B; }
+.lifecycle-box.ship   { border-color: #4ADE80; color: #4ADE80; }
+
+.lifecycle-arrow {
+  flex: 1;
+  height: 2px;
+  position: relative;
+  margin: 0 -1px;
+}
+.lifecycle-arrow.plan-build { background: linear-gradient(to right, #00BCD4, #F59E0B); }
+.lifecycle-arrow.build-ship { background: linear-gradient(to right, #F59E0B, #4ADE80); }
+.lifecycle-arrow::after {
+  content: '';
+  position: absolute;
+  right: -1px;
+  top: -4px;
+  border: 5px solid transparent;
+  border-left-width: 8px;
+}
+.lifecycle-arrow.plan-build::after { border-left-color: #F59E0B; }
+.lifecycle-arrow.build-ship::after { border-left-color: #4ADE80; }
+
+.lifecycle-desc {
+  display: flex;
+  gap: 0;
+  font-size: 0.75rem;
+  color: #B2B8C4;
+  margin-top: 0.5rem;
+}
+.lifecycle-desc span {
+  flex: 1;
+  text-align: center;
+  padding: 0 0.5rem;
+}
+.lifecycle-desc span.plan-d  { color: #00BCD4; }
+.lifecycle-desc span.build-d { color: #F59E0B; }
+.lifecycle-desc span.ship-d  { color: #4ADE80; }

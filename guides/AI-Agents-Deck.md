@@ -22,6 +22,8 @@ style: |
 
 # Canon — AI Agent Skills Library
 
+<img src="octave-logo.png" class="octave-logo" alt="Octave">
+
 Shared skills and automation for Claude Code, Codex, and Pi
 
 **Plan → Build → Ship** with minimal effort, maximum continuity
@@ -73,28 +75,32 @@ $SKILLS/skills.sh add sprint
 
 # Architecture — leaf to root
 
-```
-sprint ──────────────── two commands cover the full dev lifecycle
-  │
-  ├── PLAN
-  │     tkt              track work, one ticket per sprint
-  │     blueprint.md     files to touch, step-by-step build plan
-  │     acceptance.md    binary definition of done
-  │     DECISIONS.md     durable architectural decisions
-  │
-  ├── BUILD
-  │     capture (auto)   discoveries → HANDOFF.md, instantly
-  │     efficiency       coding principles, always on
-  │
-  └── SHIP
-        wrapup
-          code-simplifier   clarity and redundancy pass
-          code-reviewer     seven-dimension logic review
-          security-review   high-confidence vuln scan
+<div class="lifecycle-flow">
+  <div class="lifecycle-box plan">PLAN</div>
+  <div class="lifecycle-arrow plan-build"></div>
+  <div class="lifecycle-box build">BUILD</div>
+  <div class="lifecycle-arrow build-ship"></div>
+  <div class="lifecycle-box ship">SHIP</div>
+</div>
+<div class="lifecycle-desc">
+  <span class="plan-d">tkt · blueprint.md<br>acceptance.md · DECISIONS.md</span>
+  <span class="build-d">capture (auto)<br>efficiency (always on)</span>
+  <span class="ship-d">wrapup → simplify<br>→ review → security</span>
+</div>
 
-Session hooks (automatic — zero commands):
-  handoff-inject   session start → reads HANDOFF.md silently
-  auto-handoff     session end   → snapshots git state to HANDOFF.md
+```
+sprint start         sprint complete
+     │                     │
+     ▼                     ▼
+  blueprint.md         wrapup pipeline
+  acceptance.md        acceptance check
+  DECISIONS.md read    DECISIONS.md write
+  HANDOFF.md read      HANDOFF.md update
+  tkt start            tkt close
+
+Session hooks (automatic):
+  handoff-inject → reads HANDOFF.md on session start
+  auto-handoff   → snapshots git state on session end
 ```
 
 ---

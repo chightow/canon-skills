@@ -22,6 +22,22 @@ Nothing in progress.
 - Config.md for storing install path — not needed; scripts self-locate via BASH_SOURCE at runtime
 - DateTime-based staleness check for skills refresh — not needed; @-imports are live references, content changes take effect automatically
 
+<!-- HANDOFF-SNAPSHOT:START 2026-05-17 18:52 branch:main -->
+**Modified files:**
+```
+ M guides/AI-Agents-Deck.md
+```
+
+**Recent commits:**
+```
+4cedb05 docs: split session example into existing vs new project walkthroughs
+4056473 chore: auto-update handoff snapshot [2026-05-17 18:51]
+831b766 docs: clarify new vs existing project setup and DECISIONS.md creation
+a76478c chore: auto-update handoff snapshot [2026-05-17 18:48]
+8bc2fa7 docs: restructure setup guide — example session before layer detail
+```
+<!-- HANDOFF-SNAPSHOT:END -->
+
 <!-- HANDOFF-SNAPSHOT:START 2026-05-17 18:51 branch:main -->
 **Modified files:**
 ```
@@ -35,21 +51,5 @@ a76478c chore: auto-update handoff snapshot [2026-05-17 18:48]
 8bc2fa7 docs: restructure setup guide — example session before layer detail
 21455d9 chore: auto-update handoff snapshot [2026-05-17 18:43]
 a50a520 chore: auto-update handoff snapshot [2026-05-17 18:42]
-```
-<!-- HANDOFF-SNAPSHOT:END -->
-
-<!-- HANDOFF-SNAPSHOT:START 2026-05-17 18:48 branch:main -->
-**Modified files:**
-```
- M guides/AI-Agents-Deck.md
-```
-
-**Recent commits:**
-```
-8bc2fa7 docs: restructure setup guide — example session before layer detail
-21455d9 chore: auto-update handoff snapshot [2026-05-17 18:43]
-a50a520 chore: auto-update handoff snapshot [2026-05-17 18:42]
-98ae04b feat: consolidate setup into skills init + add hook health to status
-84e3f90 fix: use data-background-image for arcs; inline style for tagline
 ```
 <!-- HANDOFF-SNAPSHOT:END -->

@@ -1,6 +1,6 @@
 # AI Agents Setup Guide
 
-Everything a new team member needs to get Claude Code, Codex, and Pi working with this repo's skills, tools, and optimizations. Follow in order — each section builds on the previous.
+Everything a new team member needs to get Claude Code, Codex, and Pi working with this repo's skills, tools, and optimizations. Follow in order.
 
 ---
 
@@ -11,10 +11,10 @@ A shared library of AI agent skills, tools, standards, and automation scripts. Y
 ```
 canon/              ← this repo (shared library, clone once)
   skills/           ← sprint, pdf (catalog); wrapup, capture (deps — loaded via sprint)
-  tools/            ← handoff, ticket, tkt.sh (infrastructure — loaded via sprint, not in catalog)
-  standards/        ← efficiency (auto-injected into every project — not in catalog)
-  scripts/          ← hook automation (handoff, wrapup trigger, pre-commit)
-  guides/           ← this file and context-optimization.md
+  tools/            ← handoff, ticket, tkt.sh (infrastructure — loaded via sprint)
+  standards/        ← efficiency (auto-injected into every project)
+  scripts/          ← hook automation (auto-handoff, handoff-inject, pre-commit)
+  guides/           ← this file
   extensions/pi/    ← Pi lifecycle extensions
 
 your-project/       ← your work repo
@@ -25,98 +25,65 @@ your-project/       ← your work repo
 
 ---
 
-## Step 1 — Clone canon
+## Setup
 
-Clone the repo anywhere you like. The scripts self-locate at runtime.
+### Step 1 — Clone canon
 
 ```bash
 git clone https://github.com/sunitghub/canon.git ~/Developer/canon
-```
-
-Then set a shell variable for the rest of this guide (substitute your actual clone path):
-
-```bash
 export SKILLS=~/Developer/canon
-```
-
-Verify:
-```bash
 ls $SKILLS/skills.sh   # should exist
 ```
 
----
+### Step 2 — Install prerequisites
 
-## Step 2 — Install prerequisites
-
-**RTK** (optional, recommended) — filters verbose CLI output before it hits the AI's token budget. Saves 60–90% of tokens on common operations. Setup detects whether it's installed and wires the hook automatically if so; skills work without it.
+**RTK** (optional, recommended) — filters verbose CLI output before it hits the AI's token budget. Saves 60–90% of tokens on common operations.
 
 ```bash
-# macOS
-brew install rtk
-
-# WSL / Linux
-cargo install rtk
+brew install rtk          # macOS
+cargo install rtk         # WSL / Linux
+rtk --version             # verify
 ```
 
-```bash
-rtk --version   # verify
-```
+> If `rtk gain` fails after install, you likely have the wrong package (name collision on crates.io). Use `brew install rtk`, not `cargo install rtk`.
 
-> If `rtk gain` fails after install, you may have the wrong package (name collision on crates.io). Use `brew install rtk` — not `cargo install rtk`.
+**tkt** — bundled minimal ticket tool, no install needed. `skills add sprint` adds it and offers to put it on your PATH.
 
-**tkt** — bundled minimal ticket tool, included with canon. No install needed. `skills add sprint` adds it automatically and offers to put it on your PATH.
+### Step 3 — Agent setup (automated)
 
----
-
-## Steps 3–5 — Agent setup (automated)
-
-**Claude Code only** — run the lightweight init command:
-
+**Claude Code only:**
 ```bash
 $SKILLS/skills.sh init
 ```
 
-> Re-run `skills.sh init` any time you move or rename the canon folder — it rewires the hook paths in `~/.claude/settings.json` to the new location.
+> Re-run any time you move or rename the canon folder — it rewires hook paths in `~/.claude/settings.json`.
 
-**Claude Code + Codex + Pi** — run the full setup script. It is safe to run multiple times:
-
+**Claude Code + Codex + Pi:**
 ```bash
-$SKILLS/init-agent.sh
+$SKILLS/init-agent.sh         # interactive
+$SKILLS/init-agent.sh claude  # or pick one
+$SKILLS/init-agent.sh all     # all three
 ```
-
-It will prompt you to choose an agent (or `all`), back up any existing config files before modifying them (`.bak` extension), and report what was added vs already present.
-
-You can also run non-interactively:
-```bash
-$SKILLS/init-agent.sh claude   # Claude Code only
-$SKILLS/init-agent.sh codex    # Codex only
-$SKILLS/init-agent.sh pi       # Pi only
-$SKILLS/init-agent.sh all      # all three
-```
-
-**What it sets up per agent:**
 
 | Agent | What gets configured |
 |---|---|
-| Claude Code | Handoff + quality hooks merged into `~/.claude/settings.json`. RTK hook wired automatically if `rtk` is installed; skipped with a hint if not. |
-| Codex | RTK instructions via `rtk init -g --codex` → writes `~/.codex/RTK.md` + `@reference` in `~/.codex/AGENTS.md` (skipped if RTK absent). |
+| Claude Code | Handoff + quality hooks merged into `~/.claude/settings.json`. RTK wired automatically if installed. |
+| Codex | `~/.codex/RTK.md` + `@reference` in `~/.codex/AGENTS.md` (skipped if RTK absent). |
 | Pi | Copies `extensions/pi/handoff.ts` to `~/.pi/agent/extensions/` |
 
-**Manual fallback (if you prefer to inspect before applying):**
-
 <details>
-<summary>Claude Code — manual hook setup</summary>
+<summary>Manual fallback — Claude Code</summary>
 
 ```bash
-rtk init -g --auto-patch   # RTK native hook (non-interactive)
+rtk init -g --auto-patch   # RTK native hook
 ```
 
-Then either run `$SKILLS/skills.sh init` (recommended), or merge manually into `~/.claude/settings.json` (replace `<SKILLS>` with your actual clone path):
+Then merge into `~/.claude/settings.json` (replace `<SKILLS>` with your clone path):
 ```json
 {
   "hooks": {
-    "Stop":             [{ "matcher": "", "hooks":     [{ "type": "command", "command": "<SKILLS>/scripts/auto-handoff.sh" }] }],
-    "UserPromptSubmit": [{ "matcher": "", "hooks":     [{ "type": "command", "command": "<SKILLS>/scripts/handoff-inject.sh" }] }],
+    "Stop":             [{ "matcher": "", "hooks": [{ "type": "command", "command": "<SKILLS>/scripts/auto-handoff.sh" }] }],
+    "UserPromptSubmit": [{ "matcher": "", "hooks": [{ "type": "command", "command": "<SKILLS>/scripts/handoff-inject.sh" }] }],
     "PostToolUse":      [{ "matcher": "Bash", "hooks": [{ "type": "command", "command": "<SKILLS>/scripts/auto-polish-trigger.sh" }] }],
     "PreToolUse":       [{ "matcher": "Bash", "hooks": [{ "type": "command", "command": "<SKILLS>/scripts/pre-commit-check.sh" }] }]
   }
@@ -124,147 +91,190 @@ Then either run `$SKILLS/skills.sh init` (recommended), or merge manually into `
 ```
 </details>
 
-<details>
-<summary>Codex — manual setup</summary>
+### Step 4 — Per-project setup
 
-```bash
-rtk init -g --codex --auto-patch
-```
-</details>
-
-<details>
-<summary>Pi — manual setup</summary>
-
-```bash
-mkdir -p ~/.pi/agent/extensions
-cp $SKILLS/extensions/pi/handoff.ts ~/.pi/agent/extensions/handoff.ts
-# then /reload in Pi
-```
-</details>
-
----
-
-## Step 6 — Per-project setup
-
-Run this once per project you want to use skills in.
-
-### Register skills
-
-**All at once** (recommended for new projects):
+Run once per project:
 
 ```bash
 cd /path/to/your-project
-$SKILLS/skills.sh addall
+$SKILLS/skills.sh addall        # register all available skills (recommended)
+
+# Or pick individually:
+$SKILLS/skills.sh add sprint    # full dev workflow (includes everything)
+$SKILLS/skills.sh add pdf       # PDF read/extract/merge/split
 ```
 
-**Or pick individually:**
-
+Then verify:
 ```bash
-cd /path/to/your-project
-
-# Full dev workflow — sprint covers planning, quality, and tickets
-$SKILLS/skills.sh add sprint
-
-# Optional extras
-$SKILLS/skills.sh add pdf          # PDF read/extract/merge/split
+$SKILLS/skills.sh status
 ```
 
-`addall` is idempotent — safe to re-run if new skills have been added to canon since you last registered.
-
-> **Standards and deps are auto-injected.** Every `skills.sh add` call automatically injects the `efficiency` standard (coding principles, git conventions, token-efficiency rules). Skill deps like `code-reviewer`, `handoff`, and `ticket` are wired silently — not shown in `skills list` or registered explicitly.
-
-### Verify registration
-
-```bash
-$SKILLS/skills.sh status          # or: skills.sh --scan /path/to/your-project
-```
-
-This checks registered skills, inline standard freshness, and broken `@`-import paths. It reports issues and tells you exactly what to run to fix them.
-
-### Initialize HANDOFF.md
-
-`handoff` is a dep of `sprint` and loaded automatically. To initialize the file, tell Claude or Codex: "Initialize the handoff file" — it creates `HANDOFF.md` in the project root from the template.
+To initialize `HANDOFF.md`, tell the agent: *"Initialize the handoff file."*
 
 ---
 
-## Verification checklist
+## What you get — and why it's built this way
 
-Run through these to confirm everything is wired up correctly.
+Installing `sprint` gives you a full dev lifecycle in two commands. Everything else is automatic. Here's the full picture:
 
-**RTK** (if installed)
-```bash
-rtk gain        # should show "No tracking data yet" or savings stats (not an error)
-rtk git status  # should run and show compact output
+```
+sprint ──────────────────────────────── planned dev lifecycle
+  │
+  ├── PLAN
+  │     tkt              track work, one ticket per sprint
+  │     blueprint.md     files to touch, step-by-step build plan
+  │     acceptance.md    binary definition of done
+  │     DECISIONS.md     durable architectural decisions (repo root)
+  │
+  ├── BUILD
+  │     capture (auto)   non-obvious discoveries → HANDOFF.md
+  │     efficiency       coding principles, always on, no invocation
+  │
+  └── SHIP
+        wrapup
+          code-simplifier   clarity and redundancy pass
+          code-reviewer     seven-dimension logic review
+          security-review   high-confidence vulnerability scan
+
+Session hooks (fire automatically — no commands needed):
+  handoff-inject   session start → agent reads HANDOFF.md silently
+  auto-handoff     session end   → agent snapshots git state to HANDOFF.md
 ```
 
-**Claude Code hooks**
-```bash
-cat ~/.claude/settings.json   # should contain: auto-handoff, handoff-inject, auto-polish-trigger, pre-commit-check (plus rtk hook if RTK is installed)
-```
-
-**Codex** (if RTK installed)
-```bash
-cat ~/.codex/AGENTS.md   # should contain @RTK.md reference
-```
-
-**Per-project**
-```bash
-$SKILLS/skills.sh status   # lists registered skills
-```
+The layers below explain each component from the ground up — what pain it solves and how it works.
 
 ---
 
-## Skill verification
+### Layer 1 — Session continuity
 
-After registering skills, confirm each one is wired up and responding correctly.
+**The problem:** AI agents start cold. Every new session — or context window exhaustion mid-session — means re-explaining where things stand. Over a long project, this overhead compounds.
 
-| Skill | How to verify | Expected response |
-|-------|--------------|-------------------|
-| `sprint` | `"Start a sprint for X"` | Sprint brief produced — files, acceptance criteria, blockers listed — awaits approval before any code |
-| `pdf` | `"Extract text from [file].pdf"` | Extracted content, or a clear error if no PDF is present |
-| `ticket` | `tkt ls` | Empty list or existing tickets — no error |
+**What it does:** `HANDOFF.md` is a git-tracked file in the project root. It holds current focus, in-progress work, recent decisions, and mid-session discoveries. Two hooks automate its lifecycle:
 
-> Everything else is automatic. `efficiency` is injected into every session. `capture` fires mid-session on any non-obvious discovery. `wrapup` runs inside `sprint complete`. `handoff` and `ticket` are deps of sprint — wired silently.
+- **`handoff-inject`** (fires on session start) — injects `HANDOFF.md` silently into your first prompt, once per 4-hour window. The agent wakes up knowing where things stand without you saying a word.
+- **`auto-handoff`** (fires on session end) — appends a timestamped snapshot: modified files, recent commits, active tickets. Safety net when context runs out mid-session.
 
----
+**What triggers it:** Automatically. No commands. Between sessions, the agent reads and writes it as part of `sprint start` and `sprint complete`.
 
-## Day-to-Day Workflows
+**What goes in it:**
 
-### How it all fits together
+```markdown
+# Handoff
 
-```
-                        CANON DEV LIFECYCLE
-    ┌──────────────┬──────────────────────┬────────────────────┐
-    │   PLAN       │       BUILD          │       SHIP         │
-    │  sprint start│    [write code]      │  sprint complete   │
-    ├──────────────┼──────────────────────┼────────────────────┤
-    │ reads:       │                      │ wrapup:            │
-    │ HANDOFF.md   │  capture (auto)      │  simplify          │
-    │ DECISIONS.md │  fires on discovery  │  → code review     │
-    │ sprint files │  → HANDOFF.md        │  → security        │
-    │              │    ## Discoveries    │                    │
-    │ creates:     │  → project memory    │ acceptance check   │
-    │ blueprint.md │                      │                    │
-    │ acceptance.md│                      │ DECISIONS.md update│
-    │              │                      │                    │
-    │ tkt start    │                      │ tkt close          │
-    │ ↓ awaits     │                      │                    │
-    │   approval   │                      │                    │
-    └──────────────┴──────────────────────┴────────────────────┘
+## Current Focus
+One sentence — what are we working on.
 
-    Automatic (no user action needed):
-      Session start → handoff-inject reads HANDOFF.md into first prompt
-      Mid-session   → capture writes discoveries to HANDOFF.md
-      Session end   → auto-handoff snapshots git state to HANDOFF.md
+## In Progress
+- file/path or ticket-id: what's started but not finished
 
-    Ad-hoc (outside a sprint):
-      /wrapup       → quality check on any code without a sprint
-      /capture <x>  → force-record a discovery the agent missed
+## Recent Decisions
+- Decision and WHY (not what — the diff shows what)
+
+## Discoveries
+- Non-obvious facts found through investigation
+
+## Next Steps
+1. First concrete next action
 ```
 
 ---
 
-### A complete session — from idea to shipped
+### Layer 2 — Knowledge capture
+
+**The problem:** Agents discover non-obvious constraints mid-session — a connection pool cap, a config file location, an edge case only found by running the code. Without recording them immediately, they're lost when context compacts or the session ends.
+
+**What it does:** `capture` writes discoveries to `HANDOFF.md ## Discoveries` the moment they're found — not at wrapup, not at session end. Each entry also saves a project memory so future sessions can recall it without reading the file.
+
+**Qualifies:**
+- Filter or exclusion rules found through experimentation
+- Numerical facts not derivable from code (row counts, limits, offsets)
+- Environment gotchas — args, paths, config locations, build quirks
+- Architecture decisions with non-obvious WHY
+- Any constraint requiring active investigation that isn't visible in the code
+
+**What triggers it:** Automatic — fires whenever the agent discovers something qualifying. To force-capture something:
+
+| Agent | Trigger |
+|---|---|
+| Claude Code | `/capture <text>` |
+| Codex / Pi | "Capture this" / "Record this in discoveries" |
+
+---
+
+### Layer 3 — Coding standards (always-on)
+
+**The problem:** Every new session, the agent may drift from your project's conventions — import style, naming, git commit format, comment rules — without a reminder.
+
+**What it does:** The `efficiency` standard is injected into every project that has any canon skill registered. It covers coding principles (simplicity first, surgical changes, no speculative features), git conventions (commit format, branch discipline), and token-efficiency rules. It's never shown in `skills list` and needs no invocation — it just runs.
+
+---
+
+### Layer 4 — Code quality
+
+Three focused passes, each with a clear job:
+
+**`code-simplifier`** — clarity and redundancy pass. Reduces nesting, eliminates dead code, improves names, removes obvious comments. Never changes behavior — only how the code reads.
+
+**`code-reviewer`** — seven-dimension logic review: correctness, maintainability, readability, efficiency, security, edge cases, test coverage. Reports as Critical / Improvements / Nitpicks / Recommendations.
+
+**`security-review`** — high-confidence vulnerability scan. Traces data flow end-to-end before flagging anything. Only reports HIGH (confirmed vulnerable pattern + attacker-controlled input) or MEDIUM (pattern confirmed, input source unclear). No noisy pattern-match reports.
+
+Each step has skip logic — it states why in one line when it doesn't apply:
+
+| Step | Skipped when |
+|---|---|
+| code-simplifier | Single-line change, or docs/config only |
+| code-reviewer | Single-line fix with no design implications |
+| security-review | No auth, DB, user input, API, crypto, or file I/O changed |
+
+---
+
+### Layer 5 — Wrapup
+
+**The problem:** The three quality steps above need to run in a specific order (simplify first, then review clean code, then security on the reviewed version) and each has skip logic that has to be evaluated. Remembering to run them in sequence is friction.
+
+**What it does:** `wrapup` runs all three steps in order, evaluates skip logic automatically, and reports a single structured summary. Inside `sprint complete`, it runs on all files modified since sprint start.
+
+**Outside a sprint:** run `/wrapup` directly on any code written in the session.
+
+---
+
+### Layer 6 — Sprint (the full lifecycle)
+
+**The problem:** Planning, building, and shipping code each require different behaviors from the agent — upfront design before touching code, structured build execution, quality gates before closing. Invoking these separately means remembering what to run when, and it's easy to skip a step.
+
+**What it does:** `sprint` encapsulates everything above into two commands:
+
+| Command | What happens |
+|---|---|
+| `sprint start` | Creates ticket → blueprint → acceptance criteria → reads DECISIONS.md + HANDOFF.md → produces sprint brief → **waits for your approval** |
+| `sprint complete` | Runs wrapup on modified files → validates every acceptance criterion → appends decisions to DECISIONS.md → updates HANDOFF.md → closes ticket |
+
+**Trigger phrases:**
+- sprint start: *"sprint start"*, *"start a sprint for X"*, *"let's work on X"*
+- sprint complete: *"sprint complete"*, *"approve"*, *"ship it"*
+
+**Planning files** (colocated with the ticket):
+```
+.tickets/<id>/
+  ticket.md        ← tkt-managed
+  blueprint.md     ← files to touch, step-by-step build plan
+  acceptance.md    ← binary definition of done
+```
+
+**DECISIONS.md** (repo root) — durable log of non-obvious architectural choices. Sprint start reads it; sprint complete writes to it. Separate from HANDOFF.md (session state) — this is the permanent record.
+
+```markdown
+# Decisions
+
+| Date | Decision | Reason |
+|---|---|---|
+| 2026-05-17 | Amounts stored as integer cents | Avoid float precision bugs |
+```
+
+---
+
+## A complete session — from idea to shipped
 
 Everything in **bold** is something you type. Everything else happens automatically.
 
@@ -276,7 +286,7 @@ You open Claude Code and type your first message. Before it reaches the agent:
 
 > `handoff-inject` fires — reads `HANDOFF.md` silently into your first prompt (once per 4-hour window).
 
-The agent wakes up knowing the current project state, prior decisions, and any mid-session discoveries from the last session. You don't have to re-explain context.
+The agent wakes up knowing the current project state, prior decisions, and any mid-session discoveries from the last session.
 
 ---
 
@@ -324,7 +334,7 @@ The agent writes code. While reading the Redis client config, it notices the con
 
 > `capture` fires automatically:
 > - Appends to `HANDOFF.md` under `## Discoveries`: *"Redis connection pool capped at 5 — rate limit checks may queue under sustained login load. See `config/redis.py:12`."*
-> - Saves a project memory
+> - Saves a project memory.
 
 You didn't ask for this. It happened because the agent detected a non-obvious constraint.
 
@@ -368,42 +378,25 @@ You close Claude Code. Before it exits:
 
 > `auto-handoff` fires — appends a snapshot to `HANDOFF.md`: modified files, recent commits, active tickets.
 
-Next session — or next agent — reads the file and picks up exactly where this one left off.
+Next session — or the next agent — reads the file and picks up exactly where this one left off.
 
 ---
 
-### Sprint reference
+## Reference
 
-**sprint start** — triggers: *"sprint start"*, *"start a sprint for X"*, *"let's work on X"*
+### Skills commands
 
-- Creates or identifies the active ticket → `tkt start <id>`
-- Creates `.tickets/<id>/blueprint.md` and `acceptance.md`
-- Reads `DECISIONS.md` and `HANDOFF.md`
-- Produces a sprint brief and waits for approval before writing any code
-
-**sprint complete** — triggers: *"sprint complete"*, *"approve"*, *"ship it"*
-
-- Runs wrapup (simplify → review → security) on modified files
-- Validates every acceptance criterion — stops if any fail
-- Appends new decisions to `DECISIONS.md`
-- Updates `HANDOFF.md ## Next Steps`
-- Runs `tkt close <id>`
-
-**DECISIONS.md** — repo root, maintained by sprint. Records durable architectural choices with their reasoning. Sprint start reads it; sprint complete writes to it. Separate from `HANDOFF.md` (which is session state, not permanent record).
-
-```markdown
-# Decisions
-
-| Date | Decision | Reason |
-|---|---|---|
-| 2026-05-17 | Amounts stored as integer cents | Avoid float precision bugs |
+```bash
+$SKILLS/skills.sh list                    # show available skills
+$SKILLS/skills.sh add sprint              # register a skill in current project
+$SKILLS/skills.sh addall                  # register all skills (idempotent)
+$SKILLS/skills.sh status                  # check registration + freshness
+$SKILLS/skills.sh refresh                 # re-register + heal stale paths + prune covered deps
 ```
 
----
+### Ticket commands
 
-### Ticketing with `tkt`
-
-Sprint manages the ticket lifecycle automatically. Use `tkt` directly for queries and status checks.
+Sprint manages the full lifecycle automatically. Use `tkt` directly for queries:
 
 ```bash
 tkt ls                        # list all tickets
@@ -414,81 +407,42 @@ tkt reopen <id>               # reopen a closed ticket
 
 > Need dependency tracking, tags, or assignees? Install [ticket](https://github.com/wedow/ticket) (`brew install ticket`) — same `.tickets/` format, fully compatible.
 
----
+### Skill verification
 
-### Knowledge capture
+| Skill | How to verify | Expected response |
+|---|---|---|
+| `sprint` | `"Start a sprint for X"` | Sprint brief produced, awaits approval before any code |
+| `pdf` | `"Extract text from [file].pdf"` | Extracted content, or a clear error |
+| `ticket` | `tkt ls` | Empty list or existing tickets — no error |
 
-Fires automatically — no action needed. When the agent finds something non-obvious mid-session (filter rules, row counts, environment gotchas, constraints not visible in the code), it immediately appends to `HANDOFF.md ## Discoveries` and saves a project memory.
-
-To force-record something the agent missed:
-
-| Agent | Trigger |
-|---|---|
-| Claude Code | `/capture <text>` |
-| Codex / Pi | *"Capture this"* / *"Record this in discoveries"* |
-
----
-
-### Wrapup — ad-hoc quality check
-
-Runs automatically inside `sprint complete`. Use it directly only for code written outside the sprint workflow.
-
-```
-/wrapup
-```
-
-Pipeline: `code-simplifier → code-reviewer → security-review`
-
-Each step skips automatically when it doesn't apply — the agent states why in one line.
-
-| Step | Skipped when |
-|------|-------------|
-| code-simplifier | Single-line change, or docs/config only |
-| code-reviewer | Single-line fix with no design implications |
-| security-review | No auth, DB, user input, API, crypto, or file I/O changed |
+> Everything else is automatic. `efficiency` is always on. `capture` fires mid-session. `wrapup` runs inside `sprint complete`. `handoff` and `ticket` are deps of sprint — loaded silently.
 
 ---
 
 ## Staying updated
 
-When this repo is updated with improved skills, standards, or scripts:
-
 ```bash
 cd $SKILLS && git pull
 ```
 
-**Hook scripts** update immediately — they're called by path, so the new version runs on the next session.
+**Hook scripts** update immediately — called by path, so the new version runs on the next session.
 
-**Skill content** in `CLAUDE.md` (Claude) is live `@`-import references — Claude picks up changes automatically on the next session.
+**Skill content** in `CLAUDE.md` is live `@`-import references — Claude picks up changes automatically on the next session.
 
-**Inline standards** in `AGENTS.md` (Codex, Pi) are a static copy and need an explicit refresh to pick up changes:
+**Inline standards** in `AGENTS.md` (Codex, Pi) are a static copy — refresh explicitly:
 
 ```bash
 $SKILLS/skills.sh refresh /path/to/your-project
 ```
 
-`refresh` re-registers every skill already in the project, replaces any outdated inline standard blocks in `AGENTS.md`, and heals stale `@`-import paths — all in one command.
+`refresh` re-registers every skill, replaces outdated standard blocks, heals stale `@`-import paths, and prunes covered deps — all in one command.
 
-**For newly added skills** (opt in individually or all at once):
+**For newly added skills:**
 ```bash
-$SKILLS/skills.sh addall /path/to/your-project        # register any new skills
-$SKILLS/skills.sh add <new-skill> /path/to/your-project  # or just one
+$SKILLS/skills.sh addall /path/to/your-project
 ```
 
-**Check for issues before refreshing:**
+**Check for issues first:**
 ```bash
 $SKILLS/skills.sh status /path/to/your-project
 ```
-
-Reports stale paths, outdated inline standards, and broken `@`-imports — with a one-line fix suggestion when anything is out of date.
-
-Check what skills are available:
-```bash
-$SKILLS/skills.sh list
-```
-
----
-
-## How the automation works end-to-end
-
-See [`guides/context-optimization.md`](context-optimization.md) for a full explanation of the token optimization, session handoff, and quality pipeline — including why each piece is designed the way it is.

@@ -1,0 +1,244 @@
+---
+marp: true
+theme: default
+paginate: true
+style: |
+  section {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 1.1rem;
+    padding: 2rem 3rem;
+  }
+  h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+  h2 { font-size: 1.5rem; color: #444; border-bottom: 2px solid #eee; padding-bottom: 0.3rem; }
+  h3 { font-size: 1.1rem; color: #555; margin-top: 1.2rem; margin-bottom: 0.3rem; }
+  pre { background: #f5f5f5; border-radius: 6px; font-size: 0.85rem; }
+  code { background: #f0f0f0; padding: 0.1em 0.3em; border-radius: 3px; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+  th { background: #f0f0f0; }
+  td, th { padding: 0.4rem 0.7rem; border: 1px solid #ddd; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+  blockquote { border-left: 4px solid #0069ff; padding-left: 1rem; color: #333; font-style: normal; }
+---
+
+# Canon — AI Agent Skills Library
+
+### Shared skills and automation for Claude Code, Codex, and Pi
+
+Plan → Build → Ship with minimal effort, maximum continuity
+
+---
+
+## The problems we're solving
+
+**Problem 1: Agents start cold every session**
+Re-explaining context for 10 minutes before useful work begins. Worse when switching agents or hitting context limits mid-session.
+
+**Problem 2: Discoveries vanish**
+An agent finds a critical constraint mid-session — connection pool cap, env gotcha, exclusion rule — and it's gone when the context window fills.
+
+**Problem 3: Quality steps get skipped**
+Code ships without simplification, review, or security checks. Or they happen in the wrong order. Or someone forgets.
+
+**Problem 4: Planning is informal**
+No shared definition of "done." Agent writes code for the wrong goal, or you discover scope issues after the work is done.
+
+---
+
+## One install. Two commands. Everything else automatic.
+
+```bash
+$SKILLS/skills.sh add sprint   # registers the full lifecycle
+```
+
+```
+"Sprint start — add rate limiting to the login endpoint"
+
+→ ticket created
+→ blueprint.md written (files to touch, build plan)
+→ acceptance.md written (binary definition of done)
+→ DECISIONS.md + HANDOFF.md read
+→ sprint brief produced
+→ WAITS FOR APPROVAL before writing any code
+```
+
+```
+"Sprint complete"
+
+→ wrapup runs (simplify → review → security)
+→ each acceptance criterion verified
+→ stops if any criterion fails — fixes, then re-verifies
+→ DECISIONS.md updated, HANDOFF.md updated, ticket closed
+```
+
+---
+
+## Architecture — leaf to root
+
+```
+sprint ──────────────── two commands cover the full dev lifecycle
+  │
+  ├── PLAN
+  │     tkt              track work, one ticket per sprint
+  │     blueprint.md     files to touch, step-by-step build plan
+  │     acceptance.md    binary definition of done
+  │     DECISIONS.md     durable architectural decisions
+  │
+  ├── BUILD
+  │     capture (auto)   discoveries → HANDOFF.md, instantly
+  │     efficiency       coding principles, always on
+  │
+  └── SHIP
+        wrapup
+          code-simplifier   clarity and redundancy pass
+          code-reviewer     seven-dimension logic review
+          security-review   high-confidence vuln scan
+
+Session hooks (automatic — zero commands):
+  handoff-inject   session start → reads HANDOFF.md silently
+  auto-handoff     session end   → snapshots git state to HANDOFF.md
+```
+
+---
+
+## Layer 1 — Session continuity
+
+**Pain:** Every new session, or every context window exhaustion, the agent starts cold.
+
+**Solution:** `HANDOFF.md` — a git-tracked file holding current focus, in-progress work, and recent discoveries.
+
+Two hooks automate it entirely:
+
+| Hook | When | What |
+|---|---|---|
+| `handoff-inject` | Session start | Injects `HANDOFF.md` into first prompt, once per 4-hour window |
+| `auto-handoff` | Session end | Appends timestamped snapshot: modified files, commits, active tickets |
+
+> The agent wakes up knowing where things stand. You say nothing about context.
+
+Works across Claude Code, Codex, and Pi — all three read and write the same `HANDOFF.md`.
+
+---
+
+## Layer 2 — Knowledge capture
+
+**Pain:** Non-obvious constraints found mid-session vanish when context compacts or the session ends.
+
+**Solution:** `capture` writes discoveries immediately to `HANDOFF.md ## Discoveries` — not at wrapup, not at session end.
+
+**What qualifies:**
+- Filter/exclusion rules found through experimentation
+- Numerical facts not in code (row counts, limits, offsets)  
+- Environment gotchas (args, paths, build quirks)
+- Architecture decisions with non-obvious WHY
+- Any constraint found through investigation that isn't visible in the code
+
+**Automatic** — fires whenever the agent encounters something qualifying.
+
+**Manual override:**
+
+| Agent | Trigger |
+|---|---|
+| Claude Code | `/capture <text>` |
+| Codex / Pi | "Capture this" / "Record this in discoveries" |
+
+---
+
+## Layer 3 — Code quality
+
+Three passes, in order, with smart skip logic:
+
+### code-simplifier
+Clarity and redundancy pass — reduces nesting, eliminates dead code, improves names.
+*Never changes behavior.*
+
+### code-reviewer
+Seven dimensions: correctness, maintainability, readability, efficiency, security, edge cases, test coverage.
+Reports: Critical / Improvements / Nitpicks / Recommendations.
+
+### security-review
+High-confidence vulnerability scan — traces data flow end-to-end before flagging.
+Only reports what's confirmed exploitable. No noisy pattern-match output.
+
+**Skip logic:**
+
+| Step | Skipped when |
+|---|---|
+| code-simplifier | Single-line change, or docs/config only |
+| code-reviewer | Single-line fix, no design implications |
+| security-review | No auth, DB, user input, API, crypto, or file I/O changed |
+
+---
+
+## A complete session
+
+| Who | What |
+|---|---|
+| *hook* | `handoff-inject` reads `HANDOFF.md` silently — agent knows the state |
+| **You** | "Sprint start — add rate limiting to login endpoint" |
+| *agent* | Creates ticket `t-r4t3`, blueprint, acceptance criteria, reads DECISIONS.md |
+| *agent* | Produces sprint brief. Waits. |
+| **You** | "Yes" |
+| *agent* | Writes code. Reads Redis config. |
+| *capture* | Auto-fires: "Redis pool capped at 5 — rate checks may queue. `config/redis.py:12`" |
+| **You** | "Sprint complete" |
+| *wrapup* | Simplifies middleware. Reviewer flags missing bypass test. |
+| *agent* | Stops. Writes bypass test. All criteria ✓. |
+| *agent* | Appends to DECISIONS.md. Updates HANDOFF.md next steps. Closes ticket. |
+| **You** | Close Claude Code |
+| *hook* | `auto-handoff` snapshots git state to HANDOFF.md |
+
+Next session — or next agent — picks up exactly here.
+
+---
+
+## Setup — three steps
+
+**1. Clone canon (once)**
+```bash
+git clone https://github.com/sunitghub/canon.git ~/Developer/canon
+```
+
+**2. Run init (once per agent)**
+```bash
+~/Developer/canon/init-agent.sh   # interactive, safe to re-run
+```
+
+**3. Register skills per project**
+```bash
+cd /path/to/your-project
+~/Developer/canon/skills.sh addall
+```
+
+**Optional — RTK** (token optimizer, 60–90% savings on CLI output):
+```bash
+brew install rtk
+```
+
+---
+
+## Benefits at a glance
+
+| Without canon | With canon |
+|---|---|
+| Re-explain context every session | Agent reads `HANDOFF.md` on open — no re-explaining |
+| Discoveries vanish when context fills | `capture` writes them instantly, survives compaction |
+| Quality steps skipped or out-of-order | `wrapup` runs them automatically, in sequence |
+| Ship without a definition of done | `acceptance.md` gates `sprint complete` |
+| Architectural decisions forgotten | `DECISIONS.md` read at sprint start, written at close |
+| Agent switches lose context | All agents share the same `HANDOFF.md` |
+
+---
+
+## Render this deck
+
+```bash
+# Option 1 — VS Code extension
+# Install "Marp for VS Code", open this file, click Preview
+
+# Option 2 — CLI
+npx @marp-team/marp-cli guides/AI-Agents-Deck.md --pdf
+npx @marp-team/marp-cli guides/AI-Agents-Deck.md --html
+
+# Option 3 — export to PPTX
+npx @marp-team/marp-cli guides/AI-Agents-Deck.md --pptx
+```

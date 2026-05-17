@@ -42,9 +42,7 @@
 
 .reveal h1 {
   font-size: 1.9rem;
-  border-bottom: 3px solid #F26B43;
-  padding-bottom: 0.4rem;
-  margin-bottom: 1.2rem;
+  margin-bottom: 0.8rem;
 }
 
 .reveal h2 {
@@ -198,9 +196,6 @@
 
 /* ── Title slide ─────────────────────────────────────────── */
 .reveal .slides section:first-child {
-  display: flex !important;
-  flex-direction: column;
-  justify-content: center;
   background-image: url(octave-title-bg.png);
   background-size: 75% auto;
   background-position: bottom right;
@@ -209,8 +204,7 @@
 
 .reveal .slides section:first-child h1 {
   font-size: 2.4rem;
-  border: none;
-  margin-top: 1rem;
+  margin-bottom: 0;
 }
 
 .reveal .slides section:first-child h1::after {
@@ -219,7 +213,8 @@
   width: 60px;
   height: 3px;
   background: #F26B43;
-  margin-top: 0.5rem;
+  margin-top: 0.4rem;
+  margin-bottom: 0.6rem;
 }
 
 .octave-logo {
@@ -234,7 +229,7 @@
   font-size: 0.85rem !important;
   font-style: italic;
   color: #B2B8C4 !important;
-  margin: -0.8rem 0 2rem !important;
+  margin: 0 0 1.8rem !important;
   letter-spacing: 0.01em;
 }
 

@@ -232,13 +232,19 @@ brew install rtk
 ## Render this deck
 
 ```bash
-# Option 1 — VS Code extension
+# Option 1 — pandoc (already installed, no extras needed)
+awk '/^---$/{n++} n==1 && /^(marp|paginate|theme|style)/{skip=1}
+     n==1 && skip && /^[^ ]/{skip=0} n==1 && skip{next} {print}' \
+  guides/AI-Agents-Deck.md \
+  | pandoc -f markdown -t revealjs -s --slide-level=2 \
+      -V theme=white -V transition=slide -V width=1200 -V height=700 \
+      --metadata title="Canon — AI Agent Skills Library" \
+      -o guides/AI-Agents-Deck.html
+
+# Option 2 — mise (no permanent node install)
+mise x npm:@marp-team/marp-cli@latest -- marp guides/AI-Agents-Deck.md --pdf
+mise x npm:@marp-team/marp-cli@latest -- marp guides/AI-Agents-Deck.md --pptx
+
+# Option 3 — VS Code extension
 # Install "Marp for VS Code", open this file, click Preview
-
-# Option 2 — CLI
-npx @marp-team/marp-cli guides/AI-Agents-Deck.md --pdf
-npx @marp-team/marp-cli guides/AI-Agents-Deck.md --html
-
-# Option 3 — export to PPTX
-npx @marp-team/marp-cli guides/AI-Agents-Deck.md --pptx
 ```

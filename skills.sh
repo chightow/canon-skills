@@ -386,6 +386,51 @@ cmd_refresh() {
     done < "$agents_file" > "$tmp" && mv "$tmp" "$agents_file"
   fi
 
+  # ── Prune skills covered by another registered skill's dep chain ─────────
+  # If skill A is in the depends list of registered skill B, A is loaded
+  # transitively via B's @-imports — the explicit registration is redundant.
+  local skills_in_table covered_deps=()
+  skills_in_table=$(sed -n '/AI-SKILLS:BEGIN/,/AI-SKILLS:END/p' "$agents_file" \
+    | grep "^| " | grep -v "^| Skill" \
+    | awk -F'|' '{gsub(/[[:space:]]/, "", $2); print $2}')
+
+  while IFS= read -r skill; do
+    [ -z "$skill" ] && continue
+    local sf dep_str
+    sf=$(find_skill "$skill" 2>/dev/null) || continue
+    dep_str=$(fm_field "$sf" depends)
+    [ -z "$dep_str" ] && continue
+    while IFS= read -r dep; do
+      dep=$(echo "$dep" | tr -d ' ')
+      [ -n "$dep" ] && covered_deps+=("$dep")
+    done <<< "$(echo "$dep_str" | tr -d '[]' | tr ',' '\n')"
+  done <<< "$skills_in_table"
+
+  if [ ${#covered_deps[@]} -gt 0 ]; then
+    local tmp
+    tmp=$(mktemp)
+    while IFS= read -r line; do
+      if [[ "$line" == "| "* ]] && [[ "$line" != "| Skill"* ]]; then
+        local sname
+        sname=$(echo "$line" | awk -F'|' '{gsub(/[[:space:]]/,"",$2); print $2}')
+        for dep in "${covered_deps[@]}"; do
+          if [ "$sname" = "$dep" ]; then
+            echo "  [pruned]  covered by parent dep: $sname" >&2
+            # Also remove the @-import from CLAUDE.md and AGENTS.md
+            local dep_file
+            dep_file=$(find_skill "$sname" 2>/dev/null) || true
+            [ -n "$dep_file" ] && grep -vF "@$dep_file" "$claude_file" > "$claude_file.tmp" \
+              && mv "$claude_file.tmp" "$claude_file" || true
+            sname=""
+            break
+          fi
+        done
+        [ -z "$sname" ] && continue
+      fi
+      printf '%s\n' "$line"
+    done < "$agents_file" > "$tmp" && mv "$tmp" "$agents_file"
+  fi
+
   # ── Re-register all remaining skills ─────────────────────────────────────
   local skills
   skills=$(sed -n '/AI-SKILLS:BEGIN/,/AI-SKILLS:END/p' "$agents_file" \

@@ -43,9 +43,9 @@ On success, `init` prints the available commands. You're ready to register skill
 > cargo install rtk  # WSL / Linux
 > ```
 
-### Step 3 — Per-project setup
+### Step 3 — Register skills in your project
 
-Run once per project:
+The same command works for new and existing projects — `addall` merges into existing config files safely.
 
 ```bash
 cd /path/to/your-project
@@ -61,7 +61,16 @@ Then verify:
 $SKILLS/skills.sh status
 ```
 
-To initialize `HANDOFF.md`, tell the agent: *"Initialize the handoff file."*
+**New project** — tell the agent to create the scaffolding:
+
+- *"Initialize the handoff file"* → creates `HANDOFF.md` from template
+- `DECISIONS.md` is created automatically on the first `sprint start` — nothing to do
+
+**Existing project** — canon adds to what you have:
+
+- `CLAUDE.md` and `AGENTS.md` are extended with `@`-imports, existing content is preserved
+- `HANDOFF.md` — create it fresh (*"Initialize the handoff file"*) or leave it if one already exists
+- `DECISIONS.md` — if you have existing architectural decisions worth preserving, add them manually using the format in the [How it works](#how-it-works) section below; sprint will append to it from there
 
 ---
 
@@ -83,7 +92,7 @@ The agent:
 
 1. Creates ticket `t-r4t3` and marks it in progress
 2. Creates `.tickets/t-r4t3/blueprint.md` and `acceptance.md`
-3. Reads `DECISIONS.md` — finds: *"Redis chosen for session state"*
+3. Reads `DECISIONS.md` — finds: *"Redis chosen for session state"* (creates the file if absent)
 4. Reads `HANDOFF.md` — picks up any open context from the last session
 5. Produces a sprint brief and waits:
 

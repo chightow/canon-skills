@@ -22,13 +22,13 @@ style: |
 
 # Canon — AI Agent Skills Library
 
-### Shared skills and automation for Claude Code, Codex, and Pi
+Shared skills and automation for Claude Code, Codex, and Pi
 
-Plan → Build → Ship with minimal effort, maximum continuity
+**Plan → Build → Ship** with minimal effort, maximum continuity
 
 ---
 
-## The problems we're solving
+# The problems we're solving
 
 **Problem 1: Agents start cold every session**
 Re-explaining context for 10 minutes before useful work begins. Worse when switching agents or hitting context limits mid-session.
@@ -44,7 +44,7 @@ No shared definition of "done." Agent writes code for the wrong goal, or you dis
 
 ---
 
-## One install. Two commands. Everything else automatic.
+# One install. Two commands. Everything else automatic.
 
 ```bash
 $SKILLS/skills.sh add sprint   # registers the full lifecycle
@@ -72,7 +72,7 @@ $SKILLS/skills.sh add sprint   # registers the full lifecycle
 
 ---
 
-## Architecture — leaf to root
+# Architecture — leaf to root
 
 ```
 sprint ──────────────── two commands cover the full dev lifecycle
@@ -100,7 +100,7 @@ Session hooks (automatic — zero commands):
 
 ---
 
-## Layer 1 — Session continuity
+# Layer 1 — Session continuity
 
 **Pain:** Every new session, or every context window exhaustion, the agent starts cold.
 
@@ -119,7 +119,7 @@ Works across Claude Code, Codex, and Pi — all three read and write the same `H
 
 ---
 
-## Layer 2 — Knowledge capture
+# Layer 2 — Knowledge capture
 
 **Pain:** Non-obvious constraints found mid-session vanish when context compacts or the session ends.
 
@@ -127,10 +127,10 @@ Works across Claude Code, Codex, and Pi — all three read and write the same `H
 
 **What qualifies:**
 - Filter/exclusion rules found through experimentation
-- Numerical facts not in code (row counts, limits, offsets)  
+- Numerical facts not in code (row counts, limits, offsets)
 - Environment gotchas (args, paths, build quirks)
 - Architecture decisions with non-obvious WHY
-- Any constraint found through investigation that isn't visible in the code
+- Any constraint found through investigation not visible in the code
 
 **Automatic** — fires whenever the agent encounters something qualifying.
 
@@ -143,23 +143,21 @@ Works across Claude Code, Codex, and Pi — all three read and write the same `H
 
 ---
 
-## Layer 3 — Code quality
+# Layer 3 — Code quality
 
 Three passes, in order, with smart skip logic:
 
-### code-simplifier
+## code-simplifier
 Clarity and redundancy pass — reduces nesting, eliminates dead code, improves names.
 *Never changes behavior.*
 
-### code-reviewer
+## code-reviewer
 Seven dimensions: correctness, maintainability, readability, efficiency, security, edge cases, test coverage.
 Reports: Critical / Improvements / Nitpicks / Recommendations.
 
-### security-review
+## security-review
 High-confidence vulnerability scan — traces data flow end-to-end before flagging.
 Only reports what's confirmed exploitable. No noisy pattern-match output.
-
-**Skip logic:**
 
 | Step | Skipped when |
 |---|---|
@@ -169,7 +167,7 @@ Only reports what's confirmed exploitable. No noisy pattern-match output.
 
 ---
 
-## A complete session
+# A complete session
 
 | Who | What |
 |---|---|
@@ -191,7 +189,7 @@ Next session — or next agent — picks up exactly here.
 
 ---
 
-## Setup — three steps
+# Setup — three steps
 
 **1. Clone canon (once)**
 ```bash
@@ -216,7 +214,7 @@ brew install rtk
 
 ---
 
-## Benefits at a glance
+# Benefits at a glance
 
 | Without canon | With canon |
 |---|---|
@@ -229,17 +227,15 @@ brew install rtk
 
 ---
 
-## Render this deck
+# Render this deck
 
 ```bash
 # Option 1 — pandoc (already installed, no extras needed)
-awk '/^---$/{n++} n==1 && /^(marp|paginate|theme|style)/{skip=1}
-     n==1 && skip && /^[^ ]/{skip=0} n==1 && skip{next} {print}' \
-  guides/AI-Agents-Deck.md \
-  | pandoc -f markdown -t revealjs -s --slide-level=2 \
-      -V theme=white -V transition=slide -V width=1200 -V height=700 \
-      --metadata title="Canon — AI Agent Skills Library" \
-      -o guides/AI-Agents-Deck.html
+pandoc guides/AI-Agents-Deck.md \
+  -t revealjs -s --slide-level=1 \
+  -V theme=white -V transition=slide -V width=1200 -V height=700 \
+  --metadata title="Canon — AI Agent Skills Library" \
+  -o guides/AI-Agents-Deck.html
 
 # Option 2 — mise (no permanent node install)
 mise x npm:@marp-team/marp-cli@latest -- marp guides/AI-Agents-Deck.md --pdf

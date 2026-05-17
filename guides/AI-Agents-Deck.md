@@ -22,7 +22,9 @@ style: |
 
 # Canon — AI Agent Skills Library {data-background-image="octave-title-bg.png" data-background-size="70%" data-background-position="bottom right" data-background-opacity="0.9"}
 
-<p style="font-size:0.85rem; font-style:italic; color:#B2B8C4; margin:0.3rem 0 2rem;">the canonical set of skills, tools, and standards for AI-assisted development</p>
+::: {.canon-tagline}
+the canonical set of skills, tools, and standards for AI-assisted development
+:::
 
 Shared skills and automation for Claude Code, Codex, and Pi
 
@@ -178,27 +180,30 @@ Next session — or next agent — picks up exactly here.
 
 ---
 
-# Setup — three steps
+# Setup — two steps
 
 **1. Clone canon (once)**
 ```bash
 git clone https://github.com/sunitghub/canon.git ~/Developer/canon
 ```
 
-**2. Run init (once per agent)**
+**2. Run init (once)**
 ```bash
-~/Developer/canon/init-agent.sh   # interactive, safe to re-run
+~/Developer/canon/skills.sh init
 ```
 
-**3. Register skills per project**
+Configures Claude Code, Codex, and Pi — skips any not installed. Safe to re-run.
+Ends by printing available commands so you know what to do next.
+
+**Then — register skills per project**
 ```bash
 cd /path/to/your-project
-~/Developer/canon/skills.sh addall
+~/Developer/canon/skills.sh addall   # or: skills add sprint
 ```
 
 **Optional — RTK** (token optimizer, 60–90% savings on CLI output):
 ```bash
-brew install rtk
+brew install rtk   # install before running init so it gets wired automatically
 ```
 
 ---
@@ -227,8 +232,8 @@ pandoc guides/AI-Agents-Deck.md \
   -t revealjs -s --slide-level=1 \
   -V theme=black -V transition=fade \
   -V width=1280 -V height=720 \
+  -V pagetitle="Canon — AI Agent Skills Library" \
   -H /tmp/octave-hdr.html \
-  --metadata title="Canon — AI Agent Skills Library" \
   -o guides/AI-Agents-Deck.html
 
 # Option 2 — mise (no permanent node install)

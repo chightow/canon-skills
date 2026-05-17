@@ -319,12 +319,33 @@ cmd_status() {
     fi
   done
 
+  # ── Claude Code hook check ───────────────────────────────────────────────
+  local hook_issues=0
+  if command -v claude &>/dev/null; then
+    local settings="$HOME/.claude/settings.json"
+    if [ ! -f "$settings" ]; then
+      hook_issues=4
+    else
+      for hook_script in auto-handoff.sh handoff-inject.sh auto-polish-trigger.sh pre-commit-check.sh; do
+        grep -qF "$hook_script" "$settings" 2>/dev/null || (( hook_issues++ )) || true
+      done
+    fi
+    echo ""
+    if [ "$hook_issues" -eq 0 ]; then
+      echo "Claude hooks: [ok]"
+    else
+      echo "Claude hooks: [not configured] ($hook_issues missing)"
+      echo "  Run: $SKILLS_ROOT/init-agent.sh claude"
+    fi
+  fi
+
   # ── Summary ──────────────────────────────────────────────────────────────
   echo ""
-  if [ "$issues" -eq 0 ]; then
+  if [ "$issues" -eq 0 ] && [ "$hook_issues" -eq 0 ]; then
     echo "All up to date."
   else
-    echo "$issues issue(s) found. Run: $(basename "$0") refresh $project_dir"
+    [ "$issues" -gt 0 ] && echo "$issues issue(s) found. Run: $(basename "$0") refresh $project_dir"
+    [ "$hook_issues" -gt 0 ] && echo "Agent hooks not wired. Run: $SKILLS_ROOT/init-agent.sh claude"
   fi
 
   # ── tkt PATH check (shown last so it's not buried) ───────────────────────
@@ -560,39 +581,36 @@ cmd_help() {
   fi
 }
 
-cmd_init() {
-  local settings="$HOME/.claude/settings.json"
+_init_claude() {
   local scripts="$SKILLS_ROOT/scripts"
+  local settings="$HOME/.claude/settings.json"
 
+  if ! command -v claude &>/dev/null; then
+    echo "  [skip]  claude not installed"
+    return 0
+  fi
   if ! command -v python3 &>/dev/null; then
-    echo "Error: python3 is required for settings.json merging"
-    exit 1
+    echo "  [fail]  python3 required for settings.json merge"
+    return 1
   fi
 
-  echo "Wiring Claude Code hooks from: $SKILLS_ROOT"
-
-  local hook_output
-  hook_output=$(python3 - "$settings" "$scripts" << 'PYEOF'
+  local py_script
+  py_script=$(cat << 'PYEOF'
 import json, sys, os
-
 settings_path = sys.argv[1]
 scripts_path  = sys.argv[2]
-
 try:
     with open(settings_path) as f:
         config = json.load(f)
 except (FileNotFoundError, json.JSONDecodeError):
     config = {}
-
 hooks = config.setdefault("hooks", {})
-
 desired = [
-    ("Stop",             "", f"{scripts_path}/auto-handoff.sh"),
-    ("UserPromptSubmit", "", f"{scripts_path}/handoff-inject.sh"),
-    ("PostToolUse",   "Bash", f"{scripts_path}/auto-polish-trigger.sh"),
-    ("PreToolUse",    "Bash", f"{scripts_path}/pre-commit-check.sh"),
+    ("Stop",            "",     f"{scripts_path}/auto-handoff.sh"),
+    ("UserPromptSubmit","",     f"{scripts_path}/handoff-inject.sh"),
+    ("PostToolUse",     "Bash", f"{scripts_path}/auto-polish-trigger.sh"),
+    ("PreToolUse",      "Bash", f"{scripts_path}/pre-commit-check.sh"),
 ]
-
 for event, matcher, command in desired:
     event_list = hooks.setdefault(event, [])
     entry = next((e for e in event_list if e.get("matcher") == matcher), None)
@@ -605,7 +623,6 @@ for event, matcher, command in desired:
     else:
         entry_hooks.append({"type": "command", "command": command})
         print(f"added\t{event}\t{os.path.basename(command)}")
-
 os.makedirs(os.path.dirname(settings_path), exist_ok=True)
 with open(settings_path, "w") as f:
     json.dump(config, f, indent=2)
@@ -613,17 +630,91 @@ with open(settings_path, "w") as f:
 PYEOF
 )
 
+  local hook_output added=0
+  hook_output=$(python3 - "$settings" "$scripts" <<< "$py_script")
   while IFS=$'\t' read -r status event script; do
     if [ "$status" = "added" ]; then
       echo "  [added]  $event → $script"
+      (( added++ )) || true
     else
-      echo "  [exists] $event → $script"
+      echo "  [ok]     $event → $script"
     fi
   done <<< "$hook_output"
 
+  if [ "$added" -gt 0 ] && command -v rtk &>/dev/null; then
+    rtk init -g --auto-patch > /dev/null 2>&1 && echo "  [ok]     RTK hook wired" || echo "  [ok]     RTK hook already present"
+  fi
+}
+
+_init_codex() {
+  if ! command -v codex &>/dev/null; then
+    echo "  [skip]  codex not installed"
+    return 0
+  fi
+  if command -v rtk &>/dev/null; then
+    rtk init -g --codex --auto-patch > /dev/null 2>&1 \
+      && echo "  [added]  RTK wired into ~/.codex/AGENTS.md" \
+      || echo "  [ok]     RTK already in ~/.codex/AGENTS.md"
+  else
+    echo "  [skip]  rtk not installed (optional)"
+  fi
+}
+
+_init_pi() {
+  local ext_src="$SKILLS_ROOT/extensions/pi/handoff.ts"
+  local ext_dst="$HOME/.pi/agent/extensions/handoff.ts"
+  if [ ! -d "$HOME/.pi" ]; then
+    echo "  [skip]  pi not installed"
+    return 0
+  fi
+  if [ ! -f "$ext_src" ]; then
+    echo "  [fail]  extension not found: $ext_src"
+    return 1
+  fi
+  mkdir -p "$(dirname "$ext_dst")"
+  if [ -f "$ext_dst" ] && cmp -s "$ext_src" "$ext_dst"; then
+    echo "  [ok]     handoff extension already installed"
+  else
+    cp "$ext_src" "$ext_dst"
+    echo "  [added]  handoff.ts → $ext_dst"
+    echo "           Run /reload in Pi to activate"
+  fi
+}
+
+cmd_init() {
+  echo "canon init — wiring agent hooks from: $SKILLS_ROOT"
   echo ""
-  echo "Done. Register skills in your project with:"
-  echo "  $SKILLS_ROOT/skills.sh add <skill> /path/to/your-project"
+
+  local any_fail=0
+
+  echo "Claude Code:"
+  _init_claude || any_fail=1
+
+  echo ""
+  echo "Codex:"
+  _init_codex || any_fail=1
+
+  echo ""
+  echo "Pi:"
+  _init_pi || any_fail=1
+
+  echo ""
+  if [ "$any_fail" -eq 0 ]; then
+    echo "Setup complete."
+  else
+    echo "Setup finished with errors — check items marked [fail] above."
+  fi
+
+  echo ""
+  echo "Next — register skills in your projects:"
+  echo ""
+  printf "  %-30s %s\n" "skills add sprint [dir]"  "Full dev lifecycle (plan → build → ship)"
+  printf "  %-30s %s\n" "skills addall [dir]"       "All available skills (recommended)"
+  printf "  %-30s %s\n" "skills status [dir]"       "Check registration and hook health"
+  printf "  %-30s %s\n" "skills refresh [dir]"      "Re-register + heal stale paths"
+  printf "  %-30s %s\n" "skills list"               "Browse all available skills"
+  echo ""
+  echo "Default project dir is cwd — or pass a path explicitly."
 }
 
 cmd_addall() {

@@ -219,9 +219,10 @@
   opacity: 0.85;
 }
 
-/* tagline: first <em> paragraph on the title slide */
-.reveal .slides section:first-child > p:first-of-type {
+/* tagline on the title slide */
+.reveal .canon-tagline p {
   font-size: 0.85rem;
+  font-style: italic;
   color: #B2B8C4;
   margin: 0.2rem 0 1.8rem;
   letter-spacing: 0.01em;

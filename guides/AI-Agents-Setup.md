@@ -35,44 +35,33 @@ export SKILLS=~/Developer/canon
 ls $SKILLS/skills.sh   # should exist
 ```
 
-### Step 2 — Install prerequisites
+### Step 2 — Run init (once)
 
-**RTK** (optional, recommended) — filters verbose CLI output before it hits the AI's token budget. Saves 60–90% of tokens on common operations.
-
-```bash
-brew install rtk          # macOS
-cargo install rtk         # WSL / Linux
-rtk --version             # verify
-```
-
-> If `rtk gain` fails after install, you likely have the wrong package (name collision on crates.io). Use `brew install rtk`, not `cargo install rtk`.
-
-**tkt** — bundled minimal ticket tool, no install needed. `skills add sprint` adds it and offers to put it on your PATH.
-
-### Step 3 — Agent setup (automated)
-
-**Claude Code only:**
 ```bash
 $SKILLS/skills.sh init
 ```
 
-> Re-run any time you move or rename the canon folder — it rewires hook paths in `~/.claude/settings.json`.
-
-**Claude Code + Codex + Pi:**
-```bash
-$SKILLS/init-agent.sh         # interactive
-$SKILLS/init-agent.sh claude  # or pick one
-$SKILLS/init-agent.sh all     # all three
-```
+This configures all installed agents in one shot:
 
 | Agent | What gets configured |
 |---|---|
 | Claude Code | Handoff + quality hooks merged into `~/.claude/settings.json`. RTK wired automatically if installed. |
-| Codex | `~/.codex/RTK.md` + `@reference` in `~/.codex/AGENTS.md` (skipped if RTK absent). |
+| Codex | RTK wired into `~/.codex/AGENTS.md` (skipped if RTK absent). |
 | Pi | Copies `extensions/pi/handoff.ts` to `~/.pi/agent/extensions/` |
 
+Agents not installed are skipped. Re-run any time you move or rename the canon folder — it rewires hook paths without touching anything else.
+
+On success, `init` prints the available commands and what each does. You're ready to register skills.
+
+> **RTK** (optional, recommended) — filters verbose CLI output, saving 60–90% of tokens on common operations. Install before running `init` so it gets wired automatically.
+> ```bash
+> brew install rtk   # macOS
+> cargo install rtk  # WSL / Linux
+> ```
+> If `rtk gain` fails after install, you have the wrong package (crates.io name collision). Use `brew install rtk`.
+
 <details>
-<summary>Manual fallback — Claude Code</summary>
+<summary>Manual fallback</summary>
 
 ```bash
 rtk init -g --auto-patch   # RTK native hook
@@ -91,7 +80,7 @@ Then merge into `~/.claude/settings.json` (replace `<SKILLS>` with your clone pa
 ```
 </details>
 
-### Step 4 — Per-project setup
+### Step 3 — Per-project setup
 
 Run once per project:
 

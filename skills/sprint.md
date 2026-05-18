@@ -38,7 +38,7 @@ This skill embeds tkt, wrapup, and capture — you only need two commands:
 
 3. **Context.** Read in order:
    - `DECISIONS.md` at repo root — create with empty log table if absent
-   - `HANDOFF.md` — current state and discoveries
+   - `HANDOFF.md` — create from template if absent, otherwise read current state and discoveries
    - Active sprint files
 
 4. **Sprint brief.** Before writing any code, produce:

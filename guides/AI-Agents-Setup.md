@@ -61,7 +61,7 @@ Then verify:
 $SKILLS/skills.sh status
 ```
 
-**Existing project only** — `CLAUDE.md` and `AGENTS.md` are extended with `@`-imports, existing content is preserved. If you have prior architectural decisions worth keeping, add them to `DECISIONS.md` manually before the first sprint using the format in the [How it works](#how-it-works) section; sprint will append to it from there.
+**Existing project only** — `CLAUDE.md` and `AGENTS.md` are extended with `@`-imports, existing content is preserved. If you have prior architectural decisions worth keeping, add them to `DECISIONS.md` manually before the first sprint using the format in the [How it works](#how-it-works) section; sprint will append from there. `HANDOFF.md` and `DECISIONS.md` are both created automatically on the first `sprint start` if they don't exist.
 
 Here's what gets created and by whom:
 
@@ -69,7 +69,7 @@ Here's what gets created and by whom:
 |---|---|---|---|
 | **Codebase** | Agent proposes structure | Agent scans existing code | Agent scans existing code |
 | **DECISIONS.md** | Automatic — first `sprint start` | Automatic — first `sprint start` | Automatic — sprint reads + appends |
-| **HANDOFF.md** | User invokes once: *"Initialize the handoff file"* | User invokes once: *"Initialize the handoff file"* | Automatic — hooks + sprint |
+| **HANDOFF.md** | Automatic — first `sprint start` | Automatic — first `sprint start` | Automatic — hooks + sprint |
 
 ---
 
@@ -162,17 +162,9 @@ Next session — or the next agent — reads the file and picks up exactly here.
 
 Everything in **bold** is something you type. Everything else is automatic.
 
-**First session — getting oriented**
-
-You've just run `skills.sh addall` in a new repo. Open Claude Code and initialize the project context:
-
-**You: "Initialize the handoff file"**
-
-The agent creates `HANDOFF.md` from the template — current focus, in-progress work, decisions, discoveries, next steps. All empty for now; it fills in as you work.
-
 **You: "Sprint start — build a user authentication API"**
 
-No prior context exists yet, so the agent works from your description alone.
+No prior context exists. The agent works from your description alone.
 
 The agent:
 

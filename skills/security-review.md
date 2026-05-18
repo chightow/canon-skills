@@ -76,7 +76,9 @@ ast-grep -p 'pickle.loads($DATA)' -l python --json
 ast-grep -p 'yaml.load($DATA)' -l python --json
 ```
 
-Adapt patterns to the languages in the changed files. If a project has a `scan-rules/` directory at the repo root, run those rules too:
+Adapt patterns to the languages in the changed files. No project setup needed — these run automatically.
+
+If the project has a `scan-rules/` directory at the repo root (optional, project-specific custom rules), run those too:
 
 ```bash
 ast-grep scan --rule scan-rules/ --json 2>/dev/null

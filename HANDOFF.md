@@ -22,6 +22,22 @@ Nothing in progress.
 - Config.md for storing install path — not needed; scripts self-locate via BASH_SOURCE at runtime
 - DateTime-based staleness check for skills refresh — not needed; @-imports are live references, content changes take effect automatically
 
+<!-- HANDOFF-SNAPSHOT:START 2026-05-17 20:21 branch:main -->
+**Modified files:**
+```
+ M skills.sh
+```
+
+**Recent commits:**
+```
+8eb1181 docs: clarify ast-grep built-in patterns need no project setup
+4fda1a1 docs: mention efficiency standard is auto-injected on skill registration
+7f053bb feat: wire ast-grep as optional pre-scan step in security-review
+707cc50 docs: regenerate setup guide PDF
+13c2365 docs: fix init command in deck to use cd && ./skills.sh form
+```
+<!-- HANDOFF-SNAPSHOT:END -->
+
 <!-- HANDOFF-SNAPSHOT:START 2026-05-17 19:13 branch:main -->
 **Modified files:**
 ```
@@ -35,21 +51,5 @@ Nothing in progress.
 0c2f85d chore: auto-update handoff snapshot [2026-05-17 19:07]
 7b6c2c9 chore: auto-update handoff snapshot [2026-05-17 19:06]
 2d18e0d chore: auto-update handoff snapshot [2026-05-17 19:06]
-```
-<!-- HANDOFF-SNAPSHOT:END -->
-
-<!-- HANDOFF-SNAPSHOT:START 2026-05-17 19:12 branch:main -->
-**Modified files:**
-```
- M guides/AI-Agents-Deck.md
-```
-
-**Recent commits:**
-```
-0c2f85d chore: auto-update handoff snapshot [2026-05-17 19:07]
-7b6c2c9 chore: auto-update handoff snapshot [2026-05-17 19:06]
-2d18e0d chore: auto-update handoff snapshot [2026-05-17 19:06]
-a7bcfb1 chore: auto-update handoff snapshot [2026-05-17 19:04]
-9b688b6 feat: auto-create HANDOFF.md on first sprint start if absent
 ```
 <!-- HANDOFF-SNAPSHOT:END -->

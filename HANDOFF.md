@@ -22,6 +22,22 @@ Nothing in progress.
 - Config.md for storing install path — not needed; scripts self-locate via BASH_SOURCE at runtime
 - DateTime-based staleness check for skills refresh — not needed; @-imports are live references, content changes take effect automatically
 
+<!-- HANDOFF-SNAPSHOT:START 2026-05-17 19:00 branch:main -->
+**Modified files:**
+```
+ M guides/AI-Agents-Deck.md
+```
+
+**Recent commits:**
+```
+1155746 chore: auto-update handoff snapshot [2026-05-17 18:58]
+1ee8fa3 docs: clarify existing project premise and first-sprint state
+a4c25a0 chore: auto-update handoff snapshot [2026-05-17 18:57]
+ad0a2f5 chore: auto-update handoff snapshot [2026-05-17 18:55]
+5090b24 docs: clarify sprint brief source — proposal vs codebase analysis
+```
+<!-- HANDOFF-SNAPSHOT:END -->
+
 <!-- HANDOFF-SNAPSHOT:START 2026-05-17 18:58 branch:main -->
 **Modified files:**
 ```
@@ -35,21 +51,5 @@ a4c25a0 chore: auto-update handoff snapshot [2026-05-17 18:57]
 ad0a2f5 chore: auto-update handoff snapshot [2026-05-17 18:55]
 5090b24 docs: clarify sprint brief source — proposal vs codebase analysis
 bb3813c chore: auto-update handoff snapshot [2026-05-17 18:52]
-```
-<!-- HANDOFF-SNAPSHOT:END -->
-
-<!-- HANDOFF-SNAPSHOT:START 2026-05-17 18:57 branch:main -->
-**Modified files:**
-```
- M guides/AI-Agents-Deck.md
-```
-
-**Recent commits:**
-```
-ad0a2f5 chore: auto-update handoff snapshot [2026-05-17 18:55]
-5090b24 docs: clarify sprint brief source — proposal vs codebase analysis
-bb3813c chore: auto-update handoff snapshot [2026-05-17 18:52]
-4cedb05 docs: split session example into existing vs new project walkthroughs
-4056473 chore: auto-update handoff snapshot [2026-05-17 18:51]
 ```
 <!-- HANDOFF-SNAPSHOT:END -->

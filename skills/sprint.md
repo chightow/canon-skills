@@ -17,16 +17,29 @@ This skill embeds tkt, wrapup, and capture — you only need two commands:
 
 | Command | When |
 |---|---|
-| `sprint start` | Before writing any code |
+| `sprint start` | Any dev request — automatic unless the change is trivially mechanical |
 | `sprint complete` | When you believe the work is done |
 
 `capture` runs automatically between them — no invocation needed.
 
 ---
 
+## Default mode
+
+Sprint is the default workflow for any substantive dev request. Route through `sprint start` automatically when the user asks to add, fix, update, refactor, implement, debug, or build anything — without waiting for the explicit phrase "sprint start".
+
+**Skip sprint and proceed directly only when:**
+- The request is a question or explanation ("what does X do?", "explain Y")
+- The change is a single line or trivially mechanical (typo, rename, one-word config change)
+- The user explicitly says to skip it ("just fix it", "quick change")
+
+When in doubt, use sprint. The approval gate is low friction — it takes one "yes" to proceed.
+
+---
+
 ## sprint start
 
-**Trigger:** "sprint start", "start a sprint for X", "start working on X", "let's work on X"
+**Trigger:** "sprint start", "start a sprint for X", "let's work on X" — or any request to add, fix, update, debug, implement, or build something that isn't explicitly trivial
 
 1. **Ticket.** If no active ticket: `tkt create "<title>"`. If tkt is not in use, create
    `planning/sprints/<slug>/` instead. Run `tkt start <id>` (or note the slug as active).

@@ -348,7 +348,7 @@ Each step has skip logic — states why in one line when it doesn't apply:
 | `sprint complete` | Runs wrapup → validates every acceptance criterion → appends to DECISIONS.md → updates HANDOFF.md → closes ticket |
 
 **Trigger phrases:**
-- sprint start: *"sprint start"*, *"start a sprint for X"*, *"let's work on X"*
+- sprint start: any request to add, fix, update, debug, implement, or build — explicit phrases like *"sprint start"* or *"let's work on X"* also work. Skipped only for questions, explanations, or trivially mechanical one-liners.
 - sprint complete: *"sprint complete"*, *"approve"*, *"ship it"*
 
 **Planning files:**

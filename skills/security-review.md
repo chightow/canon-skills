@@ -48,12 +48,51 @@ Only report what meets HIGH or MEDIUM confidence:
 - Code paths requiring prior authentication
 - Django settings, env vars (`os.environ.get()`), framework constants — these are safe by design
 
+## Pre-scan (ast-grep)
+
+Before manual review, check whether `ast-grep` is available:
+
+```bash
+command -v ast-grep >/dev/null 2>&1 && echo "available" || echo "not installed"
+```
+
+**If available**, run a structural pattern scan over the changed files to surface confirmed hits before reading code. Use `--json` for structured output:
+
+```bash
+# Injection / unsafe exec
+ast-grep -p '$F($$$ARGS, shell=True)' -l python --json
+ast-grep -p 'exec.Command($CMD, $$$)' -l go --json
+
+# Unvalidated input in queries
+ast-grep -p 'f"$$$SELECT$$$WHERE$$$"' -l python --json
+ast-grep -p '`$$$SELECT$$$${$VAR}$$$`' -l javascript --json
+
+# Unsafe eval / innerHTML
+ast-grep -p 'eval($INPUT)' -l javascript --json
+ast-grep -p '$EL.innerHTML = $VAL' -l javascript --json
+
+# Unsafe deserialization
+ast-grep -p 'pickle.loads($DATA)' -l python --json
+ast-grep -p 'yaml.load($DATA)' -l python --json
+```
+
+Adapt patterns to the languages in the changed files. If a project has a `scan-rules/` directory at the repo root, run those rules too:
+
+```bash
+ast-grep scan --rule scan-rules/ --json 2>/dev/null
+```
+
+Use ast-grep hits as **starting points for data flow tracing** — a pattern match is not a confirmed vulnerability. Proceed to manual review either way.
+
+**If not available**, skip the pre-scan silently and proceed directly to manual review. Note in the report: `ast-grep not installed — structural pre-scan skipped`.
+
 ## Process
 
-1. Trace data flow end-to-end before flagging anything.
-2. Confirm attacker-controlled input reaches the vulnerable pattern.
-3. Check for validation, sanitization, or framework mitigations along the path.
-4. Only then report — with exploitability evidence, not pattern matches alone.
+1. **Pre-scan** — run ast-grep if available (see above); note any pattern hits.
+2. Trace data flow end-to-end before flagging anything.
+3. Confirm attacker-controlled input reaches the vulnerable pattern.
+4. Check for validation, sanitization, or framework mitigations along the path.
+5. Only then report — with exploitability evidence, not pattern matches alone.
 
 ## Vulnerability Categories
 

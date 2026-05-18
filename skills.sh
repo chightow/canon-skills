@@ -348,6 +348,20 @@ cmd_status() {
     [ "$hook_issues" -gt 0 ] && echo "Agent hooks not wired. Run: $SKILLS_ROOT/init-agent.sh claude"
   fi
 
+  # ── optional tooling hints ───────────────────────────────────────────────
+  echo ""
+  echo "Optional tools:"
+  if command -v ast-grep &>/dev/null; then
+    printf "  %-20s %s\n" "ast-grep" "[ok]  — security pre-scan active"
+  else
+    printf "  %-20s %s\n" "ast-grep" "[not installed]  — structural pre-scan unavailable (brew install ast-grep)"
+  fi
+  if command -v rtk &>/dev/null; then
+    printf "  %-20s %s\n" "rtk" "[ok]  — token filtering active"
+  else
+    printf "  %-20s %s\n" "rtk" "[not installed]  — token savings unavailable (brew install rtk)"
+  fi
+
   # ── tkt PATH check (shown last so it's not buried) ───────────────────────
   if $_has_ticket && ! command -v tkt &>/dev/null; then
     local _tools_dir="$SKILLS_ROOT/tools"

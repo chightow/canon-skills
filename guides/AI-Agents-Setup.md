@@ -241,8 +241,9 @@ sprint ────────────────────────�
   │
   ├── PLAN
   │     tkt              track work, one ticket per sprint
-  │     blueprint.md     files to touch, step-by-step build plan
-  │     acceptance.md    binary definition of done
+  │     impact-analysis  risk rating + test plan before any code
+  │     blueprint.md     files to touch, build plan, Impact Assessment
+  │     acceptance.md    binary definition of done + Test Plan
   │     DECISIONS.md     durable architectural decisions (repo root)
   │
   ├── BUILD
@@ -254,6 +255,7 @@ sprint ────────────────────────�
           code-simplifier   clarity and redundancy pass
           code-reviewer     seven-dimension logic review
           security-review   high-confidence vulnerability scan
+        test verification   all Test Plan items must pass before close
 
 Session hooks (fire automatically):
   handoff-inject   session start → agent reads HANDOFF.md silently
@@ -340,14 +342,30 @@ Each step has skip logic — states why in one line when it doesn't apply:
 
 **Outside a sprint:** `/wrapup` directly on any code written in the session.
 
+### Layer 5b — Impact analysis
+
+**The problem:** Changes with broad audience, irreversible effects, or multiple trigger paths cause production incidents that code review alone won't catch — because the risk is structural, not syntactic. A hidden "Email All" button bypassing an auth check looks fine in isolation.
+
+**What it does:** Before any code is written, `impact-analysis` interrogates the request, rates five risk dimensions (Audience, Reversibility, Blast radius, Trigger paths, Cascade risk), and generates a mandatory test plan. Every HIGH-rated dimension adds a required test. Sprint complete won't close until all tests are documented as passed.
+
+| Dimension | What it catches |
+|---|---|
+| Audience | Mass-effect operations — email sends, bulk updates, external webhooks |
+| Reversibility | Irreversible actions — deletes, sends, financial writes |
+| Blast radius | Shared-state corruption risk on failure |
+| Trigger paths | Multiple UI/API paths to the same handler — duplicate trigger bug class |
+| Cascade risk | Downstream consumers that react to the change |
+
+Sprint start surfaces these before approval. Sprint complete gates closure on the resulting tests.
+
 ### Layer 6 — Sprint (the full lifecycle)
 
 **What it does:** Two commands encapsulate everything above:
 
 | Command | What happens |
 |---|---|
-| `sprint start` | Creates ticket → blueprint → acceptance criteria → reads DECISIONS.md + HANDOFF.md → produces sprint brief → **waits for your approval** |
-| `sprint complete` | Runs wrapup → validates every acceptance criterion → appends to DECISIONS.md → updates HANDOFF.md → closes ticket |
+| `sprint start` | Creates ticket → blueprint → acceptance criteria → reads DECISIONS.md + HANDOFF.md → **impact analysis** → produces sprint brief → **waits for your approval** |
+| `sprint complete` | Runs wrapup → **verifies all tests passed** → validates every acceptance criterion → appends to DECISIONS.md → updates HANDOFF.md → closes ticket |
 
 **Trigger phrases:**
 - sprint start: any request to add, fix, update, debug, implement, or build — explicit phrases like *"sprint start"* or *"let's work on X"* also work. Skipped only for questions, explanations, or trivially mechanical one-liners.
@@ -359,8 +377,8 @@ Each step has skip logic — states why in one line when it doesn't apply:
 ```
 .tickets/<id>/
   ticket.md        ← tkt-managed
-  blueprint.md     ← files to touch, step-by-step build plan
-  acceptance.md    ← binary definition of done
+  blueprint.md     ← files to touch, build plan, Impact Assessment
+  acceptance.md    ← binary definition of done + Test Plan
 ```
 
 **DECISIONS.md** (repo root) — durable log of non-obvious architectural choices. Sprint start reads it; sprint complete writes to it.
@@ -404,11 +422,11 @@ tkt reopen <id>               # reopen a closed ticket
 
 | Skill | How to verify | Expected response |
 |---|---|---|
-| `sprint` | `"Start a sprint for X"` | Sprint brief produced, awaits approval before any code |
+| `sprint` | `"Start a sprint for X"` | Interrogation questions asked → impact ratings shown → sprint brief with Impact Assessment and Test Plan → awaits approval before any code |
 | `pdf` | `"Extract text from [file].pdf"` | Extracted content, or a clear error |
 | `ticket` | `tkt ls` | Empty list or existing tickets — no error |
 
-> Everything else is automatic. `efficiency` is always on. `capture` fires mid-session. `wrapup` runs inside `sprint complete`. `handoff` and `ticket` are deps of sprint — loaded silently.
+> Everything else is automatic. `efficiency` is always on. `capture` fires mid-session. `wrapup` + test verification run inside `sprint complete`. `impact-analysis`, `handoff`, and `ticket` are deps of sprint — loaded silently.
 
 ---
 

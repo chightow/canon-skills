@@ -4,11 +4,12 @@ description: Full dev workflow — plan, build, and ship focused units of work w
 summary: Full dev workflow: plan → build → ship. Two commands cover everything.
 category: dev
 tags: [workflow, planning, quality, tickets, orchestration]
-depends: [wrapup, capture, ticket, handoff]
+depends: [wrapup, capture, ticket, handoff, impact-analysis]
 ---
 
 @/Users/Sunit/Developer/canon/skills/wrapup.md
 @/Users/Sunit/Developer/canon/skills/capture.md
+@/Users/Sunit/Developer/canon/skills/impact-analysis.md
 
 # Sprint
 
@@ -55,15 +56,26 @@ Sprint isn't code-only — it works equally well for docs, config, and planning 
    - `DECISIONS.md` at repo root — create with empty log table if absent
    - `HANDOFF.md` — create from template if absent, otherwise read current state and discoveries
    - Active sprint files
+   - Closed tickets in `.tickets/` that touched files this sprint will modify — note any whose behavior must still hold (used in Step 4 regression tests)
 
-4. **Sprint brief.** Before writing any code, produce:
+4. **Impact analysis.** Before producing the sprint brief, run the full impact analysis process defined in the impact-analysis skill:
+   - Interrogate the request — ask every question whose answer changes the risk profile. Do not skip this even if the request seems straightforward.
+   - Rate all five dimensions (Audience, Reversibility, Blast radius, Trigger paths, Cascade risk).
+   - For every HIGH rating: add the required action to `blueprint.md` and the required test to `acceptance.md ## Test Plan`.
+   - Past sprint carryover: add regression tests for any closed tickets that touched the same files.
+   - Write the `## Impact Assessment` block to `blueprint.md` and `## Test Plan` to `acceptance.md`.
+   - If test location is unclear, ask the user before proceeding.
+
+5. **Sprint brief.** After impact analysis, produce:
    - What this sprint accomplishes (one sentence)
    - Files expected to be created or modified
+   - Impact summary: overall rating + any HIGH dimensions with their required actions called out
    - Acceptance criteria (verbatim from acceptance.md)
+   - Test plan (verbatim from acceptance.md ## Test Plan)
    - Any constraints from DECISIONS.md that apply
-   - Ambiguities or blockers
+   - Open questions or blockers still unresolved
 
-5. **Wait for explicit approval.** Do not write application code until the user confirms.
+6. **Wait for explicit approval.** Do not write application code until the user confirms.
 
 ---
 
@@ -76,20 +88,27 @@ Do not accept the user's claim that work is done. Verify it.
 1. **Wrapup.** Run the pipeline defined above (code-simplifier → code-reviewer →
    security-review) on all files modified since sprint start. Apply skip rules as defined.
 
-2. **Acceptance check.** Review each item in `acceptance.md`:
+2. **Test verification.** Review each item in `acceptance.md ## Test Plan`:
+   - ✓ passed | ✗ failed | ? not run
+   - If any ✗ or ?: report which tests did not pass. Do not close the ticket. Stop here.
+   - This includes all impact tests and regression tests, not just functional tests.
+   - Confirm test results are documented in `acceptance.md` (pass/fail per item, date run).
+   - Proceed only when all tests are ✓ or explicitly waived by the user with a documented reason.
+
+3. **Acceptance check.** Review each item in `acceptance.md`:
    - ✓ met | ✗ not met | ? uncertain
    - If any ✗: report what is missing. Do not close the ticket. Stop here.
    - Proceed only when all criteria are ✓ or explicitly waived by the user.
 
-3. **DECISIONS.md.** Append any durable decisions made during this sprint — non-obvious
+4. **DECISIONS.md.** Append any durable decisions made during this sprint — non-obvious
    architectural choices, explicit tradeoffs, out-of-scope calls. One row per decision.
    Write the WHY, not the what. Skip if no new decisions were made.
 
-4. **HANDOFF.md.** Update `## Next Steps` with any follow-up work.
+5. **HANDOFF.md.** Update `## Next Steps` with any follow-up work.
 
-5. **Close.** Run `tkt close <id>` (or mark sprint slug complete).
+6. **Close.** Run `tkt close <id>` (or mark sprint slug complete).
 
-6. **Report.** One paragraph: what shipped, any waived criteria and why, follow-up recorded.
+7. **Report.** One paragraph: what shipped, test results summary, any waived criteria and why, follow-up recorded.
 
 ---
 

@@ -49,7 +49,7 @@ The agent determines scope automatically (local diff vs. remote PR), checks out 
 2. **Maintainability** — is the structure clean, modular, and pattern-consistent?
 3. **Readability** — are naming, comments, and formatting clear?
 4. **Efficiency** — any performance bottlenecks or unnecessary resource use?
-5. **Security** — any vulnerabilities or unsafe practices?
+5. **Security** — any vulnerabilities or unsafe practices? For destructive actions specifically: (a) is authorization enforced server-side, independent of UI state? (b) is there only one path to this endpoint, or could a secondary trigger bypass guards? See security-review Action Endpoint Patterns.
 6. **Edge cases** — are errors and unexpected inputs handled?
 7. **Test coverage** — are tests adequate? What's missing?
 

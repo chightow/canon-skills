@@ -100,6 +100,23 @@ Use ast-grep hits as **starting points for data flow tracing** — a pattern mat
 
 Injection, XSS, authorization bypass, weak cryptography, unsafe deserialization, SSRF, CSRF, file security, broken authentication, business logic flaws, API security, misconfiguration, error handling leaks, sensitive data in logs.
 
+## Action Endpoint Patterns
+
+Two framework-agnostic patterns to check on every destructive or irreversible action (send email, delete, bulk-update, trigger job, cache flush):
+
+**1. UI-only access control**
+Hiding or disabling a UI element is not authorization. A hidden button, a conditionally-rendered form, a `display:none` link — none of these prevent a direct request to the underlying endpoint. The server-side handler must enforce access control independently of whether the UI element was rendered. Flag any handler where the only guard is UI-level gating.
+
+**2. Duplicate action triggers**
+The same endpoint can be wired to multiple UI paths — a primary path (with confirmation dialog, role check, audit log) and a secondary one added later as a convenience shortcut that skips those guards. Search the entire view/template layer for all bindings to the same endpoint. More than one path to a destructive action is a red flag unless every path enforces the same controls.
+
+Detection by framework:
+- **HTML forms**: grep for `action="/same-path"` or `method="post"` on multiple forms in the same template
+- **ASP.NET Razor Pages**: grep `.cshtml` for `asp-page-handler="X"` and `action="?handler=X"`
+- **Django**: grep templates for `action="{% url 'view-name' %}"` across all included partials
+- **React/fetch**: grep for all `fetch`/`axios` calls to the same URL — a hook called from two components
+- **Express**: grep route registrations for duplicate `router.post('/path', ...)`
+
 ## Language-Specific Patterns
 
 - **Python** — Django, Flask, FastAPI: SQL via raw queries, template injection, unsafe deserialization formats, open redirects
@@ -107,9 +124,7 @@ Injection, XSS, authorization bypass, weak cryptography, unsafe deserialization,
 - **Go** — `exec.Command` with user input, unsafe pointer use, goroutine races
 - **Rust** — `unsafe` blocks, FFI boundaries, panics in production paths
 - **Java** — Spring: deserialization, XXE, reflected input in responses
-- **ASP.NET Razor Pages** — for every handler that performs a destructive or irreversible action (send email, delete, bulk-update, cache refresh):
-  1. **UI-only access control**: hiding a button or `<form>` in Razor is not authorization — a POST to `?handler=X` works regardless of whether the element is rendered. Verify the handler has an explicit server-side `Forbid()` / `Unauthorized()` check that does not depend on UI state.
-  2. **Duplicate triggers**: grep the `.cshtml` for every `asp-page-handler="X"` and `action="?handler=X"` binding to a destructive handler. More than one form targeting the same handler is a red flag — the secondary form often bypasses the JS confirmation dialog, admin-visibility guard, or access check that the primary form enforces.
+- **ASP.NET Razor Pages** — apply Action Endpoint Patterns above; additionally check `OnGet` handlers that mutate state (should be `OnPost`)
 
 ## Severity Classification
 

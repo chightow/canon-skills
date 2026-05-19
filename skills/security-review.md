@@ -107,6 +107,9 @@ Injection, XSS, authorization bypass, weak cryptography, unsafe deserialization,
 - **Go** — `exec.Command` with user input, unsafe pointer use, goroutine races
 - **Rust** — `unsafe` blocks, FFI boundaries, panics in production paths
 - **Java** — Spring: deserialization, XXE, reflected input in responses
+- **ASP.NET Razor Pages** — for every handler that performs a destructive or irreversible action (send email, delete, bulk-update, cache refresh):
+  1. **UI-only access control**: hiding a button or `<form>` in Razor is not authorization — a POST to `?handler=X` works regardless of whether the element is rendered. Verify the handler has an explicit server-side `Forbid()` / `Unauthorized()` check that does not depend on UI state.
+  2. **Duplicate triggers**: grep the `.cshtml` for every `asp-page-handler="X"` and `action="?handler=X"` binding to a destructive handler. More than one form targeting the same handler is a red flag — the secondary form often bypasses the JS confirmation dialog, admin-visibility guard, or access check that the primary form enforces.
 
 ## Severity Classification
 

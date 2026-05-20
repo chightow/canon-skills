@@ -22,6 +22,23 @@ Nothing in progress.
 - Config.md for storing install path — not needed; scripts self-locate via BASH_SOURCE at runtime
 - DateTime-based staleness check for skills refresh — not needed; @-imports are live references, content changes take effect automatically
 
+<!-- HANDOFF-SNAPSHOT:START 2026-05-20 09:48 branch:main -->
+**Modified files:**
+```
+?? tools/sprint-check.sh
+?? tools/sprint-check/
+```
+
+**Recent commits:**
+```
+3baf883 chore: auto-update handoff snapshot [2026-05-20 09:45]
+eaa1b80 chore: auto-update handoff snapshot [2026-05-20 09:40]
+f9078a1 feat: add changes summary table to wrapup final output
+8344b7b feat: silent-pass for all-LOW impact — only surface when risk is present
+fbddcff chore: expand sprint skills list summary to describe impact analysis flow
+```
+<!-- HANDOFF-SNAPSHOT:END -->
+
 <!-- HANDOFF-SNAPSHOT:START 2026-05-20 09:45 branch:main -->
 **Modified files:**
 ```
@@ -36,22 +53,5 @@ f9078a1 feat: add changes summary table to wrapup final output
 8344b7b feat: silent-pass for all-LOW impact — only surface when risk is present
 fbddcff chore: expand sprint skills list summary to describe impact analysis flow
 a1f41d7 feat: add impact-analysis sub-skill and wire into sprint
-```
-<!-- HANDOFF-SNAPSHOT:END -->
-
-<!-- HANDOFF-SNAPSHOT:START 2026-05-20 09:40 branch:main -->
-**Modified files:**
-```
-?? tools/sprint-check.sh
-?? tools/sprint-check/
-```
-
-**Recent commits:**
-```
-f9078a1 feat: add changes summary table to wrapup final output
-8344b7b feat: silent-pass for all-LOW impact — only surface when risk is present
-fbddcff chore: expand sprint skills list summary to describe impact analysis flow
-a1f41d7 feat: add impact-analysis sub-skill and wire into sprint
-1a33da2 docs: update setup guide with Action Endpoint Patterns, inject sprint note
 ```
 <!-- HANDOFF-SNAPSHOT:END -->

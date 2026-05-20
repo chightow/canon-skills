@@ -672,7 +672,7 @@
         <span class="create-label">Priority</span>
         <div class="create-pills" id="c-priorities"></div>
       </div>
-      <textarea id="c-body" class="modal-edit-area create-textarea" placeholder="Description — auto-filled from template" spellcheck="false"></textarea>
+      <textarea id="c-body" class="modal-edit-area create-textarea" placeholder="Description" spellcheck="false"></textarea>
     </div>
     <div class="modal-footer">
       <div class="modal-actions">
@@ -1492,7 +1492,8 @@ document.getElementById('commit-overlay').addEventListener('click', e => {
 
   function open() {
     selectedType = 'task'; selectedPri = 2; templateUntouched = true;
-    titleEl.value = ''; bodyEl.value = ''; detectEl.textContent = '';
+    titleEl.value = ''; detectEl.textContent = '';
+    bodyEl.value = TYPE_TEMPLATES['task'] || '';
     queueEl.textContent = '→ will open in: Open';
     renderTypePills(); renderPriPills();
     overlay.classList.add('open');

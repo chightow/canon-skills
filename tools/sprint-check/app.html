@@ -206,6 +206,17 @@
     .col-discarded  .column-body   { opacity: .55; }
     .col-discarded  { max-width: 200px; min-width: 160px; }
 
+    /* ── Show more / less ────────────────────────── */
+    .col-show-more {
+      display: block; width: 100%; margin-top: 6px;
+      padding: 6px; border-radius: var(--radius-sm);
+      border: 1px dashed var(--border-hover); background: none;
+      color: var(--text-muted); font-size: 12px; cursor: pointer;
+      transition: background .12s, color .12s;
+    }
+    .col-show-more:hover { background: var(--surface-raised); color: var(--text); }
+    .col-show-less { border-style: solid; }
+
     /* ── Drag and drop ───────────────────────────── */
     .card.dragging  { opacity: .35; transform: scale(.97); pointer-events: none; }
     .column-body.drag-over {
@@ -287,10 +298,49 @@
     .meta-label { color: var(--text-muted); font-size: 12px; }
     .meta-val   { color: var(--text); font-weight: 500; }
 
+    .modal-docs {
+      display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+      padding: 8px 20px; border-bottom: 1px solid var(--border-muted);
+      background: var(--surface-raised); flex-shrink: 0;
+    }
+    .modal-docs:empty { display: none; }
+    .doc-tab {
+      padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 500;
+      border: 1px solid var(--border); background: transparent;
+      color: var(--text-muted); cursor: pointer; transition: background .1s, color .1s, border-color .1s;
+    }
+    .doc-tab:hover { background: var(--surface-hover); color: var(--text); border-color: var(--border-hover); }
+    .doc-tab.active { background: var(--accent-dim); color: var(--accent); border-color: var(--accent); }
+    .doc-tab-new {
+      padding: 3px 10px; border-radius: 20px; font-size: 12px;
+      border: 1px dashed var(--border); background: transparent;
+      color: var(--text-dim); cursor: pointer; transition: color .1s, border-color .1s;
+    }
+    .doc-tab-new:hover { color: var(--text-muted); border-color: var(--border-hover); }
+    .doc-edit-btn {
+      margin-left: auto; padding: 3px 10px; border-radius: 20px; font-size: 12px;
+      border: 1px solid var(--border); background: transparent;
+      color: var(--text-muted); cursor: pointer; transition: background .1s, color .1s;
+    }
+    .doc-edit-btn:hover { background: var(--surface-hover); color: var(--text); }
+
     .modal-body { flex: 1; overflow-y: auto; padding: 20px; }
     .modal-body-text {
       font-size: 13px; color: var(--text-muted); line-height: 1.75; white-space: pre-wrap;
     }
+    .modal-edit-area {
+      width: 100%; height: 100%; min-height: 200px; resize: vertical;
+      background: var(--surface-raised); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); color: var(--text);
+      font-family: ui-monospace, "Cascadia Code", monospace; font-size: 13px;
+      line-height: 1.6; padding: 12px; outline: none;
+      transition: border-color .1s;
+    }
+    .modal-edit-area:focus { border-color: var(--accent); }
+    .btn-primary {
+      background: var(--accent); border-color: var(--accent); color: #fff;
+    }
+    .btn-primary:hover { background: var(--accent); opacity: .85; }
     .modal-empty { color: var(--text-dim); font-style: italic; }
 
     .modal-footer {
@@ -413,12 +463,14 @@
       <button class="modal-close" id="btn-close">✕</button>
     </div>
     <div class="modal-meta" id="m-meta"></div>
+    <div class="modal-docs" id="m-docs"></div>
     <div class="modal-body">
       <div class="modal-body-text" id="m-body"></div>
+      <textarea id="m-edit-area" class="modal-edit-area" style="display:none" spellcheck="false"></textarea>
     </div>
     <div class="modal-footer">
       <div class="modal-actions" id="m-actions"></div>
-      <div class="kbd-hint">
+      <div class="kbd-hint" id="m-kbd">
         <span><kbd>←</kbd> <kbd>→</kbd> move status</span>
         <span><kbd>esc</kbd> close</span>
       </div>
@@ -488,7 +540,9 @@ function ago(days) {
 
 // ── State ────────────────────────────────────────────────────────────────
 
-const state = { tickets:[], handoff:null, git:null, selectedId:null };
+const COLLAPSE_STATUSES = new Set(['closed', 'cancelled']);
+const COL_LIMIT = 5;
+const state = { tickets:[], handoff:null, git:null, selectedId:null, expandedCols: new Set() };
 
 // ── Data layer ───────────────────────────────────────────────────────────
 
@@ -611,6 +665,9 @@ function renderBoard() {
     const cards = state.tickets
       .filter(t => t.status === col.status)
       .sort((a, b) => (b.created || '').localeCompare(a.created || ''));
+    const limited = COLLAPSE_STATUSES.has(col.status) && !state.expandedCols.has(col.status);
+    const visible = limited ? cards.slice(0, COL_LIMIT) : cards;
+    const hidden  = cards.length - visible.length;
     return `
       <div class="column ${esc(col.cls)}">
         <div class="column-header">
@@ -618,12 +675,27 @@ function renderBoard() {
           <span class="column-count">${cards.length}</span>
         </div>
         <div class="column-body" data-status="${esc(col.status)}">
-          ${cards.length
-            ? cards.map(t => cardHTML(t)).join('')
+          ${visible.length
+            ? visible.map(t => cardHTML(t)).join('')
             : '<div class="column-empty">empty</div>'}
+          ${hidden > 0
+            ? `<button class="col-show-more" data-status="${esc(col.status)}">+${hidden} more</button>`
+            : ''}
+          ${state.expandedCols.has(col.status) && cards.length > COL_LIMIT
+            ? `<button class="col-show-more col-show-less" data-status="${esc(col.status)}">Show less ↑</button>`
+            : ''}
         </div>
       </div>`;
   }).join('');
+
+  board.querySelectorAll('.col-show-more').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const s = btn.dataset.status;
+      if (state.expandedCols.has(s)) state.expandedCols.delete(s);
+      else state.expandedCols.add(s);
+      renderBoard();
+    });
+  });
 
   let dragId = null;
 
@@ -679,10 +751,14 @@ function cardHTML(t) {
 
 // ── Modal ─────────────────────────────────────────────────────────────────
 
+const modalState = { editMode: false, activeDoc: null /* null = ticket body */ };
+
 function openModal(id) {
   const t = state.tickets.find(t => t.id === id);
   if (!t) return;
   state.selectedId = id;
+  modalState.editMode = false;
+  modalState.activeDoc = null;
 
   setText('m-id',    t.id);
   setText('m-title', t.title);
@@ -699,17 +775,129 @@ function openModal(id) {
     { label:'Age',      val: age(t.created) || '—' },
   ].map(m => `<div class="meta-item"><span class="meta-label">${esc(m.label)}</span><span class="meta-val">${m.html ?? esc(m.val)}</span></div>`).join('');
 
-  const body = (t.body || '').trim();
-  document.getElementById('m-body').innerHTML = body
-    ? md(body)
-    : '<span class="modal-empty">No description.</span>';
-
+  renderModalDocs(t);
+  renderModalBody(t);
   refreshModalActions(t);
   document.getElementById('modal-overlay').classList.add('open');
   renderBoard();
 }
 
+function renderModalDocs(t) {
+  const docs = t.docs || [];
+  const bar = document.getElementById('m-docs');
+  const allTabs = [{ name: 'Description', file: null }, ...docs];
+
+  bar.innerHTML = allTabs.map(d => {
+    const active = d.file === modalState.activeDoc;
+    return `<button class="doc-tab${active ? ' active' : ''}" data-file="${d.file ?? ''}">${esc(d.name)}</button>`;
+  }).join('') +
+  `<button class="doc-tab-new" id="btn-new-doc" title="Add companion doc">+ New doc</button>` +
+  `<button class="doc-edit-btn" id="btn-edit-doc">Edit</button>`;
+
+  bar.querySelectorAll('.doc-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (modalState.editMode) return;
+      modalState.activeDoc = btn.dataset.file || null;
+      renderModalDocs(t);
+      renderModalBody(t);
+    });
+  });
+
+  document.getElementById('btn-new-doc').addEventListener('click', () => promptNewDoc(t));
+  document.getElementById('btn-edit-doc').addEventListener('click', () => enterEditMode(t));
+}
+
+function renderModalBody(t) {
+  const bodyEl  = document.getElementById('m-body');
+  const editEl  = document.getElementById('m-edit-area');
+  editEl.style.display = 'none';
+  bodyEl.style.display = '';
+
+  if (modalState.activeDoc) {
+    bodyEl.innerHTML = '<span class="modal-empty">Loading…</span>';
+    fetch(`/api/doc/${encodeURIComponent(modalState.activeDoc)}`)
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .then(d => { bodyEl.innerHTML = d.content ? md(d.content) : '<span class="modal-empty">Empty doc.</span>'; })
+      .catch(() => { bodyEl.innerHTML = '<span class="modal-empty">Could not load doc.</span>'; });
+  } else {
+    const body = (t.body || '').trim();
+    bodyEl.innerHTML = body ? md(body) : '<span class="modal-empty">No description.</span>';
+  }
+}
+
+function enterEditMode(t) {
+  modalState.editMode = true;
+  const bodyEl = document.getElementById('m-body');
+  const editEl = document.getElementById('m-edit-area');
+
+  if (modalState.activeDoc) {
+    fetch(`/api/doc/${encodeURIComponent(modalState.activeDoc)}`)
+      .then(r => r.ok ? r.json() : { content: '' })
+      .then(d => { editEl.value = d.content || ''; });
+  } else {
+    editEl.value = (t.body || '').trim();
+  }
+
+  bodyEl.style.display = 'none';
+  editEl.style.display = 'block';
+  editEl.focus();
+
+  document.getElementById('m-actions').innerHTML =
+    `<button class="btn btn-primary" id="act-save">Save</button>` +
+    `<button class="btn" id="act-cancel">Cancel</button>`;
+  document.getElementById('m-kbd').style.display = 'none';
+
+  document.getElementById('act-save').addEventListener('click', () => saveEdit(t));
+  document.getElementById('act-cancel').addEventListener('click', () => exitEditMode(t));
+}
+
+function exitEditMode(t) {
+  modalState.editMode = false;
+  renderModalDocs(t);
+  renderModalBody(t);
+  refreshModalActions(t);
+  document.getElementById('m-kbd').style.display = '';
+}
+
+async function saveEdit(t) {
+  const content = document.getElementById('m-edit-area').value;
+  try {
+    if (modalState.activeDoc) {
+      await fetch(`/api/doc/${encodeURIComponent(modalState.activeDoc)}`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content }),
+      });
+    } else {
+      await fetch(`/api/ticket/${t.id}/body`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ body: content }),
+      });
+      t.body = content;
+    }
+  } catch { /* server unavailable */ }
+  exitEditMode(t);
+}
+
+function promptNewDoc(t) {
+  const name = prompt('Doc name (e.g. Blueprint, Decisions):');
+  if (!name || !name.trim()) return;
+  const slug = name.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+  const file = `${t.id}-${slug}.md`;
+  // Create the file via the server then switch to edit it
+  fetch(`/api/doc/${encodeURIComponent(file)}`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ content: '' }),
+  }).then(() => {
+    t.docs = t.docs || [];
+    t.docs.push({ name: name.trim(), file });
+    modalState.activeDoc = file;
+    renderModalDocs(t);
+    enterEditMode(t);
+  });
+}
+
 function closeModal() {
+  if (modalState.editMode) return; // don't close while editing
   document.getElementById('modal-overlay').classList.remove('open');
   state.selectedId = null;
   renderBoard();
@@ -732,8 +920,7 @@ function refreshModalActions(t) {
 async function moveCard(t, newStatus) {
   try {
     await fetch(`/api/ticket/${t.id}/status`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: newStatus }),
     });
   } catch { /* server unavailable — update local state only */ }
@@ -748,7 +935,17 @@ document.addEventListener('keydown', e => {
   const open = document.getElementById('modal-overlay').classList.contains('open');
   if (!open) return;
 
-  if (e.key === 'Escape') { closeModal(); return; }
+  if (e.key === 'Escape') {
+    if (modalState.editMode) {
+      const t = state.tickets.find(t => t.id === state.selectedId);
+      if (t) exitEditMode(t);
+    } else {
+      closeModal();
+    }
+    return;
+  }
+
+  if (modalState.editMode) return; // don't move cards while editing
 
   const t = state.tickets.find(t => t.id === state.selectedId);
   if (!t) return;
@@ -761,7 +958,14 @@ document.addEventListener('keydown', e => {
 document.getElementById('modal-overlay').addEventListener('click', e => {
   if (e.target === e.currentTarget) closeModal();
 });
-document.getElementById('btn-close').addEventListener('click', closeModal);
+document.getElementById('btn-close').addEventListener('click', () => {
+  if (modalState.editMode) {
+    const t = state.tickets.find(t => t.id === state.selectedId);
+    if (t) exitEditMode(t);
+  } else {
+    closeModal();
+  }
+});
 
 // ── Util ──────────────────────────────────────────────────────────────────
 

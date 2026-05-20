@@ -41,17 +41,22 @@ def parse_ticket(path: Path) -> dict:
         fm_text = fm_match.group(1)
         for m in _FIELD.finditer(fm_text):
             key, val = m.group(1), m.group(2).strip()
-            # coerce priority to int
             if key == 'priority':
                 try: val = int(val)
                 except ValueError: pass
             fields[key] = val
         body = text[fm_match.end():].strip()
-    # title from first markdown heading or filename
     title_match = re.search(r'^#\s+(.+)$', body, re.MULTILINE)
     fields.setdefault('title', title_match.group(1).strip() if title_match else path.stem)
     fields['body'] = body
     fields.setdefault('id', path.stem)
+    # companion docs: {stem}-{docname}.md alongside the ticket
+    stem = path.stem
+    docs = []
+    for f in sorted(path.parent.glob(f'{stem}-*.md')):
+        doc_name = f.stem[len(stem)+1:].replace('-', ' ').title()
+        docs.append({'name': doc_name, 'file': f.name})
+    fields['docs'] = docs
     return fields
 
 def load_tickets() -> list:
@@ -107,28 +112,58 @@ def load_git() -> dict:
 
 # ── Status write ──────────────────────────────────────────────────────────
 
-def write_status(ticket_id: str, new_status: str) -> bool:
-    """Update the status field in a ticket's YAML frontmatter."""
+def _find_ticket_path(ticket_id: str) -> Path | None:
     if not TICKETS_DIR.is_dir():
-        return False
+        return None
     matches = list(TICKETS_DIR.glob(f'{ticket_id}*.md'))
     if not matches:
-        # also search by id field
         for f in TICKETS_DIR.glob('*.md'):
             try:
-                t = parse_ticket(f)
-                if t.get('id') == ticket_id:
-                    matches = [f]; break
+                if parse_ticket(f).get('id') == ticket_id:
+                    return f
             except Exception:
                 pass
-    if not matches:
+        return None
+    return matches[0]
+
+def write_status(ticket_id: str, new_status: str) -> bool:
+    path = _find_ticket_path(ticket_id)
+    if not path:
         return False
-    path = matches[0]
     text = path.read_text(encoding='utf-8', errors='replace')
     updated = re.sub(r'^(status:\s*)(\S+)$', rf'\g<1>{new_status}', text, flags=re.MULTILINE)
     if updated == text:
         return False
     path.write_text(updated, encoding='utf-8')
+    return True
+
+def write_body(ticket_id: str, new_body: str) -> bool:
+    """Replace the body (everything after frontmatter) of a ticket."""
+    path = _find_ticket_path(ticket_id)
+    if not path:
+        return False
+    text = path.read_text(encoding='utf-8', errors='replace')
+    fm_match = _FRONTMATTER.match(text)
+    updated = (text[:fm_match.end()] if fm_match else '') + new_body.strip() + '\n'
+    path.write_text(updated, encoding='utf-8')
+    return True
+
+def read_doc(doc_file: str) -> str | None:
+    """Read a companion doc file safely (must be a .md file in TICKETS_DIR)."""
+    safe = Path(doc_file).name
+    if not safe.endswith('.md'):
+        return None
+    p = TICKETS_DIR / safe
+    if not p.is_file():
+        return None
+    return p.read_text(encoding='utf-8', errors='replace')
+
+def write_doc(doc_file: str, content: str) -> bool:
+    """Write a companion doc (must be a .md file in TICKETS_DIR)."""
+    safe = Path(doc_file).name
+    if not safe.endswith('.md'):
+        return False
+    (TICKETS_DIR / safe).write_text(content.strip() + '\n', encoding='utf-8')
     return True
 
 # ── HTTP handler ──────────────────────────────────────────────────────────
@@ -173,22 +208,39 @@ class Handler(BaseHTTPRequestHandler):
         elif path == '/api/git':
             self.send_json(load_git())
         else:
-            self.send_error(404)
+            m = re.match(r'^/api/doc/(.+)$', path)
+            if m:
+                content = read_doc(m.group(1))
+                if content is None:
+                    self.send_error(404); return
+                self.send_json({'content': content})
+            else:
+                self.send_error(404)
 
     def do_POST(self):
         path = urlparse(self.path).path
-        m = re.match(r'^/api/ticket/([^/]+)/status$', path)
-        if not m:
-            self.send_error(404); return
-        ticket_id = m.group(1)
         length = int(self.headers.get('Content-Length', 0))
         try:
-            body = json.loads(self.rfile.read(length))
-            new_status = str(body.get('status', ''))
+            payload = json.loads(self.rfile.read(length))
         except Exception:
             self.send_error(400); return
-        ok = write_status(ticket_id, new_status)
-        self.send_json({'ok': ok, 'status': new_status})
+
+        m = re.match(r'^/api/ticket/([^/]+)/status$', path)
+        if m:
+            ok = write_status(m.group(1), str(payload.get('status', '')))
+            self.send_json({'ok': ok}); return
+
+        m = re.match(r'^/api/ticket/([^/]+)/body$', path)
+        if m:
+            ok = write_body(m.group(1), str(payload.get('body', '')))
+            self.send_json({'ok': ok}); return
+
+        m = re.match(r'^/api/doc/(.+)$', path)
+        if m:
+            ok = write_doc(m.group(1), str(payload.get('content', '')))
+            self.send_json({'ok': ok}); return
+
+        self.send_error(404)
 
     def do_OPTIONS(self):
         self.send_response(200)

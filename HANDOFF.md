@@ -22,6 +22,22 @@ Nothing in progress.
 - Config.md for storing install path — not needed; scripts self-locate via BASH_SOURCE at runtime
 - DateTime-based staleness check for skills refresh — not needed; @-imports are live references, content changes take effect automatically
 
+<!-- HANDOFF-SNAPSHOT:START 2026-05-20 14:13 branch:main -->
+**Modified files:**
+```
+ M tools/sprint-check/app.html
+```
+
+**Recent commits:**
+```
+8da3a9d chore: auto-update handoff snapshot [2026-05-20 14:12]
+7ae568b chore: auto-update handoff snapshot [2026-05-20 14:09]
+60bd7ba chore: auto-update handoff snapshot [2026-05-20 14:09]
+d90892d chore: auto-update handoff snapshot [2026-05-20 14:08]
+294127d chore: auto-update handoff snapshot [2026-05-20 14:07]
+```
+<!-- HANDOFF-SNAPSHOT:END -->
+
 <!-- HANDOFF-SNAPSHOT:START 2026-05-20 14:12 branch:main -->
 **Modified files:**
 ```
@@ -35,21 +51,5 @@ Nothing in progress.
 d90892d chore: auto-update handoff snapshot [2026-05-20 14:08]
 294127d chore: auto-update handoff snapshot [2026-05-20 14:07]
 6cd7181 chore: auto-update handoff snapshot [2026-05-20 14:07]
-```
-<!-- HANDOFF-SNAPSHOT:END -->
-
-<!-- HANDOFF-SNAPSHOT:START 2026-05-20 14:09 branch:main -->
-**Modified files:**
-```
- M tools/sprint-check/app.html
-```
-
-**Recent commits:**
-```
-60bd7ba chore: auto-update handoff snapshot [2026-05-20 14:09]
-d90892d chore: auto-update handoff snapshot [2026-05-20 14:08]
-294127d chore: auto-update handoff snapshot [2026-05-20 14:07]
-6cd7181 chore: auto-update handoff snapshot [2026-05-20 14:07]
-f7bfb79 chore: auto-update handoff snapshot [2026-05-20 14:06]
 ```
 <!-- HANDOFF-SNAPSHOT:END -->

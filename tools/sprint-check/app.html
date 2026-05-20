@@ -313,10 +313,10 @@
     .doc-tab.active { background: var(--accent-dim); color: var(--accent); border-color: var(--accent); }
     .doc-tab-new {
       padding: 3px 10px; border-radius: 20px; font-size: 12px;
-      border: 1px dashed var(--border); background: transparent;
-      color: var(--text-dim); cursor: pointer; transition: color .1s, border-color .1s;
+      border: 1px dashed var(--border-hover); background: transparent;
+      color: var(--text-muted); cursor: pointer; transition: color .1s, border-color .1s;
     }
-    .doc-tab-new:hover { color: var(--text-muted); border-color: var(--border-hover); }
+    .doc-tab-new:hover { color: var(--text); border-color: var(--accent); }
     .doc-edit-btn {
       margin-left: auto; padding: 3px 10px; border-radius: 20px; font-size: 12px;
       border: 1px solid var(--border); background: transparent;
@@ -344,25 +344,24 @@
     .modal-empty { color: var(--text-dim); font-style: italic; }
 
     /* ── Doc type picker ─────────────────────────── */
-    .doc-picker-label {
-      font-size: 12px; color: var(--text-muted); margin-bottom: 12px;
-    }
+    .doc-picker-label { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; }
     .doc-type-card {
-      display: flex; align-items: center; gap: 12px; width: 100%;
-      padding: 11px 14px; border-radius: var(--radius-sm); margin-bottom: 8px;
+      display: block; width: 100%;
+      padding: 8px 12px; border-radius: var(--radius-sm); margin-bottom: 6px;
       border: 1px solid var(--border); background: var(--surface-raised);
       cursor: pointer; text-align: left;
       transition: border-color .12s, background .12s;
     }
-    .doc-type-card:hover { border-color: var(--border-hover); background: var(--surface-hover); }
+    .doc-type-card:hover    { border-color: var(--border-hover); background: var(--surface-hover); }
     .doc-type-card.suggested { border-color: var(--accent); background: var(--accent-dim); }
-    .doc-type-info { flex: 1; }
-    .doc-type-name { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
-    .doc-type-hint { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+    .doc-type-name {
+      font-size: 13px; font-weight: 600; color: var(--text);
+      display: flex; align-items: center; gap: 7px; margin-bottom: 1px;
+    }
+    .doc-type-hint  { font-size: 12px; color: var(--text-muted); }
     .doc-type-badge {
-      flex-shrink: 0; font-size: 10px; font-weight: 700; letter-spacing: .07em;
-      text-transform: uppercase; padding: 2px 8px; border-radius: 10px;
-      background: var(--accent); color: #fff;
+      font-size: 10px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+      padding: 1px 7px; border-radius: 10px; background: var(--accent); color: #fff;
     }
 
     .modal-footer {
@@ -392,6 +391,56 @@
     .theme-toggle:hover { background: var(--surface-hover); border-color: var(--border-hover); }
 
     .kbd-hint { font-size: 12px; color: var(--text-dim); }
+
+    /* ── Create ticket button ────────────────────── */
+    .create-btn {
+      padding: 5px 13px; border-radius: 6px; font-size: 12px; font-weight: 500;
+      border: 1px solid var(--accent); background: var(--accent-dim);
+      color: var(--accent); cursor: pointer; flex-shrink: 0;
+      transition: background .1s, color .1s;
+    }
+    .create-btn:hover { background: var(--accent); color: #fff; }
+
+    /* ── Create modal ────────────────────────────── */
+    #create-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.45); backdrop-filter: blur(3px);
+      display: flex; align-items: center; justify-content: center; z-index: 100;
+      opacity: 0; pointer-events: none; transition: opacity .15s;
+    }
+    #create-overlay.open { opacity: 1; pointer-events: auto; }
+    #create-modal {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; width: min(560px, 90vw);
+      display: flex; flex-direction: column; overflow: hidden;
+      box-shadow: 0 24px 64px rgba(0,0,0,.6);
+      transform: translateY(8px) scale(.98); transition: transform .15s;
+    }
+    #create-overlay.open #create-modal { transform: translateY(0) scale(1); }
+
+    .create-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; }
+    .create-input {
+      width: 100%; padding: 9px 12px; border-radius: var(--radius-sm);
+      border: 1px solid var(--border); background: var(--surface-raised);
+      color: var(--text); font-size: 14px; outline: none;
+      transition: border-color .1s;
+    }
+    .create-input:focus { border-color: var(--accent); }
+    .create-detect {
+      font-size: 12px; color: var(--text-muted); min-height: 16px;
+      padding-left: 2px;
+    }
+    .create-row { display: flex; align-items: center; gap: 10px; }
+    .create-label { font-size: 12px; color: var(--text-muted); width: 52px; flex-shrink: 0; }
+    .create-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+    .create-pill {
+      padding: 3px 11px; border-radius: 20px; font-size: 12px; font-weight: 500;
+      border: 1px solid var(--border); background: transparent;
+      color: var(--text-muted); cursor: pointer; transition: all .1s;
+    }
+    .create-pill:hover  { border-color: var(--border-hover); color: var(--text); }
+    .create-pill.active { border-color: var(--accent); background: var(--accent-dim); color: var(--accent); }
+    .create-textarea { min-height: 140px; resize: vertical; }
 
     /* ── Scrollbars ───────────────────────────── */
     ::-webkit-scrollbar       { width: 4px; height: 4px; }
@@ -428,6 +477,7 @@
           <span id="h-active">—</span> active
         </div>
       </div>
+      <button class="create-btn" id="btn-create">+ New ticket</button>
       <button class="theme-toggle" id="theme-toggle" title="Toggle light/dark mode">🌙</button>
     </div>
   </header>
@@ -488,6 +538,36 @@
     <div class="modal-footer">
       <div class="modal-actions" id="m-actions"></div>
       <div class="kbd-hint" id="m-kbd">← → Esc</div>
+    </div>
+  </div>
+</div>
+
+<!-- Create ticket modal -->
+<div id="create-overlay">
+  <div id="create-modal">
+    <div class="modal-header">
+      <div class="modal-title">New Ticket</div>
+      <button class="modal-close" id="create-close">✕</button>
+    </div>
+    <div class="create-body">
+      <input id="c-title" class="create-input" placeholder="What needs to be done?" autocomplete="off" spellcheck="true">
+      <div class="create-detect" id="c-detect"></div>
+      <div class="create-row">
+        <span class="create-label">Type</span>
+        <div class="create-pills" id="c-types"></div>
+      </div>
+      <div class="create-row">
+        <span class="create-label">Priority</span>
+        <div class="create-pills" id="c-priorities"></div>
+      </div>
+      <textarea id="c-body" class="modal-edit-area create-textarea" placeholder="Description — auto-filled from template" spellcheck="false"></textarea>
+    </div>
+    <div class="modal-footer">
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="c-submit">Create →</button>
+        <button class="btn" id="c-cancel">Cancel</button>
+      </div>
+      <div class="kbd-hint" id="c-queue"></div>
     </div>
   </div>
 </div>
@@ -556,6 +636,31 @@ function ago(days) {
 
 const COLLAPSE_STATUSES = new Set(['closed', 'cancelled']);
 const COL_LIMIT = 5;
+
+// ── Ticket creation ───────────────────────────────────────────────────────
+
+const TICKET_TYPES = ['feature', 'task', 'bug', 'chore', 'epic'];
+
+const TYPE_TEMPLATES = {
+  feature: `## Goal\nWhat problem does this solve?\n\n## Acceptance Criteria\n- [ ] \n\n## Notes\n`,
+  task:    `## What\n\n## Why\n\n## Done When\n- [ ] \n`,
+  bug:     `## Steps to Reproduce\n1. \n\n## Expected\n\n## Actual\n\n## Proposed Fix\n`,
+  chore:   `## What\n\n## Why\n`,
+  epic:    `## Goal\n\n## Sub-tasks\n- [ ] \n- [ ] \n\n## Success Metrics\n`,
+};
+
+function detectTicketType(title) {
+  const t = title.toLowerCase();
+  if (/\b(fix|bug|error|crash|broken|regression|failing|cannot|can'?t)\b/.test(t))
+    return { type: 'bug',     reason: 'looks like a bug fix' };
+  if (/\b(epic|initiative|milestone|programme|program)\b/.test(t))
+    return { type: 'epic',    reason: 'looks like an epic' };
+  if (/\b(chore|cleanup|clean up|remove|delete|deprecat|upgrade|bump|renovate)\b/.test(t))
+    return { type: 'chore',   reason: 'looks like maintenance' };
+  if (/\b(add|build|implement|create|introduce|new|design|support)\b/.test(t))
+    return { type: 'feature', reason: 'looks like a new feature' };
+  return   { type: 'task',    reason: 'general task' };
+}
 
 const DOC_TYPES = [
   {
@@ -973,21 +1078,22 @@ function promptNewDoc(t) {
 
   const existingSlugs = (t.docs || []).map(d => d.file.replace(`${t.id}-`, '').replace('.md', ''));
   const suggested     = recommendedSlug(t.status, existingSlugs);
-  const available     = DOC_TYPES.filter(dt => !existingSlugs.includes(dt.slug));
+  const done = t.status === 'closed' || t.status === 'cancelled';
+  const available = DOC_TYPES.filter(dt =>
+    !existingSlugs.includes(dt.slug) && !(done && dt.slug === 'blueprint')
+  );
   const statusLabel   = titleCase(t.status.replace('_', ' '));
 
-  bodyEl.innerHTML = `
-    <div class="doc-picker-label">This ticket is <strong>${esc(statusLabel)}</strong> — choose a doc type to add:</div>
-    ${available.map(dt => `
-      <button class="doc-type-card${dt.slug === suggested ? ' suggested' : ''}" data-slug="${esc(dt.slug)}" data-name="${esc(dt.name)}">
-        <div class="doc-type-info">
-          <div class="doc-type-name">${esc(dt.name)}</div>
-          <div class="doc-type-hint">${esc(dt.hint)}</div>
-        </div>
-        ${dt.slug === suggested ? '<span class="doc-type-badge">Suggested</span>' : ''}
-      </button>`).join('')}
-    ${available.length === 0 ? '<div class="modal-empty">All doc types already created.</div>' : ''}
-  `;
+  bodyEl.innerHTML = [
+    `<div class="doc-picker-label">This ticket is <strong>${esc(statusLabel)}</strong> — choose a doc type to add:</div>`,
+    ...available.map(dt =>
+      `<button class="doc-type-card${dt.slug === suggested ? ' suggested' : ''}" data-slug="${esc(dt.slug)}" data-name="${esc(dt.name)}">` +
+        `<div class="doc-type-name">${esc(dt.name)}${dt.slug === suggested ? ' <span class="doc-type-badge">Suggested</span>' : ''}</div>` +
+        `<div class="doc-type-hint">${esc(dt.hint)}</div>` +
+      `</button>`
+    ),
+    available.length === 0 ? '<div class="modal-empty">All doc types already created.</div>' : '',
+  ].join('');
 
   document.getElementById('m-actions').innerHTML =
     `<button class="btn" id="act-picker-cancel">Cancel</button>`;
@@ -1065,6 +1171,108 @@ async function moveCard(t, newStatus) {
   const modalOpen = document.getElementById('modal-overlay').classList.contains('open');
   if (modalOpen) closeModal(); else renderBoard();
 }
+
+// ── Create ticket ─────────────────────────────────────────────────────────
+
+(function initCreate() {
+  const overlay  = document.getElementById('create-overlay');
+  const titleEl  = document.getElementById('c-title');
+  const detectEl = document.getElementById('c-detect');
+  const typesEl  = document.getElementById('c-types');
+  const priEl    = document.getElementById('c-priorities');
+  const bodyEl   = document.getElementById('c-body');
+  const queueEl  = document.getElementById('c-queue');
+
+  let selectedType = 'task';
+  let selectedPri  = 2;
+  let templateUntouched = true;
+
+  function open() {
+    selectedType = 'task'; selectedPri = 2; templateUntouched = true;
+    titleEl.value = ''; bodyEl.value = ''; detectEl.textContent = '';
+    queueEl.textContent = '→ will open in: Open';
+    renderTypePills(); renderPriPills();
+    overlay.classList.add('open');
+    requestAnimationFrame(() => titleEl.focus());
+  }
+
+  function close() { overlay.classList.remove('open'); }
+
+  function renderTypePills() {
+    typesEl.innerHTML = TICKET_TYPES.map(tp =>
+      `<button class="create-pill${tp === selectedType ? ' active' : ''}" data-type="${tp}">${titleCase(tp)}</button>`
+    ).join('');
+    typesEl.querySelectorAll('.create-pill').forEach(btn => {
+      btn.addEventListener('click', () => {
+        selectedType = btn.dataset.type;
+        detectEl.textContent = '';
+        applyTemplate();
+        renderTypePills();
+      });
+    });
+  }
+
+  function renderPriPills() {
+    priEl.innerHTML = [0,1,2,3,4].map(p =>
+      `<button class="create-pill${p === selectedPri ? ' active' : ''}" data-pri="${p}">P${p}</button>`
+    ).join('');
+    priEl.querySelectorAll('.create-pill').forEach(btn => {
+      btn.addEventListener('click', () => { selectedPri = +btn.dataset.pri; renderPriPills(); });
+    });
+  }
+
+  function applyTemplate() {
+    if (!templateUntouched) return;
+    bodyEl.value = TYPE_TEMPLATES[selectedType] || '';
+    templateUntouched = true;
+  }
+
+  bodyEl.addEventListener('input', () => {
+    // once the user edits away from the template, stop auto-filling
+    templateUntouched = bodyEl.value === (TYPE_TEMPLATES[selectedType] || '');
+  });
+
+  let detectTimer;
+  titleEl.addEventListener('input', () => {
+    clearTimeout(detectTimer);
+    detectTimer = setTimeout(() => {
+      const title = titleEl.value.trim();
+      if (!title) { detectEl.textContent = ''; return; }
+      const { type, reason } = detectTicketType(title);
+      detectEl.textContent = `Detected: ${titleCase(type)} — ${reason}`;
+      if (type !== selectedType) {
+        selectedType = type;
+        applyTemplate();
+        renderTypePills();
+      }
+    }, 350);
+  });
+
+  async function submit() {
+    const title = titleEl.value.trim();
+    if (!title) { titleEl.focus(); titleEl.style.borderColor = 'var(--col-discarded)'; return; }
+    titleEl.style.borderColor = '';
+    document.getElementById('c-submit').disabled = true;
+    try {
+      const ticket = await fetch('/api/tickets', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, type: selectedType, status: 'open', priority: selectedPri, body: bodyEl.value }),
+      }).then(r => r.json());
+      state.tickets.unshift(ticket);
+      renderBoard();
+      close();
+    } catch {
+      document.getElementById('c-submit').disabled = false;
+    }
+  }
+
+  document.getElementById('btn-create').addEventListener('click', open);
+  document.getElementById('create-close').addEventListener('click', close);
+  document.getElementById('c-cancel').addEventListener('click', close);
+  document.getElementById('c-submit').addEventListener('click', submit);
+  overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+  titleEl.addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
+})();
 
 // ── Keyboard ──────────────────────────────────────────────────────────────
 

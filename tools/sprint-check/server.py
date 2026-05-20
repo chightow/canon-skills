@@ -158,6 +158,26 @@ def read_doc(doc_file: str) -> str | None:
         return None
     return p.read_text(encoding='utf-8', errors='replace')
 
+def create_ticket(title: str, type_: str, status: str, priority: int, body: str) -> dict:
+    """Create a new ticket file and return its parsed data."""
+    import random, string
+    from datetime import date
+    TICKETS_DIR.mkdir(exist_ok=True)
+    existing = {f.stem for f in TICKETS_DIR.glob('*.md')}
+    chars = string.ascii_lowercase + string.digits
+    while True:
+        ticket_id = 't-' + ''.join(random.choices(chars, k=4))
+        if ticket_id not in existing:
+            break
+    created = date.today().isoformat()
+    safe_title = title.replace('\n', ' ').strip()
+    fm = (f'---\nid: {ticket_id}\ntitle: {safe_title}\nstatus: {status}\n'
+          f'type: {type_}\npriority: {priority}\ncreated: {created}\n---\n')
+    full = fm + '\n' + body.strip() + '\n' if body.strip() else fm
+    path = TICKETS_DIR / f'{ticket_id}.md'
+    path.write_text(full, encoding='utf-8')
+    return parse_ticket(path)
+
 def write_doc(doc_file: str, content: str) -> bool:
     """Write a companion doc (must be a .md file in TICKETS_DIR)."""
     safe = Path(doc_file).name
@@ -239,6 +259,16 @@ class Handler(BaseHTTPRequestHandler):
         if m:
             ok = write_doc(m.group(1), str(payload.get('content', '')))
             self.send_json({'ok': ok}); return
+
+        if path == '/api/tickets':
+            t = create_ticket(
+                title    = str(payload.get('title', 'Untitled')),
+                type_    = str(payload.get('type', 'task')),
+                status   = str(payload.get('status', 'open')),
+                priority = int(payload.get('priority', 2)),
+                body     = str(payload.get('body', '')),
+            )
+            self.send_json(t); return
 
         self.send_error(404)
 

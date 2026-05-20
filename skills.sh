@@ -498,8 +498,12 @@ cmd_refresh() {
             # Also remove the @-import from CLAUDE.md and AGENTS.md
             local dep_file
             dep_file=$(find_skill "$sname" 2>/dev/null) || true
-            [ -n "$dep_file" ] && grep -vF "@$dep_file" "$claude_file" > "$claude_file.tmp" \
-              && mv "$claude_file.tmp" "$claude_file" || true
+            if [ -n "$dep_file" ]; then
+              grep -vF "@$dep_file" "$claude_file" > "$claude_file.tmp" \
+                && mv "$claude_file.tmp" "$claude_file" || true
+              grep -vF "@$dep_file" "$agents_file" > "$agents_file.tmp" \
+                && mv "$agents_file.tmp" "$agents_file" || true
+            fi
             sname=""
             break
           fi

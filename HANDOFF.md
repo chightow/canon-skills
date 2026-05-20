@@ -30,11 +30,11 @@ Nothing in progress.
 
 **Recent commits:**
 ```
+38e8ffd chore: auto-update handoff snapshot [2026-05-20 14:05]
 436c4f3 chore: auto-update handoff snapshot [2026-05-20 14:04]
 eef9101 chore: auto-update handoff snapshot [2026-05-20 14:02]
 32f433b chore: auto-update handoff snapshot [2026-05-20 13:56]
 33fb8fb feat: WIP sidebar strip + semantic commit-ticket linking
-05177d6 chore: auto-update handoff snapshot [2026-05-20 13:49]
 ```
 
 **In-progress tickets:**
@@ -43,7 +43,7 @@ t-ialk   [in_progress] - Build sprint-check GUI — kanban app.html + Python ser
 ```
 <!-- HANDOFF-SNAPSHOT:END -->
 
-<!-- HANDOFF-SNAPSHOT:START 2026-05-20 14:04 branch:main -->
+<!-- HANDOFF-SNAPSHOT:START 2026-05-20 14:05 branch:main -->
 **Modified files:**
 ```
  M tools/sprint-check/app.html
@@ -51,11 +51,11 @@ t-ialk   [in_progress] - Build sprint-check GUI — kanban app.html + Python ser
 
 **Recent commits:**
 ```
+436c4f3 chore: auto-update handoff snapshot [2026-05-20 14:04]
 eef9101 chore: auto-update handoff snapshot [2026-05-20 14:02]
 32f433b chore: auto-update handoff snapshot [2026-05-20 13:56]
 33fb8fb feat: WIP sidebar strip + semantic commit-ticket linking
 05177d6 chore: auto-update handoff snapshot [2026-05-20 13:49]
-2dc34c4 chore: auto-update handoff snapshot [2026-05-20 13:42]
 ```
 
 **In-progress tickets:**

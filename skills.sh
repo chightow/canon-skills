@@ -70,9 +70,8 @@ cmd_list() {
   local prev_cat=""
   for dir in "${SEARCH_DIRS[@]}"; do
     [ -d "$dir" ] || continue
-    # tools/ and standards/ are auto-injected infrastructure — not catalog entries
+    # tools/ are auto-injected infrastructure — not catalog entries
     [[ "$dir" == */tools ]] && continue
-    [[ "$dir" == */standards ]] && continue
     while IFS= read -r f; do
       local name desc category summary
       name=$(fm_field "$f" name)
@@ -602,9 +601,9 @@ cmd_help() {
     exit 1
   }
 
-  # Strip YAML frontmatter, print body
+  # Strip YAML frontmatter and @-import lines, print body
   local body
-  body=$(awk 'BEGIN{fm=0;done=0} /^---$/{if(fm)done=1; fm=1; next} done{print}' "$skill_file")
+  body=$(awk 'BEGIN{fm=0;done=0} /^---$/{if(fm)done=1; fm=1; next} done && /^@/{next} done{print}' "$skill_file")
 
   if command -v bat &>/dev/null; then
     echo "$body" | bat -l md --plain

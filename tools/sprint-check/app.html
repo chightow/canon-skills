@@ -107,6 +107,7 @@
       transition: width .2s ease;
     }
     #sidebar.collapsed { width: 36px; }
+    #sidebar.collapsed .sidebar-content { display: none; }
 
     .sidebar-toggle {
       flex-shrink: 0; height: 34px;
@@ -133,8 +134,8 @@
     #sidebar-resize:hover, #sidebar-resize.dragging { background: var(--accent); }
     .sidebar-section { padding: 14px 16px; border-bottom: 1px solid var(--border-muted); }
     .sidebar-label {
-      font-size: 10px; font-weight: 600; letter-spacing: .08em;
-      text-transform: uppercase; color: var(--text-dim); margin-bottom: 8px;
+      font-size: 11px; font-weight: 700; letter-spacing: .1em;
+      text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px;
     }
     .branch-row { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); }
     .modified-badge {
@@ -205,17 +206,25 @@
     .col-discarded  .column-body   { opacity: .55; }
     .col-discarded  { max-width: 200px; min-width: 160px; }
 
+    /* ── Drag and drop ───────────────────────────── */
+    .card.dragging  { opacity: .35; transform: scale(.97); pointer-events: none; }
+    .column-body.drag-over {
+      outline: 2px dashed var(--accent); outline-offset: -4px;
+      background: var(--accent-dim); border-radius: var(--radius-sm);
+    }
+
     /* ── Card ─────────────────────────────────── */
     .card {
       background: var(--surface-raised); border: 1px solid var(--border);
       border-radius: var(--radius-sm); padding: 10px 12px;
-      cursor: pointer; transition: border-color .12s, background .12s, transform .1s;
+      cursor: grab; transition: border-color .12s, background .12s, transform .1s;
       user-select: none;
     }
+    .card:active { cursor: grabbing; }
     .card:hover          { border-color: var(--border-hover); background: var(--surface-hover); transform: translateY(-1px); }
     .card.focused        { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent-dim); }
     .card-top            { display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; }
-    .card-id             { font-family: ui-monospace, "Cascadia Code", monospace; font-size: 10px; color: var(--text-dim); }
+    .card-id             { font-family: ui-monospace, "Cascadia Code", monospace; font-size: 11px; color: var(--text-muted); }
     .card-title          { font-size: 13px; font-weight: 500; color: var(--text); line-height: 1.4; margin-bottom: 7px; }
     .card-footer         { display: flex; align-items: center; justify-content: space-between; }
     .card-age            { font-size: 11px; color: var(--text-muted); }
@@ -599,14 +608,16 @@ function renderSidebar() {
 function renderBoard() {
   const board = document.getElementById('board');
   board.innerHTML = COLUMNS.map(col => {
-    const cards = state.tickets.filter(t => t.status === col.status);
+    const cards = state.tickets
+      .filter(t => t.status === col.status)
+      .sort((a, b) => (b.created || '').localeCompare(a.created || ''));
     return `
       <div class="column ${esc(col.cls)}">
         <div class="column-header">
           <div class="column-title"><div class="col-indicator"></div>${esc(col.label)}</div>
           <span class="column-count">${cards.length}</span>
         </div>
-        <div class="column-body">
+        <div class="column-body" data-status="${esc(col.status)}">
           ${cards.length
             ? cards.map(t => cardHTML(t)).join('')
             : '<div class="column-empty">empty</div>'}
@@ -614,14 +625,46 @@ function renderBoard() {
       </div>`;
   }).join('');
 
+  let dragId = null;
+
   board.querySelectorAll('.card').forEach(el => {
     el.addEventListener('click', () => openModal(el.dataset.id));
+
+    el.addEventListener('dragstart', e => {
+      dragId = el.dataset.id;
+      e.dataTransfer.setData('text/plain', dragId); // required by Safari to activate drag
+      e.dataTransfer.effectAllowed = 'move';
+      requestAnimationFrame(() => el.classList.add('dragging'));
+    });
+    el.addEventListener('dragend', () => {
+      el.classList.remove('dragging');
+      dragId = null;
+    });
+  });
+
+  board.querySelectorAll('.column-body').forEach(col => {
+    col.addEventListener('dragover', e => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      col.classList.add('drag-over');
+    });
+    col.addEventListener('dragleave', e => {
+      if (!col.contains(e.relatedTarget)) col.classList.remove('drag-over');
+    });
+    col.addEventListener('drop', e => {
+      e.preventDefault();
+      col.classList.remove('drag-over');
+      if (!dragId) return;
+      const newStatus = col.dataset.status;
+      const t = state.tickets.find(t => t.id === dragId);
+      if (t && t.status !== newStatus) moveCard(t, newStatus);
+    });
   });
 }
 
 function cardHTML(t) {
   return `
-    <div class="card${t.id === state.selectedId ? ' focused' : ''}" data-id="${esc(t.id)}">
+    <div class="card${t.id === state.selectedId ? ' focused' : ''}" data-id="${esc(t.id)}" draggable="true">
       <div class="card-top">
         <span class="card-id">${esc(t.id)}</span>
         ${typeBadge(t.type)}
@@ -695,7 +738,8 @@ async function moveCard(t, newStatus) {
     });
   } catch { /* server unavailable — update local state only */ }
   t.status = newStatus;
-  closeModal();
+  const modalOpen = document.getElementById('modal-overlay').classList.contains('open');
+  if (modalOpen) closeModal(); else renderBoard();
 }
 
 // ── Keyboard ──────────────────────────────────────────────────────────────

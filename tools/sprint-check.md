@@ -9,25 +9,25 @@ tags: [project-management, kanban, dashboard, gui]
 
 A browser-based kanban board that reads the current project's tickets, HANDOFF.md, and git history. No cloud, no login, no install beyond canon.
 
+![sprint-check board](sprint-check/screenshot.png)
+
 ## Getting Started
 
-**Step 1 — Add `canon/tools` to your PATH** (one-time, if not already done):
+**Step 1 — Register the skill** (adds `canon/tools` to your PATH if needed):
 ```bash
-export PATH="<path-to-canon>/tools:$PATH"
+<path-to-canon>/skills.sh add sprint-check /path/to/your/project
 ```
 
-**Step 2 — Launch from any canon project:**
+**Step 2 — Launch from your project:**
 ```bash
 sprint-check.sh
-# or, from the canon repo itself:
-tools/sprint-check.sh
 ```
 
 The board opens in your default browser at `http://127.0.0.1:<port>`. Press `Ctrl+C` to stop.
 
-## What It Shows
+## Board
 
-**Board — 4 columns mapping to tkt statuses:**
+Four columns map directly to tkt statuses:
 
 | Column | tkt status |
 |--------|-----------|
@@ -36,28 +36,53 @@ The board opens in your default browser at `http://127.0.0.1:<port>`. Press `Ctr
 | Done | `closed` |
 | Discarded | `cancelled` |
 
-**Sidebar:**
-- Current git branch + modified file count
-- `## Current Focus` section from HANDOFF.md
-- Last 5 git commits
-- Ticket count summary by status
+**Cards** show ticket ID, type badge, title, priority dots, age, and a readiness indicator:
+- `● ready` (green) — has description + at least one doc
+- `● needs desc` / `● needs docs` / `● not ready` (gray) — what's missing
 
-**Card expand (click any card or press Enter):**
-- Full ticket body (markdown rendered)
-- Status, type, priority, age
-- Move status buttons (`← Back`, `Forward →`)
-- Discard button
+Click the readiness indicator for a checklist popover. Click anywhere else on the card to open the full ticket.
+
+**Moving tickets:**
+- Drag and drop between columns
+- Or open the ticket and use `← Back` / `Forward →` buttons
 - Keyboard: `←` / `→` to move, `Esc` to close
+
+**Column count badge** is hidden when a column is empty.
+
+## Sidebar
+
+- **Now Working On** — `in_progress` tickets highlighted in accent color; click to open, or hit `copy` to copy the commit prefix (`t-xxxx: `) to clipboard
+- **Git** — current branch + modified file count
+- **Current Focus** — `## Current Focus` section from HANDOFF.md
+- **Recent Commits** — last 5 commits (click any to see full message, changed files, and related tickets)
+- **Tickets** — count summary by status
+
+Collapse/expand the sidebar with the `‹` toggle. Width is remembered across sessions.
+
+## Ticket Modal
+
+Click any card to open its detail view:
+
+- **Meta row** — Status, Type, Priority, Age, Ready indicator
+- **Tabs** — Description tab appears only when companion docs exist; otherwise body is shown directly
+- **Docs** — Blueprint, Decisions, QA, Notes (or any custom doc) as tabs; click `+ New doc` to create one with a template
+- **Edit** — inline edit for the ticket body or any doc; Save / Cancel
+- **Footer** — `← Back`, `Forward →`, `Discard ×`; keyboard hints bottom-right
+
+## New Ticket
+
+Click `+ New ticket` in the header. As you type the title, the type (Feature / Task / Bug / etc.) is detected automatically. Select type and priority, write a description, and submit — the ticket lands in Open.
 
 ## Agent Workflow
 
-- sprint-check is read-only for agents — status changes happen via `tkt` commands
-- Use it to orient at session start: "open sprint-check and tell me what's in progress"
-- The sidebar's Current Focus reflects what's in HANDOFF.md — keep HANDOFF.md current for accurate sprint context
+- Use sprint-check to orient at session start: "open sprint-check and tell me what's in progress"
+- Agents read sprint-check for context; status changes happen via `tkt` commands
+- The **Now Working On** strip + `copy` button makes it easy to prefix commits with the active ticket ID
+- A green readiness dot signals a ticket has enough context for the agent to act on it without asking for clarification
 
 ## Notes
 
 - Refreshes automatically every 8 seconds
-- Dark/light mode toggle in the header — remembers your preference
-- Runs on macOS, Linux, and WSL (Python 3 stdlib only, no pip)
-- Port defaults to 8423, increments if busy
+- Dark/light mode toggle in the header — preference persisted in localStorage
+- Runs on macOS, Linux, and WSL — Python 3 stdlib only, no pip required
+- Port defaults to 8423, increments automatically if busy

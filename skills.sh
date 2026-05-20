@@ -127,22 +127,20 @@ upsert_at_import() {
 offer_tkt_path() {
   local tools_dir="$SKILLS_ROOT/tools"
 
-  # Skip if tkt is already reachable
-  if command -v tkt &>/dev/null; then return 0; fi
-
   # Detect rc file
   local rc_file="$HOME/.zshrc"
   [[ "${SHELL:-}" == */bash ]] && rc_file="$HOME/.bashrc"
 
-  # Skip if the tools dir is already configured in the rc file
+  # Skip if the tools dir is already on PATH or already in the rc file
   if grep -qF "$tools_dir" "$rc_file" 2>/dev/null; then return 0; fi
+  if echo "$PATH" | tr ':' '\n' | grep -qxF "$tools_dir"; then return 0; fi
 
   echo "" > /dev/tty
-  printf "tkt is in %s but not on your PATH.\n" "$tools_dir" > /dev/tty
-  printf "Add to PATH in %s? [y/N] " "$rc_file" > /dev/tty
+  printf "canon/tools (tkt, sprint-check) is not on your PATH.\n" > /dev/tty
+  printf "Add %s to PATH in %s? [y/N] " "$tools_dir" "$rc_file" > /dev/tty
   read -r answer </dev/tty
   if [[ "$answer" =~ ^[Yy]$ ]]; then
-    printf '\n# canon tools (tkt)\nexport PATH="$PATH:%s"\n' "$tools_dir" >> "$rc_file"
+    printf '\n# canon tools\nexport PATH="$PATH:%s"\n' "$tools_dir" >> "$rc_file"
     echo "  Added. Run: source $rc_file" > /dev/tty
   fi
 }
@@ -236,7 +234,7 @@ cmd_add() {
   echo ""
   echo "Done. $desc"
 
-  if [[ "$name" == "ticket" ]]; then
+  if [[ "$name" == "ticket" || "$name" == "sprint-check" ]]; then
     offer_tkt_path
   fi
 

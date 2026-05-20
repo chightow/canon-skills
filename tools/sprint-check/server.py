@@ -102,13 +102,43 @@ def load_git() -> dict:
     project  = cwd.name
     status   = run(['git', 'status', '--porcelain'], cwd)
     modified = len([l for l in status.splitlines() if l.strip()]) if status else 0
-    log_raw  = run(['git', 'log', '--oneline', '-8'], cwd)
+    _SKIP = ('chore: auto-update handoff', 'chore: auto-handoff')
+    log_raw = run(['git', 'log', '--oneline', '-40'], cwd)
     log = []
     for line in log_raw.splitlines():
         parts = line.split(' ', 1)
-        if len(parts) == 2:
+        if len(parts) == 2 and not any(parts[1].startswith(s) for s in _SKIP):
             log.append({'hash': parts[0], 'message': parts[1]})
+            if len(log) == 8:
+                break
     return {'branch': branch, 'project': project, 'modified': modified, 'log': log}
+
+# ── Commit detail ─────────────────────────────────────────────────────────
+
+def load_commit(hash_: str) -> dict:
+    cwd = PROJECT_ROOT
+    msg    = run(['git', 'log', '-1', '--format=%B', hash_], cwd)
+    author = run(['git', 'log', '-1', '--format=%an', hash_], cwd)
+    date   = run(['git', 'log', '-1', '--format=%ci', hash_], cwd)
+    files  = run(['git', 'diff-tree', '--no-commit-id', '-r', '--name-only', hash_], cwd)
+    lines  = msg.splitlines()
+    subject = lines[0] if lines else ''
+    body    = '\n'.join(lines[2:]).strip() if len(lines) > 2 else ''
+    file_list = [f for f in files.splitlines() if f.strip()]
+    # related tickets: IDs in the commit message + ticket files touched
+    _TID = re.compile(r'\b([a-zA-Z]+-[a-z0-9]{3,})\b')
+    related: set[str] = set()
+    for m in _TID.finditer(msg):
+        related.add(m.group(1))
+    for f in file_list:
+        p = Path(f)
+        if p.parts[0:1] == ('.tickets',) and p.suffix == '.md':
+            related.add(p.stem)
+    return {
+        'hash': hash_, 'subject': subject, 'body': body,
+        'author': author, 'date': date[:10] if date else '',
+        'files': file_list, 'related_ticket_ids': sorted(related),
+    }
 
 # ── Status write ──────────────────────────────────────────────────────────
 
@@ -228,6 +258,9 @@ class Handler(BaseHTTPRequestHandler):
         elif path == '/api/git':
             self.send_json(load_git())
         else:
+            m = re.match(r'^/api/commit/([0-9a-f]{4,40})$', path)
+            if m:
+                self.send_json(load_commit(m.group(1))); return
             m = re.match(r'^/api/doc/(.+)$', path)
             if m:
                 content = read_doc(m.group(1))

@@ -1,84 +1,126 @@
 # canon
 
-> One repo. Every agent. Consistent behaviors across all your projects.
+> Your agents are capable. Canon makes them yours.
 
-canon is a shared skill library for AI coding agents — Claude Code, Codex, and Pi. Register skills once and they live-import into any project. Update the canon, and every project picks up the change automatically on the next session.
+Stop re-explaining your standards on every new project. Stop watching Claude drift back to its defaults mid-session. Stop reconfiguring the same quality checks from scratch.
+
+canon is a shared skill library for AI coding agents. Define your standards once. Every project inherits them automatically — Claude Code, Codex, and Pi, all in sync.
+
+```bash
+# Install
+npx canon-skills@latest
+
+# Wire a project
+$SKILLS/skills.sh add sprint
+```
+
+That's it. Your agent now plans before it codes, runs a quality gate before closing tickets, and maintains context across session resets.
 
 ---
 
-## The problem
+## Why not just paste instructions into CLAUDE.md?
 
-You've carefully configured an AI agent: enforce your git conventions, run a quality check before committing, keep context across sessions. Then you start a new project — and explain it all from scratch.
-
-canon solves this with a **live-reference model**. Skills live in one place and are `@`-imported directly into each project's `CLAUDE.md` and `AGENTS.md`. No copies. No drift. One source of truth for every agent, every project.
+You can. Most people do — until they have five projects, each with a slightly different copy, all drifting apart. Canon solves this with a **live-reference model**: skills live in one repo and are `@`-imported directly into each project's config. Update once, every project picks it up on the next session start. No copies. No drift.
 
 ---
 
 ## What's inside
 
-| Skill | Category | What it does |
+| Skill | What it does |
+|---|---|
+| `sprint` | plan → build → ship. Grills gray areas, rates impact, generates a test plan. Approved plans persist to `plan.md` — survives context resets. |
+| `wrapup` | Quality pipeline on demand: simplify → review → security, scoped to what you just changed. |
+| `code-reviewer` | Structured review across 7 dimensions: correctness, maintainability, security, edge cases, coverage. |
+| `security-review` | High-confidence vulnerability detection — traces data flow before flagging anything. |
+| `handoff` | Session context that survives agent switches, resets, and context window exhaustion. |
+| `efficiency` | Token-efficiency rules for AI agents. Opinionated but battle-tested. |
+| `sprint-check` | Local kanban dashboard. Reads `.tickets/`, `HANDOFF.md`, and `git log`. Runs in any browser. |
+
+---
+
+## sprint-check — the local kanban board
+
+No server. No account. No SaaS. Just run:
+
+```bash
+sprint-check
+```
+
+It reads your project's `.tickets/` folder and `git log` and opens a local kanban board in your browser. Columns update in real time. Tickets link to commits automatically.
+
+### The board
+
+![sprint-check board — light mode](meta/screenshots/board-light.png)
+
+The sidebar shows git state, current focus from `HANDOFF.md`, recent commits, and a ticket summary — everything your agent and you need at a glance.
+
+### Dark mode
+
+![sprint-check board — dark mode](meta/screenshots/board-dark.png)
+
+Toggle between light and dark with the button in the top-right corner.
+
+### Commit intelligence
+
+![Commit detail with related ticket](meta/screenshots/commit-detail.png)
+
+Click any commit in the sidebar to see what changed and which ticket it likely belongs to — matched by ticket ID in the commit message or by keyword when no ID is present.
+
+### Create tickets from the board
+
+![New ticket modal](meta/screenshots/new-ticket.png)
+
+`+ New ticket` opens a form pre-filled with a structured template. Type, priority, goal, and acceptance criteria — then `Create`. The ticket lands in `.tickets/` as a markdown file, immediately visible to your agent.
+
+---
+
+## The contrast
+
+Most agent frameworks want you to learn a new abstraction layer. Canon is markdown files and one bash script.
+
+| | canon | typical agent framework |
 |---|---|---|
-| `wrapup` | skills | Quality pipeline: simplify → review → security — scoped to current unit of work |
-| `code-reviewer` | skills | Structured review across correctness, maintainability, security, edge cases, and coverage |
-| `code-simplifier` | skills | Refactor recently modified code for clarity without changing behavior |
-| `security-review` | skills | High-confidence vulnerability detection — traces data flow before flagging |
-| `handoff` | tools | Session context that persists across agents, resets, and long gaps |
-| `ticket` | tools | Git-native task tracking with `tk` *(optional)* |
-| `general` | standards | Language-agnostic coding principles, applied automatically |
-| `git` | standards | Commit, branch, and PR conventions, applied automatically |
+| Language | Markdown + bash | Python / TypeScript |
+| Install | `git clone` | `pip install` + config |
+| Dependencies | None | Many |
+| Agent support | Claude Code, Codex, Pi | Framework-specific |
+| Customization | Edit a `.md` file | Subclass an abstract base |
+| Updates | `git pull` | Version bumps + migration |
+| Works offline | Yes | Usually not |
 
 ---
 
 ## Quick start
 
-**1. Clone**
+**1. Install**
+
+```bash
+npx canon-skills@latest
+# Clones the repo to ~/Developer/canon and runs setup.
+# Existing install? It pulls the latest changes instead.
+```
+
+Or clone directly:
 
 ```bash
 git clone https://github.com/sunitghub/canon.git ~/Developer/canon
-export SKILLS=~/Developer/canon
+~/Developer/canon/skills.sh init
 ```
 
-**2. Wire your agents**
-
-```bash
-$SKILLS/skills.sh init        # Claude Code only
-$SKILLS/init-agent.sh all     # Claude Code + Codex + Pi
-```
-
-> Re-run `skills.sh init` if you ever move or rename the canon folder — it rewires the hook paths in `~/.claude/settings.json`.
-
-> RTK and `tk` are optional. Setup detects them and wires their hooks if present; everything else works without them.
-
-**3. Register skills in a project**
+**2. Register skills in a project**
 
 ```bash
 cd /path/to/your-project
 
-$SKILLS/skills.sh addall        # register everything at once
-# or pick individually:
-$SKILLS/skills.sh add general   # coding standards — auto-applied, no invocation needed
-$SKILLS/skills.sh add git       # git conventions — auto-applied
-$SKILLS/skills.sh add wrapup    # quality pipeline
-$SKILLS/skills.sh add handoff   # session context across resets
+$SKILLS/skills.sh add sprint        # plan → build → ship workflow
+$SKILLS/skills.sh add wrapup        # quality gate
+$SKILLS/skills.sh add handoff       # session context
+$SKILLS/skills.sh addall            # or register everything at once
 ```
 
-Start a session. Your agent now follows your standards, runs quality checks on demand, and maintains context across conversations.
+**3. Start a session**
 
----
-
-## How the live-reference model works
-
-`skills.sh add` writes a single line into your project's config files — not a copy of the skill, a reference to it:
-
-```
-# CLAUDE.md — Claude Code reads this on every session start
-@/path/to/canon/standards/general.md
-
-# AGENTS.md — Codex and Pi read this
-| general | standards | /path/to/canon/standards/general.md |
-```
-
-When canon is updated, every project picks up the new version automatically. No re-registration. No copying. To opt into a new skill: one command. To remove one: one command.
+Your agent reads the registered skills and follows them — no prompt engineering, no system prompt editing, no copy-pasting.
 
 ---
 
@@ -87,13 +129,28 @@ When canon is updated, every project picks up the new version automatically. No 
 ```
 skills.sh list                     List all available skills
 skills.sh add <skill> [dir]        Register a skill into a project (default: cwd)
-skills.sh addall [dir]             Register all skills into a project at once
-skills.sh remove <skill> [dir]     Unregister a skill from a project
+skills.sh addall [dir]             Register all skills
+skills.sh remove <skill> [dir]     Unregister a skill
 skills.sh status [dir]             Show what's registered in a project
-skills.sh --scan [dir]             Same as status — flag-style alias
-skills.sh init                     Wire Claude Code hooks to this install location
+skills.sh init                     Wire Claude Code hooks to this canon install
 skills.sh help <skill>             Show full documentation for a skill
 ```
+
+---
+
+## How the live-reference model works
+
+`skills.sh add` writes one line into your project's config — not a copy of the skill, a reference:
+
+```
+# CLAUDE.md
+@/Users/you/Developer/canon/skills/sprint.md
+
+# AGENTS.md
+| sprint | dev | /Users/you/Developer/canon/skills/sprint.md |
+```
+
+Claude Code reads `CLAUDE.md` at session start. The `@` prefix tells it to load the referenced file in full — which is the live skill from the canon repo. When canon updates, the next session picks up the change automatically. No re-registration.
 
 ---
 
@@ -102,11 +159,11 @@ skills.sh help <skill>             Show full documentation for a skill
 | Tool | Required | Install |
 |---|---|---|
 | Claude Code / Codex / Pi | Yes — at least one | [claude.ai/code](https://claude.ai/code) |
-| RTK | No — recommended | `brew install rtk` (macOS) · `cargo install rtk` (Linux/WSL) |
-| tk | No — for `ticket` skill only | `brew install wedow/tools/ticket` |
+| Node.js ≥ 16 | For `npx` install only | [nodejs.org](https://nodejs.org) |
+| RTK | No — recommended | `brew install rtk` |
 
 ---
 
 ## Full setup guide
 
-See [`guides/AI-Agents-Setup.md`](guides/AI-Agents-Setup.md) for the complete walkthrough — prerequisites, per-agent wiring, per-project registration, verification, and day-to-day workflows including the ticket approve pipeline and wrapup quality gate.
+[`guides/AI-Agents-Setup.md`](guides/AI-Agents-Setup.md) — prerequisites, per-agent wiring, project registration, verification, and the full sprint + wrapup workflow.

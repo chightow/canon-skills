@@ -486,6 +486,19 @@ cmd_refresh() {
   done <<< "$skills_in_table"
 
   if [ ${#covered_deps[@]} -gt 0 ]; then
+    # Pre-compute file paths for each covered dep so we can filter @-imports inline
+    local covered_dep_files=" "
+    for dep in "${covered_deps[@]}"; do
+      local dep_file
+      dep_file=$(find_skill "$dep" 2>/dev/null) || true
+      if [ -n "$dep_file" ]; then
+        covered_dep_files="$covered_dep_files$dep_file "
+        # Remove from CLAUDE.md now (not read in the loop below)
+        grep -vF "@$dep_file" "$claude_file" > "$claude_file.tmp" \
+          && mv "$claude_file.tmp" "$claude_file" || true
+      fi
+    done
+
     local tmp
     tmp=$(mktemp)
     while IFS= read -r line; do
@@ -495,20 +508,15 @@ cmd_refresh() {
         for dep in "${covered_deps[@]}"; do
           if [ "$sname" = "$dep" ]; then
             echo "  [pruned]  covered by parent dep: $sname" >&2
-            # Also remove the @-import from CLAUDE.md and AGENTS.md
-            local dep_file
-            dep_file=$(find_skill "$sname" 2>/dev/null) || true
-            if [ -n "$dep_file" ]; then
-              grep -vF "@$dep_file" "$claude_file" > "$claude_file.tmp" \
-                && mv "$claude_file.tmp" "$claude_file" || true
-              grep -vF "@$dep_file" "$agents_file" > "$agents_file.tmp" \
-                && mv "$agents_file.tmp" "$agents_file" || true
-            fi
             sname=""
             break
           fi
         done
         [ -z "$sname" ] && continue
+      elif [[ "$line" == @"$SKILLS_ROOT"/* ]]; then
+        # Filter out @-imports for covered deps in the same pass
+        local import_path="${line#@}"
+        [[ "$covered_dep_files" == *" $import_path "* ]] && continue
       fi
       printf '%s\n' "$line"
     done < "$agents_file" > "$tmp" && mv "$tmp" "$agents_file"

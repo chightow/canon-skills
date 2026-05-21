@@ -99,12 +99,36 @@ The agent:
 2. Creates `.tickets/t-r4t3/blueprint.md` and `acceptance.md`
 3. Reads `DECISIONS.md` — finds: *"Redis chosen for session state"*
 4. Reads `HANDOFF.md` — picks up any open context from the last session
-5. Does a targeted scan of affected files (auth/, login-related code, tests), then produces a sprint brief and waits:
+5. Scans affected files (auth/, login-related code, tests)
+
+**Grill — agent surfaces two gray areas before planning:**
+
+```
+Before I plan this, two decisions would materially change the implementation:
+
+1. Rate limit key — IP only, or IP + username?
+   - IP only: simpler, catches bots. Doesn't protect a specific account
+     from distributed attacks across many IPs.
+   - IP + username: protects per account. A user on a shared IP (office,
+     VPN) won't lock out others.
+
+2. Window type — fixed (reset every N minutes) or sliding (rolling N-minute
+   window)?
+   - Fixed: simpler Redis logic (INCR + EXPIRE). A burst at the window
+     boundary can double the effective attempt rate.
+   - Sliding: more accurate protection. Slightly more Redis operations
+     per request (sorted set vs counter).
+```
+
+**You: "IP + username. Fixed window is fine."**
+
+Agent logs resolutions to `blueprint.md ## Grill` and continues to impact analysis. It then produces the sprint brief:
 
 ```
 Sprint t-r4t3 — Add rate limiting to login endpoint
 
-Goal: Block brute-force attempts by tracking failed logins per IP in Redis.
+Goal: Block brute-force attempts — counter keyed on IP + username,
+      fixed 15-minute window, stored in Redis.
 
 Files to modify:
   auth/views.py       — add rate limit check to login endpoint
@@ -113,8 +137,11 @@ Files to modify:
 Files to create:
   tests/test_rate_limit.py
 
+Impact: LOW overall. Reversibility HIGH — rate limit can be tuned or
+removed without data loss.
+
 Acceptance criteria:
-  ✓ Login returns 429 after 5 failed attempts from the same IP
+  ✓ Login returns 429 after 5 failed attempts from the same IP + username
   ✓ Counter resets after 15 minutes
   ✓ Rate limit is not bypassable via header manipulation
   ✓ Tests pass
@@ -125,6 +152,8 @@ Ready to proceed?
 ```
 
 **You: "Yes"**
+
+> Agent writes `plan.md` to `.tickets/t-r4t3/` — the full approved brief including grill resolutions, locked at this moment. If context compacts mid-sprint, the agent re-reads `plan.md` to restore what was approved.
 
 The agent writes code. While reading the Redis client config, it notices the connection pool is set to 5.
 
@@ -174,14 +203,35 @@ The agent:
 2. Creates `.tickets/t-a1b2/blueprint.md` and `acceptance.md`
 3. Reads `DECISIONS.md` — file doesn't exist yet, creates it with an empty log table
 4. Reads `HANDOFF.md` — no prior context, starts fresh
-5. Produces a sprint brief and waits
 
-There's no existing codebase to analyze, so the brief is a *proposal* — the agent derives file structure and acceptance criteria from the task description and common patterns. The user can redirect anything before approving:
+**Grill — agent surfaces three gray areas:**
+
+```
+Before I plan this, a few decisions would materially affect the design:
+
+1. Token format — JWT or opaque?
+   - JWT: stateless, no DB lookup on each request. Can't be revoked before
+     expiry without a blocklist.
+   - Opaque: stored in DB, revocable instantly. Adds a DB lookup per
+     authenticated request.
+
+2. Email verification on registration — required or skip for now?
+   - Required: confirms deliverability before the account is usable.
+     Needs an email-sending integration in scope.
+   - Skip: simpler first sprint — can add in a follow-up.
+
+3. Password reset — in scope for this sprint?
+```
+
+**You: "JWT. Skip email verification. Password reset is out of scope."**
+
+Agent logs resolutions and produces the sprint brief:
 
 ```
 Sprint t-a1b2 — Build user authentication API
 
-Goal: User registration, login, and token-based session management.
+Goal: User registration, login, and JWT token-based session management.
+      Email verification and password reset are out of scope.
 
 Files to create:
   auth/models.py      — User model
@@ -189,18 +239,23 @@ Files to create:
   auth/tokens.py      — JWT generation and validation
   tests/test_auth.py
 
+Impact: MEDIUM. Token design (JWT, no revocation) is noted — future
+sprints adding revocation will need a blocklist.
+
 Acceptance criteria:
-  ✓ POST /register creates a user and returns a token
-  ✓ POST /login returns a token for valid credentials, 401 for invalid
+  ✓ POST /register creates a user and returns a JWT
+  ✓ POST /login returns a JWT for valid credentials, 401 for invalid
   ✓ Token expires after 24 hours
   ✓ Tests pass
 
-No prior decisions found — proceeding with standard patterns.
+No prior decisions found — JWT and scope boundary logged to DECISIONS.md on close.
 
 Ready to proceed?
 ```
 
 **You: "Yes, and use postgres for the DB"**
+
+> Agent writes `plan.md` to `.tickets/t-a1b2/` — approved brief + grill resolutions captured. Re-read automatically if context resets mid-build.
 
 > `capture` fires: appends to `HANDOFF.md` under `## Discoveries`: *"Postgres chosen for auth DB — user-specified."*
 
@@ -241,9 +296,11 @@ sprint ────────────────────────�
   │
   ├── PLAN
   │     tkt              track work, one ticket per sprint
+  │     grill            surface gray areas → lock decisions before planning
   │     impact-analysis  risk rating + test plan before any code
-  │     blueprint.md     files to touch, build plan, Impact Assessment
+  │     blueprint.md     files to touch, build plan, Grill log, Impact Assessment
   │     acceptance.md    binary definition of done + Test Plan
+  │     plan.md          approved brief written on approval — survives compaction
   │     DECISIONS.md     durable architectural decisions (repo root)
   │
   ├── BUILD
@@ -364,7 +421,7 @@ Sprint start surfaces these before approval. Sprint complete gates closure on th
 
 | Command | What happens |
 |---|---|
-| `sprint start` | Creates ticket → blueprint → acceptance criteria → reads DECISIONS.md + HANDOFF.md → **impact analysis** → produces sprint brief → **waits for your approval** |
+| `sprint start` | Creates ticket → blueprint → acceptance criteria → reads DECISIONS.md + HANDOFF.md → **grills gray areas** → **impact analysis** → produces sprint brief → **waits for your approval** → writes `plan.md` |
 | `sprint complete` | Runs wrapup → **verifies all tests passed** → validates every acceptance criterion → appends to DECISIONS.md → updates HANDOFF.md → closes ticket |
 
 **Trigger phrases:**
@@ -377,8 +434,9 @@ Sprint start surfaces these before approval. Sprint complete gates closure on th
 ```
 .tickets/<id>/
   ticket.md        ← tkt-managed
-  blueprint.md     ← files to touch, build plan, Impact Assessment
+  blueprint.md     ← files to touch, build plan, Grill log, Impact Assessment
   acceptance.md    ← binary definition of done + Test Plan
+  plan.md          ← approved sprint brief; written on approval, re-read after compaction
 ```
 
 **DECISIONS.md** (repo root) — durable log of non-obvious architectural choices. Sprint start reads it; sprint complete writes to it.
@@ -422,7 +480,7 @@ tkt reopen <id>               # reopen a closed ticket
 
 | Skill | How to verify | Expected response |
 |---|---|---|
-| `sprint` | `"Start a sprint for X"` | Interrogation questions asked → impact ratings shown → sprint brief with Impact Assessment and Test Plan → awaits approval before any code |
+| `sprint` | `"Start a sprint for X"` | Gray areas grilled → impact ratings shown → sprint brief with Impact Assessment and Test Plan → awaits approval → writes `plan.md` |
 | `pdf` | `"Extract text from [file].pdf"` | Extracted content, or a clear error |
 | `ticket` | `tkt ls` | Empty list or existing tickets — no error |
 

@@ -53,7 +53,6 @@ $SKILLS/skills.sh addall        # register all available skills (recommended)
 
 # Or pick individually:
 $SKILLS/skills.sh add sprint    # full dev workflow (includes everything)
-$SKILLS/skills.sh add pdf       # PDF read/extract/merge/split
 ```
 
 Then verify:

@@ -36,7 +36,6 @@ Users pick up changes automatically:
 
 Everything except:
 - `Emacs/` — in `.gitignore`
-- `skills/shorts-director.md` — in `.gitignore`
 - `CSVs/` — in `.gitignore`
 - `.tickets/` — local task board, never committed
 

@@ -18,10 +18,20 @@ import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 import { homedir } from "os";
 
-const AUTO_HANDOFF_SCRIPT = join(
-  homedir(),
-  "Developer/canon/scripts/auto-handoff.sh"
-);
+function resolveAutoHandoff(): string | null {
+  // skills.sh init writes the canon install path here
+  const configPath = join(homedir(), ".config", "canon", "install_path");
+  if (existsSync(configPath)) {
+    const canonRoot = readFileSync(configPath, "utf-8").trim();
+    const script = join(canonRoot, "scripts", "auto-handoff.sh");
+    if (existsSync(script)) return script;
+  }
+  // Fallback for the common default install location
+  const fallback = join(homedir(), "Developer", "canon", "scripts", "auto-handoff.sh");
+  return existsSync(fallback) ? fallback : null;
+}
+
+const AUTO_HANDOFF_SCRIPT = resolveAutoHandoff();
 const MAX_LINES = 80;
 
 export default function (pi: ExtensionAPI) {
@@ -59,7 +69,7 @@ export default function (pi: ExtensionAPI) {
 
   // On agent end: snapshot git state into HANDOFF.md
   pi.on("agent_end", async (_, ctx) => {
-    if (!existsSync(AUTO_HANDOFF_SCRIPT)) return;
+    if (!AUTO_HANDOFF_SCRIPT) return;
 
     try {
       execFileSync("bash", [AUTO_HANDOFF_SCRIPT], {

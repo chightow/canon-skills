@@ -12,15 +12,6 @@
                                    project — reads .tickets/, HANDOFF.md, and 
                                    git log. Zero install beyond the canon repo.
 
-[36mshorts-director     [0m  [2mmedia      [0m  Direct the four phases of the Shorts 
-                                   production pipeline — scenes, artifacts, 
-                                   generate-clips, rendershorts. Invoke for 
-                                   devotional or any TikTok/Shorts content 
-                                   authored under 
-                                   Design-Docs/ToPublish/Shorts/. Each phase 
-                                   gates on user approval before the next 
-                                   begins.
-
 [36msprint              [0m  [2mdev        [0m  plan → build → ship. Grills gray areas, 
                                    rates impact across five dimensions, 
                                    generates a test plan, and awaits approval. 

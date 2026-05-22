@@ -253,6 +253,10 @@ main() {
   echo -e "\n${BOLD}canon setup${NC}"
   echo    "━━━━━━━━━━━━━━━━━━━━━"
 
+  # Write install path so extensions (e.g. Pi handoff.ts) can locate canon
+  mkdir -p "$HOME/.config/canon"
+  echo "$SKILLS_ROOT" > "$HOME/.config/canon/install_path"
+
   local agent="${1:-}"
 
   if [ -z "$agent" ]; then

@@ -727,6 +727,11 @@ cmd_init() {
   echo "canon init — wiring agent hooks from: $SKILLS_ROOT"
   echo ""
 
+  # Write install path so extensions (e.g. Pi handoff.ts) can locate canon
+  # without hardcoding a path that may differ per user.
+  mkdir -p "$HOME/.config/canon"
+  echo "$SKILLS_ROOT" > "$HOME/.config/canon/install_path"
+
   local any_fail=0
 
   echo "Claude Code:"

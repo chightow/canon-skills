@@ -37,7 +37,7 @@ Agents not installed are skipped. Re-run any time you move or rename the canon f
 
 On success, `init` prints the available commands. You're ready to register skills.
 
-> **RTK** (optional, recommended) — filters verbose CLI output, saving 60–90% of tokens on common operations. Install before running `init` so it gets wired automatically.
+> **RTK** (optional, recommended) — filters verbose CLI output, saving 60–90% of tokens on common operations. Install before running `init` so it gets wired automatically. Without it, canon works fully — handoff injection uses `cat` instead, and no token filtering is applied.
 > ```bash
 > brew install rtk   # macOS
 > cargo install rtk  # WSL / Linux

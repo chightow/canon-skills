@@ -10,26 +10,6 @@ hidden: true
 
 Review local changes or a remote PR with structured analysis across seven dimensions.
 
-## Getting Started
-
-**Step 1 — Register this skill in your project:**
-```bash
-<path-to-canon>/skills.sh add code-reviewer /path/to/your/project
-```
-
-**Step 2 — Verify:**
-```bash
-<path-to-canon>/skills.sh status /path/to/your/project
-```
-
-**Step 3 — Use it:**
-- **Review local changes** — Claude or Codex: "Review my changes."
-- **Review a remote PR** — "Review PR 42" or paste the PR URL.
-
-The agent determines scope automatically (local diff vs. remote PR), checks out if needed, runs the full analysis, and produces a structured report.
-
-> Tip: Use `wrapup` instead if you want simplify + review + security in one go after finishing a task.
-
 ## Scope
 
 - **Local changes** — staged and unstaged diffs in the working tree

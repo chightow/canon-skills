@@ -195,9 +195,3 @@ Address criticals before committing. Improvements and nitpicks at your discretio
 
 If you ran `/wrapup` directly (not via the approve workflow) and a ticket is in-progress, use the approve workflow to close it — do not call `tkt close` directly.
 
----
-
-> **Migrating from `polish`?** If your project has `polish` registered, update it:
-> ```bash
-> skills.sh remove polish && skills.sh add wrapup
-> ```

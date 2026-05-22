@@ -31,6 +31,27 @@ Nothing in progress.
 - Textual TUI for sprint-check — breaks zero-install guarantee; rejected.
 - Config.md for storing install path — not needed; scripts self-locate via BASH_SOURCE at runtime.
 
+<!-- HANDOFF-SNAPSHOT:START 2026-05-21 20:18 branch:main -->
+**Modified files:**
+```
+ M README.md
+ M guides/AI-Agents-Deck.md
+ M guides/AI-Agents-Setup.md
+ M skills/sprint.md
+ M tools/sprint-check.md
+?? skills/orient.md
+```
+
+**Recent commits:**
+```
+57ab14a chore: auto-update handoff snapshot [2026-05-21 20:17]
+59f0960 chore: auto-update handoff snapshot [2026-05-21 20:15]
+fecf8ac chore: auto-update handoff snapshot [2026-05-21 20:14]
+f0a44e6 chore: auto-update handoff snapshot [2026-05-21 20:12]
+7cdd5fb chore: auto-update handoff snapshot [2026-05-21 20:11]
+```
+<!-- HANDOFF-SNAPSHOT:END -->
+
 <!-- HANDOFF-SNAPSHOT:START 2026-05-21 20:17 branch:main -->
 **Modified files:**
 ```
@@ -48,25 +69,5 @@ fecf8ac chore: auto-update handoff snapshot [2026-05-21 20:14]
 f0a44e6 chore: auto-update handoff snapshot [2026-05-21 20:12]
 7cdd5fb chore: auto-update handoff snapshot [2026-05-21 20:11]
 3f0c756 chore: auto-update handoff snapshot [2026-05-21 20:03]
-```
-<!-- HANDOFF-SNAPSHOT:END -->
-
-<!-- HANDOFF-SNAPSHOT:START 2026-05-21 20:15 branch:main -->
-**Modified files:**
-```
- M README.md
- M guides/AI-Agents-Deck.md
- M guides/AI-Agents-Setup.md
- M skills/sprint.md
-?? skills/orient.md
-```
-
-**Recent commits:**
-```
-fecf8ac chore: auto-update handoff snapshot [2026-05-21 20:14]
-f0a44e6 chore: auto-update handoff snapshot [2026-05-21 20:12]
-7cdd5fb chore: auto-update handoff snapshot [2026-05-21 20:11]
-3f0c756 chore: auto-update handoff snapshot [2026-05-21 20:03]
-4266c32 chore: update handoff — README shipped, npm publish is next step
 ```
 <!-- HANDOFF-SNAPSHOT:END -->

@@ -1,7 +1,6 @@
 # canon: Agent Instructions
 
-Universal instructions for AI coding agents. Loaded natively by Pi and Codex CLI.
-Claude Code loads this via `adapters/claude/CLAUDE.md`.
+Universal instructions for AI coding agents. Loaded natively by Claude Code, Pi, and Codex CLI.
 
 ## Approach
 

@@ -4,7 +4,7 @@
 # PreToolUse[Bash] hook. Outputs context Claude acts on; never blocks.
 
 CANON_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-TKT_BIN="$CANON_ROOT/tools/tkt.sh"
+TKT_BIN="$CANON_ROOT/tools/tkt"
 [ -f "$TKT_BIN" ] || TKT_BIN=$(command -v tkt 2>/dev/null || command -v tk 2>/dev/null || true)
 
 INPUT=$(cat)

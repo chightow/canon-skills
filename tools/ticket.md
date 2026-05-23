@@ -57,5 +57,5 @@ tkt show <id>                 # show full ticket
 
 - Ticket IDs appear in git log (e.g. `t-8ms5: add login rate limiter`).
 - Priority: 0 = highest, 4 = lowest. Default is 2.
-- `tkt` is bundled with canon in `tools/tkt.sh` — no external install needed.
+- `tkt` is bundled with canon in `tools/tkt` — no external install needed.
 - For advanced features (dependency trees, linking, tags, assignees), install [ticket](https://github.com/wedow/ticket) (`brew install ticket`) — same `.tickets/` file format, fully compatible.

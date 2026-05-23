@@ -11,7 +11,7 @@ MAX_SNAPSHOTS=2
 # Derive tkt path from this canon installation — no PATH dependency.
 # Hooks are registered with absolute paths, so BASH_SOURCE[0] is always the real file.
 CANON_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-TKT_BIN="$CANON_ROOT/tools/tkt.sh"
+TKT_BIN="$CANON_ROOT/tools/tkt"
 [ -f "$TKT_BIN" ] || TKT_BIN=$(command -v tkt 2>/dev/null || command -v tk 2>/dev/null || true)
 
 # Must be inside a git repo — anchor HANDOFF.md to the git root, not cwd.

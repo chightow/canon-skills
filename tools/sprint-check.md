@@ -20,7 +20,7 @@ A browser-based kanban board that reads the current project's tickets, HANDOFF.m
 
 **Step 2 — Launch from your project:**
 ```bash
-sprint-check.sh
+sprint-check
 ```
 
 The board opens in your default browser at `http://127.0.0.1:<port>`. Press `Ctrl+C` to stop.

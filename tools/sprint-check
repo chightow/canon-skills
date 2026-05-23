@@ -12,7 +12,7 @@ while [ -L "$_SOURCE" ]; do
   [[ "$_SOURCE" != /* ]] && _SOURCE="$_DIR/$_SOURCE"
 done
 SCRIPT_DIR="$(cd -P "$(dirname "$_SOURCE")" && pwd)"
-SERVER="$SCRIPT_DIR/sprint-check/server.py"
+SERVER="$SCRIPT_DIR/sprint-check-app/server.py"
 
 # ── Port selection ─────────────────────────────────────────────────────────
 

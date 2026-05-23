@@ -1,7 +1,7 @@
 ---
 name: sprint
 description: Full dev workflow — plan, build, and ship focused units of work with acceptance-criteria-gated delivery
-summary: plan → build → ship. Grills gray areas, rates impact across five dimensions, generates a test plan, and awaits approval. Approved plan persists to plan.md for compaction resilience. sprint complete verifies all tests passed before closing.
+summary: plan → build → ship. Auto-creates a ticket on start, closes it on complete. Grills gray areas, rates impact, generates a test plan. sprint complete runs the full quality pipeline (simplify → review → security) before closing. Includes wrapup, code-reviewer, security-review, and handoff.
 category: dev
 tags: [workflow, planning, quality, tickets, orchestration]
 depends: [wrapup, capture, ticket, handoff, impact-analysis, orient]

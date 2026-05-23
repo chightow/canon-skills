@@ -34,6 +34,35 @@ Nothing in progress.
 - Textual TUI for sprint-check — breaks zero-install guarantee; rejected.
 - adapters/ as a global CLAUDE.md shim — never auto-wired, so removed in favour of direct imports.
 
+<!-- HANDOFF-SNAPSHOT:START 2026-05-22 19:52 branch:main -->
+**Modified files:**
+```
+ M skills/capture.md
+ M skills/code-reviewer.md
+ M skills/code-simplifier.md
+ M skills/impact-analysis.md
+ M skills/orient.md
+ M skills/security-review.md
+ M skills/sprint.md
+ M skills/wrapup.md
+ M standards/efficiency.md
+```
+
+**Recent commits:**
+```
+e0a3cc6 chore: ignore tailscale-check.sh (personal infra script)
+44f4114 chore: auto-update handoff snapshot [2026-05-22 09:03]
+fd49b36 chore: update handoff — wrapup complete, npm publish is next step
+defd97d chore: remove adapters/ — skills.sh add handles CLAUDE.md imports directly
+3d3864a fix: harden sprint-check server — imports, re.sub, CSRF guard
+```
+
+**In-progress tickets:**
+```
+No tickets with status 'in_progress'.
+```
+<!-- HANDOFF-SNAPSHOT:END -->
+
 <!-- HANDOFF-SNAPSHOT:START 2026-05-22 09:03 branch:main -->
 **Modified files:**
 ```

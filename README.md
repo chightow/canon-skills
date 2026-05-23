@@ -18,6 +18,18 @@ That's it. Your agent now plans before it codes, runs a quality gate before clos
 
 ---
 
+## Why I built canon
+
+Most agent repos I tried gave me homework. A vocabulary of slash commands to memorize. An invocation order that wasn't written down anywhere. A setup ritual to repeat on every new project. The overhead of operating the framework started eating into the time I'd saved by using an agent.
+
+I wanted the opposite: define my standards once, have every agent read them automatically, and never think about configuration again. Open a session — your agent already knows how you work.
+
+The second problem was visibility. As a solo developer, I don't have a standup or a project manager. When I'm deep in a session and need to know what's in flight, I don't want to push commits to GitHub just to see a diff, spin up a Jira board, or maintain a project in three browser tabs that requires a remote repo to even exist. I just want to see my work — right now, in the repo, without ceremony.
+
+That's sprint-check: a kanban board that reads your `.tickets/` folder and `git log` directly, opens in a browser tab, and requires nothing else — no account, no remote, no commit. The same instinct behind canon: the best tool for a solo developer is one that disappears.
+
+---
+
 ## Why not just paste instructions into CLAUDE.md?
 
 You can. Most people do — until they have five projects, each with a slightly different copy, all drifting apart. Canon solves this with a **live-reference model**: skills live in one repo and are `@`-imported directly into each project's config. Update once, every project picks it up on the next session start. No copies. No drift. No tribal knowledge trapped in one engineer's config.
@@ -175,3 +187,7 @@ Configuration is living, not static. Conventions learned during a sprint flow ba
 ## Full setup guide
 
 [`guides/AI-Agents-Setup.md`](guides/AI-Agents-Setup.md) — prerequisites, per-agent wiring, project registration, verification, and the full sprint + wrapup workflow.
+
+---
+
+*Make it canon.*

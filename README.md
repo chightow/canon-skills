@@ -41,10 +41,10 @@ You can. Most people do — until they have five projects, each with a slightly 
 | Skill | What it does |
 |---|---|
 | `sprint` | plan → build → ship. Creates a ticket automatically on start, closes it on complete — no manual ticketing. Maps the subsystem, grills gray areas, rates impact, generates a test plan. Approved plans persist to `plan.md` — survives context resets. |
-| `wrapup` | Quality pipeline on demand: simplify → review → security, scoped to what you just changed. |
-| `code-reviewer` | Structured review across 7 dimensions: correctness, maintainability, security, edge cases, coverage. |
-| `security-review` | High-confidence vulnerability detection — traces data flow before flagging anything. |
-| `handoff` | Session context that survives agent switches, resets, and context window exhaustion. |
+| &nbsp;&nbsp;↳ `wrapup` | Quality pipeline at sprint complete (also runs on demand): simplify → review → security, scoped to what you just changed. |
+| &nbsp;&nbsp;&nbsp;&nbsp;↳ `code-reviewer` | Structured review across 7 dimensions: correctness, maintainability, security, edge cases, coverage. |
+| &nbsp;&nbsp;&nbsp;&nbsp;↳ `security-review` | High-confidence vulnerability detection — traces data flow before flagging anything. |
+| &nbsp;&nbsp;↳ `handoff` | Session context that survives agent switches, resets, and context window exhaustion. |
 | `efficiency` | Token-efficiency rules for AI agents. Opinionated but battle-tested. |
 | `sprint-check` | Local kanban dashboard. Reads `.tickets/`, `HANDOFF.md`, and `git log`. Runs in any browser. |
 

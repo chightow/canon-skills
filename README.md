@@ -24,7 +24,7 @@ Most agent repos I tried gave me homework. A vocabulary of slash commands to mem
 
 I wanted the opposite: define my standards once, have every agent read them automatically, and never think about configuration again. Open a session — your agent already knows how you work.
 
-The second problem was visibility. As a solo developer, I don't have a standup or a project manager. When I'm deep in a session and need to know what's in flight, I don't want to push commits to GitHub just to see a diff, spin up a Jira board, or maintain a project in three browser tabs that requires a remote repo to even exist. I just want to see my work — right now, in the repo, without ceremony.
+The second problem was visibility. As a solo builder, when I'm deep in a session and need to know what's in flight, I don't want to push commits to GitHub just to see a diff, spin up a Jira board, or maintain a project in three browser tabs that requires a remote repo to even exist. I just want to see my work — right now, in the repo, without ceremony.
 
 That's sprint-check: a kanban board that reads your `.tickets/` folder and `git log` directly, opens in a browser tab, and requires nothing else — no account, no remote, no commit. The same instinct behind canon: the best tool for a solo developer is one that disappears.
 
@@ -40,7 +40,7 @@ You can. Most people do — until they have five projects, each with a slightly 
 
 | Skill | What it does |
 |---|---|
-| `sprint` | plan → build → ship. Maps the subsystem before touching it. Grills gray areas, rates impact, generates a test plan. Approved plans persist to `plan.md` — survives context resets. Captures conventions back to `AGENTS.md` on close. |
+| `sprint` | plan → build → ship. Creates a ticket automatically on start, closes it on complete — no manual ticketing. Maps the subsystem, grills gray areas, rates impact, generates a test plan. Approved plans persist to `plan.md` — survives context resets. |
 | `wrapup` | Quality pipeline on demand: simplify → review → security, scoped to what you just changed. |
 | `code-reviewer` | Structured review across 7 dimensions: correctness, maintainability, security, edge cases, coverage. |
 | `security-review` | High-confidence vulnerability detection — traces data flow before flagging anything. |
@@ -59,6 +59,8 @@ sprint-check
 ```
 
 It reads your project's `.tickets/` folder and `git log` and opens a local kanban board in your browser. Columns update in real time. Tickets link to commits automatically.
+
+Tickets don't need to be created manually. Every `sprint start` creates one. Every `sprint complete` closes it. Open the board mid-session and your work is already there — no entry, no tagging, no context-switching.
 
 ### The board
 

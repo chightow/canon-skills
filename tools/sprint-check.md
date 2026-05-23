@@ -3,6 +3,7 @@ name: sprint-check
 description: Local kanban dashboard for the current project — reads .tickets/, HANDOFF.md, and git log. Zero install beyond the canon repo.
 category: tools
 tags: [project-management, kanban, dashboard, gui]
+hidden: true
 ---
 
 # sprint-check — Local Kanban Dashboard

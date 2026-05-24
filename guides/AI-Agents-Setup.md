@@ -485,6 +485,7 @@ tkt reopen <id>               # reopen a closed ticket
 | `sprint` | `"Start a sprint for X"` | Subsystem mapped (orient) → gray areas grilled → impact ratings shown → sprint brief with Impact Assessment and Test Plan → awaits approval → writes `plan.md` |
 | `ticket` | `tkt ls` | Empty list or existing tickets — no error |
 | `context-check` | `/context-check` | Size + content audit of always-loaded context; findings appended to `standards/context-findings.md` on confirmation |
+| `doc-audit` | `/doc-audit` | Audits README and guides for overstated claims, missing prerequisites, and personal content; findings appended to `standards/doc-findings.md` on confirmation |
 
 > Everything else is automatic. `efficiency` is always on. `capture` fires mid-session. `wrapup` + test verification run inside `sprint complete`. `impact-analysis`, `handoff`, and `ticket` are deps of sprint — loaded silently. Run `context-check` periodically to audit context budget.
 

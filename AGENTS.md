@@ -33,13 +33,6 @@ Universal instructions for AI coding agents. Loaded natively by Claude Code, Pi,
 
 See [standards/efficiency.md](standards/efficiency.md) for the full agent standards (code quality, security, git conventions, token efficiency).
 
-Key rules:
-- Never introduce security vulnerabilities (OWASP top 10). Never commit secrets.
-- Commits: imperative mood, 50/72 chars, type prefix (`feat`, `fix`, `refactor`...), no self-referential language.
-- Before editing any file, read it first. Grep callers before modifying a function.
-- Don't read `node_modules`, `.git`, `dist`, `build`, `__pycache__`, `.next` unless asked.
-- Keep CLAUDE.md and AGENTS.md concise — only rules, gotchas, non-obvious conventions.
-
 ## RTK — Token Optimization
 
 RTK (Rust Token Killer) filters verbose CLI output before it hits the token budget.

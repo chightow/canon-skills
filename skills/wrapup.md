@@ -62,7 +62,7 @@ Apply the code-reviewer skill across all seven dimensions. For security: note co
 
 ## Step 3 — Security Review
 
-Apply the security-review skill, including the ast-grep pre-scan.
+Apply the security-review skill, including the ast-grep pre-scan if available.
 
 ## Step 4 — Doc Refresh
 

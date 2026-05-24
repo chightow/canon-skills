@@ -37,11 +37,7 @@ Agents not installed are skipped. Re-run any time you move or rename the canon f
 
 On success, `init` prints the available commands. You're ready to register skills.
 
-> **RTK** (optional, recommended) — filters verbose CLI output, saving 60–90% of tokens on common operations. Install before running `init` so it gets wired automatically. Without it, canon works fully — handoff injection uses `cat` instead, and no token filtering is applied.
-> ```bash
-> brew install rtk   # macOS
-> cargo install rtk  # WSL / Linux
-> ```
+> **RTK** (optional) — if already installed, `skills.sh init` wires it automatically. No separate setup needed. Without it, canon works fully.
 
 ### Step 3 — Register skills in your project
 
@@ -481,8 +477,6 @@ tkt ls --status=in_progress   # filter by status
 tkt show <id>                 # full ticket detail
 tkt reopen <id>               # reopen a closed ticket
 ```
-
-> Need dependency tracking, tags, or assignees? Install [ticket](https://github.com/wedow/ticket) (`brew install ticket`) — same `.tickets/` format, fully compatible.
 
 ### Skill verification
 

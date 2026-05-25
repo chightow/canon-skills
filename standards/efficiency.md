@@ -13,7 +13,8 @@ tags: [coding, security, git, efficiency, tokens]
 - Delete dead code your changes made unused — no commented-out blocks, no `_unused` renames. Don't touch pre-existing dead code unless asked.
 - No feature flags or backwards-compat shims when you can change the code directly.
 - No comments unless the WHY is non-obvious.
-- Don't reformat, rename, or add type hints to adjacent code — fix only what was asked. Out-of-scope issues noticed while working: surface as `NOTICED: <what>` rather than fixing silently or ignoring.
+- Don't reformat, rename, or add type hints to adjacent code — fix only what was asked.
+- Out-of-scope issues noticed while working: surface as `NOTICED: <what>`, don't fix silently.
 - Never introduce OWASP top 10 vulnerabilities. Never commit secrets, credentials, or `.env` files.
 - Don't add dependencies for problems solvable with existing tools.
 - Write tests at system boundaries. Don't mock what you can integration-test cheaply.

@@ -95,6 +95,16 @@ flowchart LR
 
 ---
 
+## Tickets
+
+Every `sprint start` creates a ticket in `.tickets/<id>/`. Every `sprint complete` closes it. No manual ticketing, no external service, no account.
+
+A ticket is a folder, not a card — it holds the approved plan, decisions made mid-sprint, and any QA or research notes, all as markdown files. When context resets mid-session, the agent opens the ticket and picks up exactly where it left off.
+
+Most tools track work in a service you have to open. Canon tracks it in your repo, where your agent already is.
+
+---
+
 ## sprint-check — the local kanban board
 
 No server. No account. No SaaS. Just run:

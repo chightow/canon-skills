@@ -34,6 +34,28 @@ Nothing in progress.
 - Textual TUI for sprint-check — breaks zero-install guarantee; rejected.
 - adapters/ as a global CLAUDE.md shim — never auto-wired, so removed in favour of direct imports.
 
+<!-- HANDOFF-SNAPSHOT:START 2026-05-25 17:15 branch:main -->
+**Modified files:**
+```
+ M meta/screenshots/board-dark.png
+ M meta/screenshots/board-light.png
+```
+
+**Recent commits:**
+```
+323d980 chore: auto-update handoff snapshot [2026-05-25 17:14]
+d87e937 chore: auto-update handoff snapshot [2026-05-25 17:13]
+08269ae docs: shorten sprint start node labels to fit diagram width
+a6c3390 docs: improve sprint diagram section formatting
+2a48995 style: split NOTICED rule into its own bullet in efficiency.md
+```
+
+**In-progress tickets:**
+```
+No tickets with status 'in_progress'.
+```
+<!-- HANDOFF-SNAPSHOT:END -->
+
 <!-- HANDOFF-SNAPSHOT:START 2026-05-25 17:14 branch:main -->
 **Modified files:**
 ```
@@ -48,27 +70,6 @@ d87e937 chore: auto-update handoff snapshot [2026-05-25 17:13]
 a6c3390 docs: improve sprint diagram section formatting
 2a48995 style: split NOTICED rule into its own bullet in efficiency.md
 651ebbb feat: add three agent behaviours from addyosmani/agent-skills
-```
-
-**In-progress tickets:**
-```
-No tickets with status 'in_progress'.
-```
-<!-- HANDOFF-SNAPSHOT:END -->
-
-<!-- HANDOFF-SNAPSHOT:START 2026-05-25 17:13 branch:main -->
-**Modified files:**
-```
- M meta/screenshots/board-light.png
-```
-
-**Recent commits:**
-```
-08269ae docs: shorten sprint start node labels to fit diagram width
-a6c3390 docs: improve sprint diagram section formatting
-2a48995 style: split NOTICED rule into its own bullet in efficiency.md
-651ebbb feat: add three agent behaviours from addyosmani/agent-skills
-f32b47c feat: add Triggers section to efficiency.md
 ```
 
 **In-progress tickets:**

@@ -63,6 +63,49 @@ In practice you need two commands. The rest is wired in automatically.
 
 ---
 
+## How sprint works
+
+Two commands drive the full lifecycle. Sub-skills are called in automatically at each stage — no manual orchestration.
+
+```mermaid
+flowchart TD
+    subgraph START ["sprint start"]
+        S1[Create ticket] --> S2[Setup planning files]
+        S2 --> S3[Read context\nDECISIONS.md · HANDOFF.md]
+        S3 --> S4[["orient\nmap subsystem → blueprint.md"]]
+        S4 --> S5["Grill\nsurface gray areas"]
+        S5 --> S6[["impact-analysis\nrate 5 risk dimensions"]]
+        S6 --> S7[Sprint brief]
+        S7 --> S8{Approved?}
+        S8 -->|iterate| S7
+        S8 -->|yes| S9[Write plan.md]
+    end
+
+    S9 --> BLD([Build])
+    BLD -.->|automatic| CAP[["capture\nnon-obvious discoveries → HANDOFF.md"]]
+
+    subgraph DONE ["sprint complete"]
+        subgraph W ["wrapup"]
+            direction LR
+            W1[code-simplifier] --> W2[code-reviewer] --> W3[security-review]
+        end
+        W --> C1[Verify tests\nacceptance.md]
+        C1 --> C2{All pass?}
+        C2 -->|no| C3[Stop — report failures]
+        C2 -->|yes| C4[Update DECISIONS.md]
+        C4 --> C5[tkt close + report]
+    end
+
+    BLD --> W
+
+    classDef subskill fill:#e8e8f4,stroke:#8888bb
+    class S4,S6,CAP,W,W1,W2,W3 subskill
+```
+
+Sub-skills shown with double borders (`orient`, `impact-analysis`, `capture`, `wrapup` and its children) are loaded from canon automatically — they're not invoked separately.
+
+---
+
 ## sprint-check — the local kanban board
 
 No server. No account. No SaaS. Just run:

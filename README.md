@@ -1,5 +1,7 @@
 # canon
 
+The average person can hold about four items in active working memory. Most agent sessions burn them all before you write a line of code.
+
 *canon /ˈkænən/ — an established rule or principle; the authoritative standard a team agrees to follow.*
 
 > Your agents are capable. Canon makes them yours.

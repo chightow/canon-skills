@@ -141,6 +141,21 @@ Hover a ticket card to see what's missing — description, blueprint, decisions.
 
 Drag any ticket card between columns to update its status instantly. No clicks, no dropdowns — the board writes the change back to `.tickets/` immediately.
 
+### Attach docs to a ticket
+
+![New doc dialog](meta/screenshots/new-doc.png)
+
+Click `+ New doc` on any ticket to attach a structured document. The board suggests the right type based on ticket status:
+
+| Doc | Suggested when | Use it to |
+|---|---|---|
+| **Blueprint** | Ticket is open, or in progress with no blueprint yet | Plan approach, scope, and open questions before building |
+| **Decisions** | Ticket is in progress or closed | Record choices made, trade-offs, and why alternatives were ruled out — visible to future agents |
+| **QA** | Ticket is in progress or closed | Write the test plan and sign-off checklist before closing |
+| **Notes** | Any status | Freeform scratchpad — research, links, observations, anything that doesn't fit the others |
+
+Docs land in `.tickets/<id>/` as markdown files and are read automatically by your agent at sprint start.
+
 ---
 
 ## The contrast

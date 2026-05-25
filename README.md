@@ -211,10 +211,8 @@ git clone https://github.com/sunitghub/canon.git ~/Developer/canon
 ```bash
 cd /path/to/your-project
 
-~/Developer/canon/skills.sh add sprint        # plan → build → ship workflow
-~/Developer/canon/skills.sh add wrapup        # quality gate
-~/Developer/canon/skills.sh add handoff       # session context
-~/Developer/canon/skills.sh addall            # or register everything at once
+~/Developer/canon/skills.sh add sprint        # plan → build → ship (includes wrapup, handoff)
+~/Developer/canon/skills.sh addall            # or register all skills at once
 ```
 
 **3. Start a session**

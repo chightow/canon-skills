@@ -235,6 +235,8 @@ skills.sh init                     Wire Claude Code hooks to this canon install
 skills.sh help <skill>             Show full documentation for a skill
 ```
 
+`skills.sh help <skill>` prints the full skill documentation in the terminal — discover what any skill does without opening a file.
+
 ---
 
 ## How the live-reference model works

@@ -67,25 +67,24 @@ In practice you need two commands. The rest is wired in automatically.
 
 Two commands drive the full lifecycle. Sub-skills are called in automatically at each stage — no manual orchestration.
 
+**sprint start**
+
 ```mermaid
-flowchart TD
-    subgraph START ["sprint start"]
-        direction LR
-        S1[Create ticket] --> S2[Setup files] --> S3[Read context] --> S4[[orient]] --> S5[Grill] --> S6[[impact-analysis]] --> S7[Sprint brief] --> S9[plan.md]
-    end
-
-    S9 --> BLD([Build])
-    BLD -.->|auto| CAP[[capture]]
-
-    subgraph DONE ["sprint complete"]
-        direction LR
-        W1[code-simplifier] --> W2[code-reviewer] --> W3[security-review] --> C1[Verify tests] --> C4[DECISIONS.md] --> C5[tkt close]
-    end
-
-    BLD --> W1
-
+flowchart LR
+    S1[Create ticket] --> S2[Setup files] --> S3[Read context] --> S4[[orient]] --> S5[Grill] --> S6[[impact-analysis]] --> S7[Sprint brief] --> S9[plan.md]
     classDef subskill fill:#e8e8f4,stroke:#8888bb
-    class S4,S6,CAP,W1,W2,W3 subskill
+    class S4,S6 subskill
+```
+
+↓ &nbsp; **Build** &nbsp;·&nbsp; `capture` fires automatically → `HANDOFF.md`
+
+**sprint complete**
+
+```mermaid
+flowchart LR
+    W1[code-simplifier] --> W2[code-reviewer] --> W3[security-review] --> C1[Verify tests] --> C4[DECISIONS.md] --> C5[tkt close]
+    classDef subskill fill:#e8e8f4,stroke:#8888bb
+    class W1,W2,W3 subskill
 ```
 
 Sub-skills with double borders (`orient`, `impact-analysis`, `capture`, and the wrapup pipeline) are loaded from canon automatically — they're not invoked separately.

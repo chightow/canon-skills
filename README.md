@@ -225,6 +225,8 @@ Your agent reads the registered skills and follows them — no prompt engineerin
 
 ## The CLI
 
+![skills --h output](meta/screenshots/cli-help.png)
+
 ```
 skills.sh list                     List all available skills
 skills.sh add <skill> [dir]        Register a skill into a project (default: cwd)
@@ -236,6 +238,7 @@ skills.sh status [dir]             Show registered skills and detect issues
 skills.sh init                     Wire Claude Code hooks for this install location
 skills.sh help <skill>             Show full documentation for a skill
 skills.sh <skill> --h              Shorthand for skills.sh help <skill>
+skills.sh --scan [dir]             Show skills registered in a project
 ```
 
 `skills.sh help <skill>` prints the full skill documentation in the terminal — discover what any skill does without opening a file.

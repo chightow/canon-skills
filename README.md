@@ -86,12 +86,12 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-    W1[[simplifier]] --> W2[[reviewer]] --> W3[[security]] --> W4[[doc-audit]] --> C1[Verify] --> C5[close]
+    W1[[simplifier]] --> W2[[reviewer]] --> W3[[security]] --> W4[[doc-audit]] --> C5[close]
     classDef subskill stroke:#8888dd,stroke-width:2px
-    class W1,W2,W3 subskill
+    class W1,W2,W3,W4 subskill
 ```
 
-> Double-bordered nodes (`orient`, `impact-analysis`, `capture`, `code-simplifier`, `code-reviewer`, `security-review`) are sub-skills loaded from canon automatically — not invoked separately.
+> Double-bordered nodes (`orient`, `impact-analysis`, `capture`, `code-simplifier`, `code-reviewer`, `security-review`, `doc-audit`) are sub-skills loaded from canon automatically — not invoked separately.
 
 ---
 

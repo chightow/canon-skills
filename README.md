@@ -4,7 +4,7 @@
 
 > Your agents are capable. Canon makes them yours.
 
-Stop re-explaining your standards on every new project. Stop watching Claude drift back to its defaults mid-session. Stop reconfiguring the same quality checks from scratch.
+Stop re-explaining your standards on every new project. Stop watching Claude drift back to its defaults mid-session. Stop reconfiguring the same quality checks from scratch. Stop piecing together what's in flight from git log and open tabs.
 
 canon is a shared skill library for AI coding agents. Define your standards once. Every project inherits them automatically — Claude Code, Codex, and Pi, all in sync.
 

@@ -135,6 +135,12 @@ Click any commit in the sidebar to see what changed and which ticket it likely b
 
 Hover a ticket card to see what's missing — description, blueprint, decisions. The board surfaces gaps before they block your agent mid-sprint, with a direct prompt to add what's needed.
 
+### Drag to update status
+
+![Drag and drop ticket](meta/screenshots/drag-drop.png)
+
+Drag any ticket card between columns to update its status instantly. No clicks, no dropdowns — the board writes the change back to `.tickets/` immediately.
+
 ---
 
 ## The contrast

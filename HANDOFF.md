@@ -34,6 +34,27 @@ Nothing in progress.
 - Textual TUI for sprint-check — breaks zero-install guarantee; rejected.
 - adapters/ as a global CLAUDE.md shim — never auto-wired, so removed in favour of direct imports.
 
+<!-- HANDOFF-SNAPSHOT:START 2026-05-25 18:11 branch:main -->
+**Modified files:**
+```
+ M README.md
+```
+
+**Recent commits:**
+```
+a9815d9 chore: auto-update handoff snapshot [2026-05-25 18:09]
+f916dc4 docs: sync CLI table with actual skills.sh commands
+e3645fa docs: call out skills.sh help as in-terminal skill discovery
+ebfa1e9 docs: add fourth Stop line for ticket context tracking
+4d7f4c9 docs: add Tickets section surfacing local-first differentiator
+```
+
+**In-progress tickets:**
+```
+No tickets with status 'in_progress'.
+```
+<!-- HANDOFF-SNAPSHOT:END -->
+
 <!-- HANDOFF-SNAPSHOT:START 2026-05-25 18:09 branch:main -->
 **Modified files:**
 ```
@@ -47,30 +68,6 @@ e3645fa docs: call out skills.sh help as in-terminal skill discovery
 ebfa1e9 docs: add fourth Stop line for ticket context tracking
 4d7f4c9 docs: add Tickets section surfacing local-first differentiator
 2203910 docs: drop Context node from sprint start to clear pan controls
-```
-
-**In-progress tickets:**
-```
-No tickets with status 'in_progress'.
-```
-<!-- HANDOFF-SNAPSHOT:END -->
-
-<!-- HANDOFF-SNAPSHOT:START 2026-05-25 17:18 branch:main -->
-**Modified files:**
-```
- M meta/screenshots/board-dark.png
- M meta/screenshots/board-light.png
- M meta/screenshots/commit-detail.png
- M meta/screenshots/new-ticket.png
-```
-
-**Recent commits:**
-```
-4d76215 chore: auto-update handoff snapshot [2026-05-25 17:16]
-4a604c5 chore: auto-update handoff snapshot [2026-05-25 17:15]
-323d980 chore: auto-update handoff snapshot [2026-05-25 17:14]
-d87e937 chore: auto-update handoff snapshot [2026-05-25 17:13]
-08269ae docs: shorten sprint start node labels to fit diagram width
 ```
 
 **In-progress tickets:**

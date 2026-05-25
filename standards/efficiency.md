@@ -43,6 +43,19 @@ Include reasoning only when the fix isn't self-evident. Security and architectur
 - Fail loudly — surface ambiguity rather than guessing silently.
 - Solve with one agent before building a multi-agent pipeline. Complexity compounds failure.
 
+## Triggers
+
+Act on these when you see them — don't wait to be told.
+
+- Same fact in multiple files → pick one owner, derive the rest.
+- One change requires edits in many unrelated places → fix the missing boundary first.
+- Mixing structural edits with behavior changes in one commit → split them.
+- Unclear behavior before touching it → characterize what it does now before changing anything.
+- A third copy of the same logic appears → remove the duplication; don't copy again.
+- Tests require excessive setup to run → the dependency structure is the problem, not the tests.
+- Refactor spreading into unrelated areas → cut back to the smallest change that makes the requested edit safe.
+- Error surfaces without context → preserve the diagnostic information at the boundary, don't swallow it.
+
 ## Token Efficiency
 
 - 98%+ of token spend is re-reading prior conversation history, not generating responses. Every verbose output compounds across all future turns — keep it tight.

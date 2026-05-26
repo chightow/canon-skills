@@ -1,30 +1,27 @@
 # canon Catalog
 
-> Auto-generated snapshot. Run `skills.sh list` for live output.
+> Static snapshot — run `skills.sh list` for live output.
 
-```
-[1mSKILL                 CATEGORY     DESCRIPTION[0m
-[2m────────────────────  ───────────  ─────────────────────────────────────────────[0m
-[36mefficiency          [0m  [2magent-ops  [0m  Coding standards, git conventions, and 
-                                   token-efficiency rules for AI agents
-[36mcontext-check       [0m  [2magent-ops  [0m  Audit the always-on context budget — import 
-                                   sizes, active skills, hooks, memory — plus 
-                                   content quality of key markdowns 
-                                   (redundancy, vague rules, dead references). 
-                                   Appends findings only on explicit 
-                                   confirmation.
-[36mdoc-audit           [0m  [2magent-ops  [0m  Audit user-facing docs for overstated 
-                                   claims, missing prerequisites, absolute 
-                                   statements with exceptions, and scope 
-                                   inflation. Appends findings to 
-                                   standards/doc-findings.md on explicit 
-                                   confirmation.
+## Standalone Skills
 
-[36msprint              [0m  [2mdev        [0m  plan → build → ship. Auto-creates a ticket 
-                                   on start, closes it on complete. Grills gray 
-                                   areas, rates impact, generates a test plan. 
-                                   sprint complete runs the full quality 
-                                   pipeline (simplify → review → security) 
-                                   before closing. Includes wrapup, 
-                                   code-reviewer, security-review, and handoff.
-```
+Register these directly into a project with `skills.sh add <name>`.
+
+| Skill | Category | Description |
+|---|---|---|
+| `capture` | dev | Proactively record non-obvious discoveries to HANDOFF.md and memory — fires automatically mid-session, also invocable explicitly |
+| `context-check` | agent-ops | Audit the always-on context budget — import sizes, active skills, hooks, memory — plus content quality of key markdowns |
+| `doc-audit` | agent-ops | Audit user-facing docs for overstated claims, missing prerequisites, and scope inflation. Appends findings to standards/doc-findings.md |
+| `sprint` | dev | Full dev workflow — plan, build, and ship focused units of work with acceptance-criteria-gated delivery |
+| `wrapup` | dev | Quality pipeline after any unit of work — runs code-simplifier, code-reviewer, and security-review in sequence |
+
+## Sub-skills
+
+Imported automatically by the skills above. Do not register directly.
+
+| Skill | Imported by |
+|---|---|
+| `code-reviewer` | wrapup, sprint |
+| `code-simplifier` | wrapup, sprint |
+| `impact-analysis` | sprint |
+| `orient` | sprint |
+| `security-review` | wrapup, sprint |

@@ -20,10 +20,15 @@ npx canon-skills@latest
 ~/Developer/canon/skills.sh add sprint
 ```
 
-Skills are live references, not copies. `skills.sh add sprint` writes one line to your project's CLAUDE.md:
+Skills are live references, not copies. `skills.sh add sprint` adds live imports to your project's agent config:
 
 ```
-@~/Developer/canon/skills/sprint.md
+# CLAUDE.md
+@/Users/you/Developer/canon/standards/efficiency.md
+@/Users/you/Developer/canon/skills/sprint.md
+
+# AGENTS.md
+| sprint | dev | /Users/you/Developer/canon/skills/sprint.md |
 ```
 
 Claude Code resolves it at session start, reading directly from canon. Update canon — every project picks it up on the next `git pull`.
@@ -96,7 +101,7 @@ flowchart LR
 
 ### ↓ Build
 
-> `capture` fires automatically — discoveries saved to `HANDOFF.md`
+> The agent runs `capture` when non-obvious discoveries appear — saved to `HANDOFF.md`
 
 ### sprint complete
 
@@ -239,7 +244,6 @@ git clone https://github.com/sunitghub/canon.git ~/Developer/canon
 cd /path/to/your-project
 
 ~/Developer/canon/skills.sh add sprint        # plan → build → ship (includes wrapup, handoff)
-~/Developer/canon/skills.sh addall            # or register all skills at once
 ```
 
 **3. Start a session**
@@ -270,7 +274,7 @@ Your agent reads the registered skills and follows them — no prompt engineerin
 
 Claude Code reads `CLAUDE.md` at session start. The `@` prefix tells it to load the referenced file in full — which is the live skill from the canon repo. When canon updates, the next session picks up the change automatically. No re-registration.
 
-Configuration is living, not static. Conventions learned during a sprint flow back into `AGENTS.md` on close — the codebase teaches the agent, and the agent remembers.
+Configuration is living, not static. When a sprint surfaces a durable convention, the agent proposes an `AGENTS.md` update before close — the codebase teaches the agent, and the agent remembers.
 
 ---
 
@@ -280,6 +284,7 @@ Configuration is living, not static. Conventions learned during a sprint flow ba
 |---|---|---|
 | Claude Code / Codex / Pi | Yes — at least one | [claude.ai/code](https://claude.ai/code) |
 | Node.js ≥ 16 | For `npx` install only | [nodejs.org](https://nodejs.org) |
+| Python 3 | For `sprint-check` and hook setup helpers | [python.org](https://python.org) |
 
 ---
 

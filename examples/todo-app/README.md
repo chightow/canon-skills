@@ -29,4 +29,4 @@ Open `http://127.0.0.1:4173`.
 4. Open the board with [docs/04-sprint-check.md](docs/04-sprint-check.md).
 5. Complete the sprint with [docs/05-sprint-complete.md](docs/05-sprint-complete.md).
 
-The sample ticket under `.tickets/t-demo/` shows what the agent and CLI create during a completed sprint. It is closed so you can run your own `sprint start` from this folder.
+The sample ticket under `.tickets/t-demo/` shows what the agent and CLI create during a completed sprint. The local `.tickets/` folder also lets the walkthrough run from here without mixing ticket state into the canon repo root.

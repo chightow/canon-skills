@@ -143,6 +143,12 @@ offer_tkt_path() {
   fi
 }
 
+ensure_sprint_project_marker() {
+  local project_dir="$1"
+  mkdir -p "$project_dir/.tickets"
+  echo "  [sprint]  ensured project-local .tickets/"
+}
+
 cmd_add() {
   local skill="${1:-}"
   local project_dir="${2:-$(pwd)}"
@@ -234,6 +240,9 @@ cmd_add() {
   echo "Done. $desc"
 
   if [[ "$name" == "ticket" || "$name" == "sprint-check" || "$name" == "sprint" ]]; then
+    if [[ "$name" == "sprint" ]]; then
+      ensure_sprint_project_marker "$project_dir"
+    fi
     offer_tkt_path
   fi
 

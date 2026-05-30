@@ -1,6 +1,8 @@
 # 01 - Setup
 
-Start from a project folder. This example already has source and tests, but the same commands apply to a new app.
+This folder lives inside the canon source repo, but it can still be used as its own agent project root.
+
+`skills.sh add sprint` writes `CLAUDE.md` and `AGENTS.md` to the directory you run it from. It also ensures a local `.tickets/` folder exists, so `sprint`, `tkt`, and `sprint-check` treat this folder as the project instead of walking up to the canon repo root.
 
 ```bash
 cd examples/todo-app
@@ -19,4 +21,11 @@ If the tools are not on PATH yet:
 
 ```bash
 export PATH="$PATH:$HOME/Developer/canon/tools"
+```
+
+You can also inspect the app without registering sprint:
+
+```bash
+npm test
+npm run serve
 ```

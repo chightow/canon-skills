@@ -16,8 +16,8 @@ tickets_dir() {
   echo "$PWD/.tickets"
 }
 
-repo_root() {
-  git rev-parse --show-toplevel 2>/dev/null || pwd
+project_root() {
+  dirname "$(tickets_dir)"
 }
 
 ticket_dir_for() {
@@ -85,7 +85,7 @@ cmd_start() {
   fi
 
   local root dir id tdir created
-  root="$(repo_root)"
+  root="$(project_root)"
   dir="$(tickets_dir)"
   mkdir -p "$dir"
 

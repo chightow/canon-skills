@@ -1,7 +1,7 @@
 ---
 name: sprint
 description: Plan, build, and ship focused work with acceptance-gated delivery
-summary: The sprint CLI creates/starts tickets, tracks active state, scaffolds files, and validates close. The agent maps the subsystem, resolves gray areas, rates impact, builds, tests, and runs wrapup.
+summary: The sprint CLI creates/starts tickets, tracks active state, and validates close. The agent creates sprint docs, maps the subsystem, resolves gray areas, rates impact, builds, tests, and runs wrapup.
 category: dev
 tags: [workflow, planning, quality, tickets, orchestration]
 depends: [wrapup, capture, ticket, handoff, impact-analysis, orient]
@@ -22,9 +22,9 @@ CLI-backed commands:
 | `sprint complete` | When you believe the work is done |
 
 The `sprint` CLI owns deterministic workflow state: ticket creation, active
-ticket tracking, sprint file scaffolding, and close validation. The agent owns
-orientation, gray-area resolution, impact analysis, implementation, review, and
-test judgment.
+ticket tracking, context file creation, and close validation. The agent owns
+sprint doc creation, orientation, gray-area resolution, impact analysis,
+implementation, review, and test judgment.
 
 ---
 
@@ -43,13 +43,13 @@ Default for substantive dev requests.
 
 **Trigger:** "sprint start", "start a sprint for X", "let's work on X" — or any request to add, fix, update, debug, implement, or build something that isn't explicitly trivial
 
-1. **Ticket and files.** Run `sprint start "<title>"`. It creates/starts the
-   ticket, records it as active, ensures `DECISIONS.md` and `HANDOFF.md` exist,
-   and scaffolds sprint files.
+1. **Ticket and context.** Run `sprint start "<title>"`. It creates/starts the
+   ticket, records it as active, and ensures `DECISIONS.md` and `HANDOFF.md`
+   exist.
 
-2. **Planning files.** Read the files created in `.tickets/<id>/`:
-   - `blueprint.md` — files to inspect, files to create/modify, step-by-step build plan
+2. **Planning files.** Create or update the files in `.tickets/<id>/`:
    - `acceptance.md` — specific, binary conditions that define "done"
+   - `blueprint.md` — files to inspect, files to create/modify, step-by-step build plan
    - If these already exist: read them and proceed without recreating.
 
 3. **Context.** Read in order:

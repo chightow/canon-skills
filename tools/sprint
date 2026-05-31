@@ -84,7 +84,7 @@ cmd_start() {
     exit "$current_rc"
   fi
 
-  local root dir id tdir created
+  local root dir id tdir
   root="$(project_root)"
   dir="$(tickets_dir)"
   mkdir -p "$dir"
@@ -93,65 +93,18 @@ cmd_start() {
   "$TKT_BIN" start "$id" >/dev/null
   tdir="$(ticket_dir_for "$id")"
   mkdir -p "$tdir"
-  created="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
   ensure_context_files "$root"
-
-  write_if_missing "$tdir/blueprint.md" "# Blueprint - $title
-
-Ticket: \`$id\`
-Started: $created
-
-## Goal
-
-## Files to Inspect
-
-## Files to Change
-
-## Subsystem Map
-
-## Grill
-
-## Impact Assessment
-
-## Build Plan
-"
-
-  write_if_missing "$tdir/acceptance.md" "# Acceptance - $title
-
-Ticket: \`$id\`
-
-## Criteria
-
-- [ ] Define binary acceptance criteria before implementation.
-
-## Test Plan
-
-- [ ] Define the commands or checks that must pass before sprint complete.
-"
-
-  write_if_missing "$tdir/plan.md" "# Plan - $title
-
-Ticket: \`$id\`
-Started: $created
-
-## Sprint Brief
-
-Pending agent orientation, gray-area resolution, impact analysis, and explicit user approval.
-"
 
   cat <<EOF
 Sprint started: $id
 Ticket: $tdir/ticket.md
-Blueprint: $tdir/blueprint.md
-Acceptance: $tdir/acceptance.md
-Plan: $tdir/plan.md
 
 Agent next steps:
-1. Read DECISIONS.md, HANDOFF.md, and the sprint files.
-2. Orient on the subsystem and append findings to blueprint.md.
-3. Surface genuine gray areas, then run impact analysis.
-4. Present the sprint brief and wait for explicit approval before code edits.
+1. Read DECISIONS.md, HANDOFF.md, and ticket.md.
+2. Create acceptance.md with binary done criteria and the test plan.
+3. Create blueprint.md with subsystem findings, gray areas, impact, and build plan.
+4. Present the sprint brief, then write plan.md after explicit approval.
 EOF
 }
 
@@ -215,7 +168,7 @@ cmd_help() {
 sprint — canon workflow spine
 
 Usage:
-  sprint start "title"   Create/start ticket and scaffold sprint files
+  sprint start "title"   Create/start ticket and context files
   sprint current         Show the active sprint ticket
   sprint status          Show active ticket and required sprint files
   sprint complete        Validate acceptance checklist and close ticket

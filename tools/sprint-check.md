@@ -42,8 +42,8 @@ readable.
 | Discarded | `cancelled` |
 
 **Cards** show ticket ID, type badge, title, priority dots, age, and a readiness indicator:
-- `● ready` (green) — has description + at least one doc
-- `● needs desc` / `● needs docs` / `● not ready` (gray) — what's missing
+- `● ready` (green) — has Acceptance, Blueprint, and Plan docs
+- `● needs acceptance` / `● needs blueprint` / `● needs plan` (gray) — the next sprint doc to add
 
 Click the readiness indicator for a checklist popover. Click anywhere else on the card to open the full ticket.
 
@@ -70,9 +70,34 @@ Click any card to open its detail view:
 
 - **Meta row** — Status, Type, Priority, Age, Ready indicator
 - **Tabs** — Description tab appears only when companion docs exist; otherwise body is shown directly
-- **Docs** — Blueprint, Decisions, QA, Notes (or any custom doc) as tabs; click `+ New doc` to create one with a template
+- **Docs** — Acceptance, Blueprint, Plan, Decisions, QA, Notes, or any custom doc as tabs; click `+ New doc` to create one with a template
 - **Edit** — inline edit for the ticket body or any doc; Save / Cancel
-- **Footer** — `← Back`, `Forward →`, `Discard ×`; keyboard hints bottom-right
+- **Footer** — `← Back`, `Forward →`, `Discard ticket ×`; keyboard hints bottom-right
+
+## Sprint Docs
+
+After `sprint start`, the ticket appears In Progress and not ready because only
+`ticket.md` exists. Use `+ New doc` to add sprint docs in this order:
+
+| Doc | Use it to |
+|-----|-----------|
+| Acceptance | Define binary done criteria and the test plan |
+| Blueprint | Capture the approach before implementation |
+| Plan | Record the approved sprint brief before source edits |
+
+Templates include comments for the lines and headings users should keep
+unchanged. In edit mode, the toolbar inserts common Markdown at the cursor:
+checkboxes, checked items, bullets, numbered items, headings, inline code, and
+toggle blocks.
+
+`orient`, `impact-analysis`, `capture`, and wrapup checks are sub-skills run by
+the agent during the sprint lifecycle. They are not `+ New doc` types. When they
+produce useful context, the agent records it in the sprint docs, `HANDOFF.md`, or
+`DECISIONS.md`.
+
+Use `Discard ticket` only when the work is abandoned or no longer needed. It
+moves the ticket to the Discarded column instead of Done and asks for
+confirmation first.
 
 ## New Ticket
 

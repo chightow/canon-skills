@@ -1,4 +1,7 @@
 .tickets/
+!examples/todo-app/.tickets/
+examples/todo-app/.tickets/*
+!examples/todo-app/.tickets/.gitkeep
 HANDOFF.md
 DECISIONS.md
 pbcopy

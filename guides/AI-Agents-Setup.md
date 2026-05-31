@@ -90,7 +90,7 @@ The agent wakes up knowing the project state, prior decisions, and any mid-sessi
 The agent:
 
 1. Creates ticket `t-r4t3` and marks it in progress
-2. Creates `.tickets/t-r4t3/blueprint.md` and `acceptance.md`
+2. Creates `.tickets/t-r4t3/acceptance.md` and `blueprint.md` as the sprint docs take shape
 3. Reads `DECISIONS.md` — finds: *"Redis chosen for session state"*
 4. Reads `HANDOFF.md` — picks up any open context from the last session
 5. Runs **orient** — surveys auth/, login-related code, middleware, and tests. Writes a `## Subsystem Map` to `blueprint.md`: entry points, key interfaces, and a non-obvious note that `login_view` is also called from an admin shortcut path.
@@ -199,7 +199,7 @@ No prior context exists. The agent works from your description alone.
 The agent:
 
 1. Creates ticket `t-a1b2` and marks it in progress
-2. Creates `.tickets/t-a1b2/blueprint.md` and `acceptance.md`
+2. Creates `.tickets/t-a1b2/acceptance.md` and `blueprint.md` as the sprint docs take shape
 3. Reads `DECISIONS.md` — file doesn't exist yet, creates it with an empty log table
 4. Reads `HANDOFF.md` — no prior context, starts fresh
 5. Runs **orient** — surveys the repo root. New project, no source yet. Writes a brief confirmation to `blueprint.md`: *"Subsystem Map — new project, no existing structure. File list in blueprint is complete."*
@@ -300,8 +300,8 @@ sprint ────────────────────────�
   │     grill            surface gray areas → lock decisions before planning
   │     orient           read-only subsystem map → blueprint.md before any edit
   │     impact-analysis  risk rating + test plan before any code
-  │     blueprint.md     files to touch, build plan, Subsystem Map, Grill log, Impact Assessment
   │     acceptance.md    binary definition of done + Test Plan
+  │     blueprint.md     approach, Subsystem Map, Grill log, Impact Assessment
   │     plan.md          approved brief written on approval — survives compaction
   │     DECISIONS.md     durable architectural decisions (repo root)
   │
@@ -424,7 +424,7 @@ Sprint start surfaces these before approval. Sprint complete gates closure on th
 
 | Command | What happens |
 |---|---|
-| `sprint start` | CLI creates/starts ticket → records `.tickets/ACTIVE` → scaffolds sprint files → agent reads DECISIONS.md + HANDOFF.md → **maps subsystem (orient)** → **grills gray areas** → **impact analysis** → produces sprint brief → **waits for your approval** → writes `plan.md` |
+| `sprint start` | CLI creates/starts ticket → records `.tickets/ACTIVE` → agent creates sprint docs → reads DECISIONS.md + HANDOFF.md → **maps subsystem (orient)** → **grills gray areas** → **impact analysis** → produces sprint brief → **waits for your approval** → writes `plan.md` |
 | `sprint complete` | Agent runs wrapup → **verifies all tests passed** → validates every acceptance criterion → appends to DECISIONS.md → **conventions check → AGENTS.md** → updates HANDOFF.md → CLI validates checklists and closes ticket |
 
 **Trigger phrases:**
@@ -437,8 +437,8 @@ Sprint start surfaces these before approval. Sprint complete gates closure on th
 ```
 .tickets/<id>/
   ticket.md        ← tkt-managed
-  blueprint.md     ← files to touch, build plan, Grill log, Impact Assessment
   acceptance.md    ← binary definition of done + Test Plan
+  blueprint.md     ← approach, Grill log, Impact Assessment
   plan.md          ← approved sprint brief; written on approval, re-read after compaction
 ```
 

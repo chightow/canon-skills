@@ -3,8 +3,6 @@ import assert from 'node:assert/strict';
 import {
   addTodo,
   createTodo,
-  deleteTodo,
-  filterTodos,
   remainingCount,
   toggleTodo
 } from '../src/app.js';
@@ -24,7 +22,7 @@ test('blank todo titles are ignored', () => {
   assert.equal(addTodo(items, '   ', 1000), items);
 });
 
-test('todos can be added, toggled, filtered, and deleted', () => {
+test('todos can be added and toggled complete', () => {
   let items = [];
   items = addTodo(items, 'Ship docs', 1);
   items = addTodo(items, 'Open sprint-check', 2);
@@ -33,9 +31,9 @@ test('todos can be added, toggled, filtered, and deleted', () => {
 
   items = toggleTodo(items, 'todo-1-ship-docs');
   assert.equal(remainingCount(items), 1);
-  assert.deepEqual(filterTodos(items, 'done').map(item => item.title), ['Ship docs']);
-  assert.deepEqual(filterTodos(items, 'open').map(item => item.title), ['Open sprint-check']);
+  assert.equal(items[0].done, true);
 
-  items = deleteTodo(items, 'todo-1-ship-docs');
-  assert.deepEqual(items.map(item => item.title), ['Open sprint-check']);
+  items = toggleTodo(items, 'todo-1-ship-docs');
+  assert.equal(remainingCount(items), 2);
+  assert.equal(items[0].done, false);
 });

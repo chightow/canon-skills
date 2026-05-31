@@ -1,5 +1,3 @@
-const STORAGE_KEY = 'canon.todo.items';
-
 export function createTodo(title, now = Date.now()) {
   const cleanTitle = title.trim();
   if (!cleanTitle) return null;
@@ -20,31 +18,8 @@ export function toggleTodo(items, id) {
   return items.map(item => item.id === id ? { ...item, done: !item.done } : item);
 }
 
-export function deleteTodo(items, id) {
-  return items.filter(item => item.id !== id);
-}
-
-export function filterTodos(items, filter) {
-  if (filter === 'open') return items.filter(item => !item.done);
-  if (filter === 'done') return items.filter(item => item.done);
-  return items;
-}
-
 export function remainingCount(items) {
   return items.filter(item => !item.done).length;
-}
-
-function loadTodos() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveTodos(items) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
 }
 
 function startApp() {
@@ -52,31 +27,27 @@ function startApp() {
   const input = document.querySelector('#todo-input');
   const list = document.querySelector('#todo-list');
   const count = document.querySelector('#remaining-count');
-  const filterButtons = [...document.querySelectorAll('[data-filter]')];
 
-  let items = loadTodos();
-  let filter = 'all';
+  let items = [];
 
   function commit(nextItems) {
     items = nextItems;
-    saveTodos(items);
     render();
   }
 
   function render() {
-    const visible = filterTodos(items, filter);
     count.value = `${remainingCount(items)} open`;
     list.innerHTML = '';
 
-    if (visible.length === 0) {
+    if (items.length === 0) {
       const empty = document.createElement('li');
       empty.className = 'empty';
-      empty.textContent = filter === 'all' ? 'No tasks yet.' : `No ${filter} tasks.`;
+      empty.textContent = 'No tasks yet.';
       list.append(empty);
       return;
     }
 
-    for (const item of visible) {
+    for (const item of items) {
       const li = document.createElement('li');
       li.className = `item${item.done ? ' done' : ''}`;
 
@@ -90,12 +61,7 @@ function startApp() {
       title.className = 'title';
       title.textContent = item.title;
 
-      const remove = document.createElement('button');
-      remove.type = 'button';
-      remove.textContent = 'Delete';
-      remove.addEventListener('click', () => commit(deleteTodo(items, item.id)));
-
-      li.append(checkbox, title, remove);
+      li.append(checkbox, title);
       list.append(li);
     }
   }
@@ -106,16 +72,6 @@ function startApp() {
     input.value = '';
     input.focus();
   });
-
-  for (const button of filterButtons) {
-    button.addEventListener('click', () => {
-      filter = button.dataset.filter;
-      for (const option of filterButtons) {
-        option.setAttribute('aria-pressed', String(option === button));
-      }
-      render();
-    });
-  }
 
   render();
 }

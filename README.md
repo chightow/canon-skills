@@ -39,7 +39,7 @@ same state machine:
 
 | | |
 |---|---|
-| `sprint start` | Creates/starts the ticket, records it as active, scaffolds sprint files — then the agent maps the codebase, surfaces ambiguities, rates risk, writes a plan, and waits for approval before touching code. |
+| `sprint start` | Creates/starts the ticket and records it as active — then the agent creates sprint docs, maps the codebase, surfaces ambiguities, rates risk, writes a plan, and waits for approval before touching code. |
 | `sprint complete` | Validates sprint checklists before close — the agent runs quality pipeline, doc refresh, ticket close, commit & push prompt. Done. |
 
 Everything else — tickets, active sprint state, session context, quality gates,
@@ -74,7 +74,7 @@ In practice you register one workflow skill: `sprint`. The rest is wired in auto
 
 | Skill | What it does | Example |
 |---|---|---|
-| `sprint` | plan → build → ship. The CLI creates the ticket, tracks the active sprint, scaffolds files, and validates close. The agent maps the subsystem, grills gray areas, rates impact, and generates a test plan. Approved plan written to `.tickets/<id>/plan.md` — survives context resets. | *"sprint start — add OAuth login"* |
+| `sprint` | plan → build → ship. The CLI creates the ticket, tracks the active sprint, and validates close. The agent creates Acceptance, Blueprint, and Plan docs, maps the subsystem, grills gray areas, rates impact, and generates a test plan. Approved plan written to `.tickets/<id>/plan.md` — survives context resets. | *"sprint start — add OAuth login"* |
 | &nbsp;&nbsp;↳ `wrapup` | Quality pipeline at sprint complete (also runs on demand): simplify → review → security → doc refresh, then always prompts to commit & push. | *"sprint complete"* |
 | &nbsp;&nbsp;&nbsp;&nbsp;↳ `code-reviewer` | Structured review across 7 dimensions: correctness, maintainability, readability, efficiency, security, edge cases, and test coverage. | *"review my changes"* |
 | &nbsp;&nbsp;&nbsp;&nbsp;↳ `security-review` | High-confidence vulnerability detection — traces data flow before flagging anything. | *"security review the auth module"* |
@@ -94,10 +94,22 @@ One workflow command drives the lifecycle. The CLI handles deterministic state; 
 
 ```mermaid
 flowchart LR
-    S1[Ticket] --> S4[[orient]] --> S5[Grill] --> S6[[impact]] --> S9[plan]
+    S1[Ticket] --> S2[Acceptance] --> S3[Blueprint] --> S4[[orient]]
+    S4 --> S5[Grill] --> S6[[impact]] --> S7[Approval] --> S8[Plan]
     classDef subskill stroke:#8888dd,stroke-width:2px
     class S4,S6 subskill
 ```
+
+Recommended sprint doc order: create `acceptance.md` first to define Done, then
+`blueprint.md` to capture the approach, then `plan.md` only after the approach is
+approved. `sprint-check` suggests that order in `+ New doc`.
+
+Only those markdown files are sprint docs the user or agent creates. The
+double-bordered steps are sub-skills: `orient` reads the codebase and feeds
+findings into the Blueprint, `impact-analysis` rates risk and feeds the test
+plan, and later `capture` writes notable discoveries to `HANDOFF.md`. They run
+as part of the `sprint` workflow; they are not separate docs to create and not
+commands the user has to invoke.
 
 ### ↓ Build
 
@@ -118,9 +130,9 @@ flowchart LR
 
 ## Tickets
 
-Every `sprint start` creates a ticket in `.tickets/<id>/ticket.md` and records it as active in `.tickets/ACTIVE`. Every `sprint complete` closes it after required sprint checklist items are resolved. No manual ticketing, no external service, no account.
+Every `sprint start` creates a ticket in `.tickets/<id>/ticket.md` and records it as active in `.tickets/ACTIVE`. The planning docs are added to the same folder as the sprint takes shape. Every `sprint complete` closes it after required sprint checklist items are resolved. No external service, no account.
 
-A ticket is a folder, not a card — it holds the ticket, approved plan, decisions made mid-sprint, and any QA or research notes, all as markdown files. When context resets mid-session, the agent opens the ticket and picks up exactly where it left off.
+A ticket is a folder, not a card — it holds the ticket, Acceptance, Blueprint, approved Plan, decisions made mid-sprint, and any QA or research notes, all as markdown files. When context resets mid-session, the agent opens the ticket and picks up exactly where it left off.
 
 Most tools track work in a service you have to open. Canon tracks it in your repo, where your agent already is.
 
@@ -136,7 +148,7 @@ sprint-check
 
 It reads your project's `.tickets/` folder and `git log` and opens a local kanban board in your browser. Tickets link to commits automatically.
 
-Tickets don't need to be created manually. Every `sprint start` creates one and every `sprint complete` closes it after validation. Open the board mid-session and your work is already there — no entry, no tagging, no context-switching.
+Tickets don't need to be created manually. Every `sprint start` creates one active ticket. From there, `+ New doc` adds the planning docs the agent needs, and `sprint complete` closes the ticket after validation. Open the board mid-session and your work is already there — no entry, no tagging, no context-switching.
 
 ### The board
 
@@ -166,13 +178,13 @@ Click any commit in the sidebar to see what changed and which ticket it likely b
 
 ![New ticket modal](meta/screenshots/new-ticket.png)
 
-`+ New ticket` opens a form pre-filled with a structured template. Type, priority, goal, and acceptance criteria — then `Create`. The ticket lands in `.tickets/<id>/ticket.md`, immediately visible to your agent.
+`+ New ticket` opens a form pre-filled with a structured template. Type, priority, and description — then `Create`. The ticket lands in `.tickets/<id>/ticket.md`, immediately visible to your agent.
 
 ### Ticket completeness
 
 ![Ticket completeness checker](meta/screenshots/ticket-completeness.png)
 
-Hover a ticket card to see what's missing — description, blueprint, decisions. The board surfaces gaps before they block your agent mid-sprint, with a direct prompt to add what's needed.
+Hover a ticket card to see what's missing — usually description or sprint docs. The board surfaces gaps before they block your agent mid-sprint, with a direct prompt to add what's needed.
 
 ### Drag to update status
 
@@ -184,16 +196,18 @@ Drag any ticket card between columns to update its status instantly. No clicks, 
 
 ![New doc dialog](meta/screenshots/new-doc.png)
 
-Click `+ New doc` on any ticket to attach a structured document. The board suggests the right type based on ticket status:
+Click `+ New doc` on any ticket to attach a structured document. After `sprint start`, the normal sprint order is Acceptance → Blueprint → Plan:
 
 | Doc | Suggested when | Use it to |
 |---|---|---|
-| **Blueprint** | Ticket is open, or in progress with no blueprint yet | Plan approach, scope, and open questions before building |
+| **Acceptance** | Active ticket has no Acceptance doc yet | Define binary done criteria and the test plan before implementation |
+| **Blueprint** | Acceptance exists but Blueprint is missing | Plan approach, scope, and open questions before building |
+| **Plan** | Blueprint exists and the approach is approved | Capture the approved sprint brief before source edits begin |
 | **Decisions** | Ticket is in progress or closed | Record choices made, trade-offs, and why alternatives were ruled out — visible to future agents |
 | **QA** | Ticket is in progress or closed | Write the test plan and sign-off checklist before closing |
 | **Notes** | Any status | Freeform scratchpad — research, links, observations, anything that doesn't fit the others |
 
-Docs land in `.tickets/<id>/` as markdown files and are read automatically by your agent at sprint start.
+Sprint docs land in `.tickets/<id>/` as markdown files and are read automatically by your agent after sprint start. Templates include comments that mark which headings and ticket ID lines should stay unchanged, and the editor toolbar inserts common Markdown such as checkboxes, bullets, numbered items, headings, inline code, and toggle blocks at the cursor.
 
 ---
 
@@ -252,7 +266,7 @@ Your agent reads the registered skills and follows them — no prompt engineerin
 
 **4. Try the Todo walkthrough**
 
-[`examples/todo-app`](examples/todo-app) is a small runnable project that shows the full flow: register `sprint`, start a ticket, inspect the generated sprint files, open `sprint-check`, implement, test, and complete the sprint.
+[`examples/todo-app`](examples/todo-app) is a small runnable project that shows the full flow: register `sprint`, open an empty board, start a ticket, create Acceptance/Blueprint/Plan docs in `sprint-check`, implement, test, check acceptance, and complete the sprint.
 
 ---
 

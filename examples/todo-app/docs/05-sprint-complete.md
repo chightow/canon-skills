@@ -1,6 +1,13 @@
 # 05 - Sprint Complete
 
-When implementation and tests are done, tell the agent:
+## Step 1 - Confirm Acceptance
+
+Before closing, `.tickets/<id>/acceptance.md` should have every criterion and
+test item checked.
+
+## Step 2 - Complete the Sprint
+
+Tell the agent this in chat:
 
 ```text
 Sprint complete
@@ -15,4 +22,10 @@ The agent should:
 - Update `HANDOFF.md` with follow-up work.
 - Run `sprint complete` to close the active ticket.
 
-For this example, the close command should only succeed after the acceptance and test checkboxes are marked complete.
+For this example, the close command should only succeed after the acceptance and
+test checkboxes are marked complete.
+
+## Step 3 - Verify Done
+
+Reload `sprint-check`. The Todo ticket should now appear in Done, with the same
+Acceptance, Blueprint, and Plan tabs still available in the detail view.

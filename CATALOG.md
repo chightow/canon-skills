@@ -27,5 +27,6 @@ Imported automatically by the skills above. Do not register directly.
 | `doc-audit` | wrapup |
 | `impact-analysis` | sprint |
 | `orient` | sprint |
+| `repo-check` | wrapup |
 | `security-review` | wrapup |
 | `wrapup` | sprint |

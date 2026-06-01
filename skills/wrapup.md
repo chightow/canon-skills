@@ -1,13 +1,14 @@
 ---
 name: wrapup
-description: Run simplification, review, security review, doc audit, and commit handoff after a unit of work
+description: Run simplification, review, security review, repo/doc audit, and commit handoff after a unit of work
 category: dev
 tags: [code-quality, workflow, orchestration, refactoring, security]
-depends: [code-simplifier, code-reviewer, security-review, doc-audit, handoff, ticket]
+depends: [code-simplifier, code-reviewer, security-review, repo-check, doc-audit, handoff, ticket]
 ---
 @./code-simplifier.md
 @./code-reviewer.md
 @./security-review.md
+@./repo-check.md
 @./doc-audit.md
 @../tools/handoff.md
 @../tools/ticket.md
@@ -19,7 +20,7 @@ Run after a session, feature, bug fix, or ticket. Skip steps that do not apply.
 ## Pipeline
 
 ```
-code-simplifier → code-reviewer → security-review → doc-audit
+code-simplifier → code-reviewer → security-review → repo-check → doc-audit
 ```
 
 ## Skip Logic
@@ -41,6 +42,9 @@ Before running each step, assess the change and skip if the criteria apply. When
 ### Skip doc-audit if:
 - No user-facing docs changed (README, guides/, skill descriptions)
 
+### Skip repo-check if:
+- No repo workflow, setup, docs, skills, standards, scripts, or tools changed
+
 ---
 
 ## Steps
@@ -48,8 +52,9 @@ Before running each step, assess the change and skip if the criteria apply. When
 1. Apply code-simplifier to code touched in this session.
 2. Apply code-reviewer across all seven dimensions; defer deep security analysis to Step 3.
 3. Apply security-review, including ast-grep pre-scan if available.
-4. Apply doc-audit. Do not write to `doc-findings.md` without explicit confirmation. Fix command accuracy issues before committing.
-5. Refresh docs:
+4. Apply repo-check. Fix stale references, orphan workflow files, and generated catalog drift before committing.
+5. Apply doc-audit. Do not write to `doc-findings.md` without explicit confirmation. Fix command accuracy issues before committing.
+6. Refresh docs:
 
 Review every documentation file touched or referenced during this session and patch anything stale.
 

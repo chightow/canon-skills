@@ -76,7 +76,8 @@ Claude runs: sprint complete
   └─ sprint validates acceptance and runs wrapup before closing the active ticket
 
 /wrapup runs
-  └─ code-simplifier → code-reviewer → security-review  (skip logic per change scope)
+  └─ code-simplifier → code-reviewer → security-review → repo-check → doc-audit
+     (skip logic per change scope)
 
 Claude finishes turn
   └─ Stop → auto-handoff.sh  (snapshot git state to HANDOFF.md if changes exist)

@@ -49,7 +49,9 @@ canon is a shared skill library for AI coding agents. Define your standards once
 
 ## How It Works
 
-The loop is three commands. The agent does the orchestration.
+The loop is three agent actions. `sprint-check` is the board; `sprint start` and
+`sprint complete` are the workflow gates that create active sprint state and run
+close validation.
 
 ### 1. Start
 
@@ -57,7 +59,7 @@ The loop is three commands. The agent does the orchestration.
 sprint start "add OAuth login"
 ```
 
-Creates a local ticket, records it as active, then has the agent define acceptance, map the codebase, surface gray areas, rate risk, and write a plan before source edits.
+Run in your agent session or terminal. It creates a local ticket, records it as active, then has the agent define acceptance, map the codebase, surface gray areas, rate risk, and write a plan before source edits.
 
 ### 2. Check
 
@@ -73,9 +75,9 @@ Opens the local board for `.tickets/`, `HANDOFF.md`, and `git log`. Read or edit
 sprint complete
 ```
 
-Runs the close path: simplify, review, security, doc audit when docs changed, acceptance validation, ticket close, then commit and push prompt.
+Run in your agent session when the work is done. It runs the close path: simplify, review, security, doc audit when docs changed, acceptance validation, ticket close, then commit and push prompt.
 
-Everything else - active sprint state, session context, quality gates, and handoff across resets - is wired into that lifecycle. You describe what you want to build.
+Creating a ticket or dragging it to Done in `sprint-check` updates local ticket state, but it does not run the `sprint complete` pipeline. Everything else - active sprint state, session context, quality gates, and handoff across resets - is wired into the sprint lifecycle. You describe what you want to build.
 
 ---
 

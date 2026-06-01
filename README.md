@@ -237,15 +237,15 @@ Drag any ticket card between columns to update its status instantly. No clicks, 
 
 ![New doc dialog](meta/screenshots/new-doc.png)
 
-Click `+ New doc` on any ticket to attach a structured document. After `sprint start`, the normal sprint order is Acceptance → Blueprint → Plan:
+Click `+ New doc` on any ticket to attach a structured document. The picker guides the normal sprint path — Acceptance → Blueprint → Plan — and keeps companion docs available when they fit:
 
-| Doc | Suggested when | Use it to |
+| Doc | Add when | Use it to |
 |---|---|---|
-| **Acceptance** | Active ticket has no Acceptance doc yet | Define binary done criteria and the test plan before implementation |
-| **Blueprint** | Acceptance exists but Blueprint is missing | Plan approach, scope, and open questions before building |
+| **Acceptance** | Ticket has no Acceptance doc yet | Define binary done criteria and the test plan before implementation |
+| **Blueprint** | Acceptance exists and the ticket is still being planned | Plan approach, scope, and open questions before building |
 | **Plan** | Blueprint exists and the approach is approved | Capture the approved sprint brief before source edits begin |
-| **Decisions** | Ticket is in progress or closed | Record choices made, trade-offs, and why alternatives were ruled out — visible to future agents |
-| **QA** | Ticket is in progress or closed | Write the test plan and sign-off checklist before closing |
+| **Decisions** | A choice or trade-off should survive the session | Record choices made, trade-offs, and why alternatives were ruled out — visible to future agents |
+| **QA** | Testing or closeout needs a checklist | Write the test plan and sign-off checklist before closing |
 | **Notes** | Any status | Freeform scratchpad — research, links, observations, anything that doesn't fit the others |
 
 Sprint docs land in `.tickets/<id>/` as markdown files and are read automatically by your agent after sprint start. Templates include comments that mark which headings and ticket ID lines should stay unchanged, and the editor toolbar inserts common Markdown such as checkboxes, bullets, numbered items, headings, inline code, and toggle blocks at the cursor.

@@ -37,6 +37,8 @@ Audit user-facing documentation for accuracy. Append to `standards/doc-findings.
 
    **Command accuracy** — run `skills.sh list`; compare to skill names in README/guides command examples.
 
+   **Heading style** — user-facing README headings should be Title Case. Keep intentional brand casing, command names, and code-block comments unchanged.
+
    **Private content** — real names, emails, usernames, home paths, private ticket prefixes, company references, secrets. Flag; do not redact automatically.
 
 5. When competitor docs, adjacent tools, or inspiration repos are part of the task, translate the useful input into canon's own intent:

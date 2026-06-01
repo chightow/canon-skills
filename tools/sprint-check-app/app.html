@@ -722,6 +722,29 @@
         <span class="create-label">Priority</span>
         <div class="create-pills" id="c-priorities"></div>
       </div>
+      <div class="editor-toolbar open" id="c-editor-toolbar">
+        <button class="editor-tool" type="button" data-insert="checkbox" title="Add checkbox" aria-label="Add checkbox">
+          <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"></rect></svg>
+        </button>
+        <button class="editor-tool" type="button" data-insert="checked" title="Add checked item" aria-label="Add checked item">
+          <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"></rect><path d="m8 12 3 3 5-6"></path></svg>
+        </button>
+        <button class="editor-tool" type="button" data-insert="bullet" title="Add bullet" aria-label="Add bullet">
+          <svg viewBox="0 0 24 24"><path d="M8 6h12"></path><path d="M8 12h12"></path><path d="M8 18h12"></path><path d="M4 6h.01"></path><path d="M4 12h.01"></path><path d="M4 18h.01"></path></svg>
+        </button>
+        <button class="editor-tool" type="button" data-insert="number" title="Add numbered item" aria-label="Add numbered item">
+          <svg viewBox="0 0 24 24"><path d="M10 6h10"></path><path d="M10 12h10"></path><path d="M10 18h10"></path><path d="M4 6h1v4"></path><path d="M4 10h2"></path><path d="M4 14h2l-2 4h2"></path></svg>
+        </button>
+        <button class="editor-tool" type="button" data-insert="heading" title="Add heading" aria-label="Add heading">
+          <span class="tool-text">H2</span>
+        </button>
+        <button class="editor-tool" type="button" data-insert="code" title="Add inline code" aria-label="Add inline code">
+          <svg viewBox="0 0 24 24"><path d="m16 18 6-6-6-6"></path><path d="m8 6-6 6 6 6"></path></svg>
+        </button>
+        <button class="editor-tool" type="button" data-insert="toggle" title="Add toggle block" aria-label="Add toggle block">
+          <span class="tool-text">&lt;&gt;</span>
+        </button>
+      </div>
       <textarea id="c-body" class="modal-edit-area create-textarea" placeholder="Description" spellcheck="false"></textarea>
     </div>
     <div class="modal-footer">
@@ -1579,8 +1602,7 @@ function linePrefixForTextarea(textarea, prefix) {
   return (needsNewline ? '\n' : '') + prefix;
 }
 
-function insertEditorSnippet(kind) {
-  const textarea = document.getElementById('m-edit-area');
+function insertEditorSnippet(kind, textarea = document.getElementById('m-edit-area')) {
   textarea.focus();
 
   const start = textarea.selectionStart;
@@ -1918,6 +1940,11 @@ document.getElementById('m-editor-toolbar').addEventListener('click', e => {
   const button = e.target.closest('[data-insert]');
   if (!button) return;
   insertEditorSnippet(button.dataset.insert);
+});
+document.getElementById('c-editor-toolbar').addEventListener('click', e => {
+  const button = e.target.closest('[data-insert]');
+  if (!button) return;
+  insertEditorSnippet(button.dataset.insert, document.getElementById('c-body'));
 });
 
 // ── Util ──────────────────────────────────────────────────────────────────

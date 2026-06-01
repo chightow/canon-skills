@@ -180,6 +180,12 @@ Toggle between light and dark with the button in the top-right corner.
 
 Click any ticket to see its status, type, priority, readiness, description, and attached docs in one place.
 
+### Edit sprint docs in place
+
+![Edit sprint docs in ticket detail](meta/screenshots/ticket-doc-editor.png)
+
+Open a ticket to read or edit its Description, Acceptance, Blueprint, Plan, and notes without leaving the board.
+
 ### Commit intelligence
 
 ![Commit detail with related ticket](meta/screenshots/commit-detail.png)

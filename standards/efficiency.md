@@ -58,6 +58,7 @@ Act on these when you see them — don't wait to be told.
 - Error surfaces without context → preserve the diagnostic information at the boundary, don't swallow it.
 - Spec conflicts with existing code → surface it: what each says, the options, and ask — don't silently pick one.
 - Non-trivial decision about to be committed → name what you're asserting and what would falsify it before it stands.
+- Competitor or adjacent-tool analysis changes how canon should operate → capture it in a skill, standard, guide, or tool behavior before wrapup.
 
 ## Token Efficiency
 

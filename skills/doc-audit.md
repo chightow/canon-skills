@@ -39,9 +39,16 @@ Audit user-facing documentation for accuracy. Append to `standards/doc-findings.
 
    **Private content** — real names, emails, usernames, home paths, private ticket prefixes, company references, secrets. Flag; do not redact automatically.
 
-5. Report new findings by check type. Quote the claim and explain the issue. If none: say so and stop.
+5. When competitor docs, adjacent tools, or inspiration repos are part of the task, translate the useful input into canon's own intent:
 
-6. Ask: `Append these to doc-findings.md? (y to confirm)`. Do not write without `y`.
+   - Identify what works in their UX, docs, install flow, command model, and positioning.
+   - Decide whether the learning belongs in README positioning, a guide, a skill, a standard, or tool behavior.
+   - If the pattern should affect future agent behavior, recommend the specific skill or standard update before wrapup.
+   - Preserve canon's constraints: local-first state, minimal command surface, live-reference skills, no SaaS dependency, no bloated methodology.
+
+6. Report new findings by check type. Quote the claim and explain the issue. If none: say so and stop.
+
+7. Ask: `Append these to doc-findings.md? (y to confirm)`. Do not write without `y`.
 
 ## doc-findings.md entry format
 

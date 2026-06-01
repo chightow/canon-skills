@@ -8,6 +8,11 @@ Local tickets. Agent handoff. Browser board. No SaaS.
 
 Your agent can code. Canon makes the workflow yours.
 
+[![npm](https://img.shields.io/npm/v/canon-skills?color=3b82f6&label=npm)](https://www.npmjs.com/package/canon-skills)
+[![license](https://img.shields.io/badge/license-MIT-2563eb)](LICENSE)
+![local-first](https://img.shields.io/badge/state-local--first-22c55e)
+![no-saas](https://img.shields.io/badge/SaaS-none-64748b)
+
 </div>
 
 ![canon install terminal](meta/screenshots/canon-install-terminal.png)
@@ -27,28 +32,19 @@ sprint-check
 sprint complete
 ```
 
+Your agent forgets. Your repo shouldn't.
+
 Canon keeps AI coding work in your repo instead of your prompt history:
 
 - `sprint` creates local tickets, planning docs, and acceptance-gated close.
 - `sprint-check` opens a browser board from `.tickets/`, `HANDOFF.md`, and `git log`.
 - `efficiency` is wired automatically so every registered project inherits focused editing, tight output, and context-budget rules.
 
+![sprint-check board — light mode](meta/screenshots/board-light.png)
+
 > canon /ˈkænən/ - the standard your agent follows across projects.
 
 canon is a shared skill library for AI coding agents. Define your standards once. Every project inherits them automatically — Claude Code, Codex, and Pi, all in sync.
-
-Skills are live references, not copies. `skills.sh add sprint` adds live imports to your project's agent config:
-
-```
-# CLAUDE.md
-@/Users/you/Developer/canon/standards/efficiency.md
-@/Users/you/Developer/canon/skills/sprint.md
-
-# AGENTS.md
-| sprint | dev | /Users/you/Developer/canon/skills/sprint.md |
-```
-
-Claude Code resolves it at session start, reading directly from canon. Update canon — every project picks it up on the next `git pull`.
 
 One workflow command covers the full lifecycle: `sprint`. Its lifecycle actions
 are normal shell commands from `canon/tools`, so every supported agent calls the
@@ -169,11 +165,7 @@ It reads your project's `.tickets/` folder and `git log` and opens a local kanba
 
 Tickets don't need to be created manually. Every `sprint start` creates one active ticket. From there, `+ New doc` adds the planning docs the agent needs, and `sprint complete` closes the ticket after validation. Open the board mid-session and your work is already there — no entry, no tagging, no context-switching.
 
-### The board
-
-![sprint-check board — light mode](meta/screenshots/board-light.png)
-
-The sidebar shows git state, current focus from `HANDOFF.md`, recent commits, and a ticket summary — everything you and your agent need at a glance.
+The board shows git state, current focus from `HANDOFF.md`, recent commits, ticket status, and sprint docs — everything you and your agent need at a glance.
 
 ### Dark mode
 

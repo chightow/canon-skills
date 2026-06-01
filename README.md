@@ -12,10 +12,14 @@ Your agent can code. Canon makes the workflow yours.
 
 ![canon install terminal](meta/screenshots/canon-install-terminal.png)
 
+Install:
+
 ```bash
 npx canon-skills@latest
 ~/Developer/canon/skills.sh add sprint
 ```
+
+Use:
 
 ```bash
 sprint start "add OAuth login"

@@ -667,15 +667,6 @@ cmd_help() {
   [ -n "$depends" ] && printf '\x1b[2mDepends:\x1b[0m %s\n'   "$depends"
 
   printf '\n%s\n\n' "$divider"
-
-  local body
-  body=$(awk 'BEGIN{fm=0;done=0} /^---$/{if(fm)done=1; fm=1; next} done && /^@/{next} done{print}' "$skill_file")
-
-  if command -v bat &>/dev/null; then
-    echo "$body" | bat -l md --plain
-  else
-    echo "$body"
-  fi
 }
 
 _init_claude() {

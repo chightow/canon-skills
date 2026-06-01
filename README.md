@@ -156,7 +156,7 @@ Most tools track work in a service you have to open. Canon tracks it in your rep
 
 ## sprint-check — the local kanban board
 
-No hosted server. No account. No SaaS. Just run:
+No hosted server. No account. No SaaS. From your project root, run:
 
 ```bash
 sprint-check

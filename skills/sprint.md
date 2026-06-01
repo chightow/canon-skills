@@ -93,12 +93,12 @@ Default for substantive dev requests.
 
 ## sprint complete
 
-**Trigger:** "sprint complete", "complete the sprint", "approve", "ship it", "approve `<id>`"
+**Trigger:** "sprint complete", "complete the sprint", "ship it"
 
 Verify before closing.
 
-1. **Wrapup.** Run the pipeline defined above (code-simplifier → code-reviewer →
-   security-review) on all files modified since sprint start. Apply skip rules as defined.
+1. **Wrapup.** Run the wrapup pipeline on files modified since sprint start.
+   Apply skip rules from `wrapup.md`.
 
 2. **Test verification.** Review each item in `acceptance.md ## Test Plan`:
    - ✓ passed | ✗ failed | ? not run
@@ -122,9 +122,8 @@ Verify before closing.
 
 6. **HANDOFF.md.** Update `## Next Steps` with any follow-up work.
 
-7. **Close.** Run `sprint complete`. If it refuses because test or acceptance
-   checklist items remain unchecked, report the blockers and do not close the
-   ticket.
+7. **Close.** Run `sprint complete`. If it refuses because checklist items
+   remain unchecked, report the blockers and stop.
 
 8. **Report.** One paragraph: what shipped, test results summary, any waived criteria and why, follow-up recorded.
 

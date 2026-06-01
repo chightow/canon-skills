@@ -1,6 +1,6 @@
 # canon Catalog
 
-> Static snapshot — run `skills.sh list` for live output.
+> Static snapshot - run `skills.sh list` for live output.
 
 ## Standalone Skills
 
@@ -19,13 +19,13 @@ Imported automatically by the skills above. Do not register directly.
 
 | Skill | Imported by |
 |---|---|
+| `handoff` | sprint, wrapup |
+| `ticket` | sprint, wrapup |
 | `capture` | sprint |
-| `code-reviewer` | wrapup, sprint |
-| `code-simplifier` | wrapup, sprint |
-| `doc-audit` | wrapup, sprint |
-| `handoff` | wrapup, sprint |
+| `code-reviewer` | wrapup |
+| `code-simplifier` | wrapup |
+| `doc-audit` | wrapup |
 | `impact-analysis` | sprint |
 | `orient` | sprint |
-| `security-review` | wrapup, sprint |
-| `ticket` | wrapup, sprint |
+| `security-review` | wrapup |
 | `wrapup` | sprint |

@@ -19,7 +19,7 @@ Recommended doc order: create `Acceptance` first, then `Blueprint`, then create
 
 ## Step 1 - Open the Empty Board
 
-Type this in the command line from the project root:
+Type this in the command line from the walkthrough root:
 
 ```bash
 sprint-check
@@ -39,6 +39,7 @@ sprint start "Build a simple Todo list"
 The command prints the new ticket ID and creates:
 
 ```text
+.tickets/ACTIVE
 .tickets/<id>/
   ticket.md
 DECISIONS.md
@@ -58,7 +59,7 @@ should contain the real ticket ID from `.tickets/<id>/ticket.md`. Replace the
 rest of the template with:
 
 ```markdown
-# Acceptance - Build a simple Todo list
+# Acceptance
 
 <!-- Keep the Ticket line below unchanged. -->
 Ticket: `<keep the existing id>`
@@ -89,7 +90,7 @@ Keep the ticket comment and existing `Ticket: \`...\`` line. Replace the rest of
 the template with:
 
 ```markdown
-# Blueprint - Build a simple Todo list
+# Blueprint
 
 <!-- Keep the Ticket line below unchanged. -->
 Ticket: `<keep the existing id>`
@@ -105,7 +106,9 @@ The small design choices the agent should use when building.
 <!-- Add or edit approach notes below. Keep this heading unchanged. -->
 
 - Keep Todo state in browser memory for this walkthrough.
-- Add Todo state helpers in `src/app.js`.
+- Create `package.json`, `src/app.js`, `src/index.html`, `src/styles.css`, and
+  `tests/todo.test.mjs`.
+- Add `npm test` and `npm run serve` scripts.
 - Use a checkbox to toggle complete/open.
 - Cover add, blank-title, and toggle behavior with `npm test`.
 ```
@@ -127,7 +130,7 @@ Keep the ticket comment and existing `Ticket: \`...\`` line. Replace the rest of
 the template with:
 
 ```markdown
-# Plan - Build a simple Todo list
+# Plan
 
 <!-- Keep the Ticket line below unchanged. -->
 Ticket: `<keep the existing id>`
@@ -136,7 +139,8 @@ Ticket: `<keep the existing id>`
 The approved sprint brief the agent implements after planning is approved.
 <!-- Add or edit the approved brief below. Keep this heading unchanged. -->
 
-Build a small dependency-free browser Todo app with add, complete/open, and Node tests.
+Build a small dependency-free browser Todo app with add, complete/open, Node tests,
+and npm scripts for testing and serving locally.
 
 Approved:
 

@@ -350,9 +350,9 @@ cmd_status() {
   if command -v claude &>/dev/null; then
     local settings="$HOME/.claude/settings.json"
     if [ ! -f "$settings" ]; then
-      hook_issues=4
+      hook_issues=3
     else
-      for hook_script in auto-handoff.sh handoff-inject.sh auto-polish-trigger.sh pre-commit-check.sh; do
+      for hook_script in auto-handoff.sh handoff-inject.sh pre-commit-check.sh; do
         grep -qF "$hook_script" "$settings" 2>/dev/null || (( hook_issues++ )) || true
       done
     fi
@@ -361,7 +361,7 @@ cmd_status() {
       echo "Claude hooks: [ok]"
     else
       echo "Claude hooks: [not configured] ($hook_issues missing)"
-      echo "  Run: $SKILLS_ROOT/init-agent.sh claude"
+      echo "  Run: $SKILLS_ROOT/skills.sh init"
     fi
   fi
 
@@ -377,7 +377,7 @@ cmd_status() {
     echo "All up to date."
   else
     [ "$issues" -gt 0 ] && echo "$issues issue(s) found. Run: $(basename "$0") refresh $project_dir"
-    [ "$hook_issues" -gt 0 ] && echo "Agent hooks not wired. Run: $SKILLS_ROOT/init-agent.sh claude"
+    [ "$hook_issues" -gt 0 ] && echo "Agent hooks not wired. Run: $SKILLS_ROOT/skills.sh init"
   fi
 
   if $_has_sprint; then
@@ -684,9 +684,15 @@ hooks = config.setdefault("hooks", {})
 desired = [
     ("Stop",            "",     f"{scripts_path}/auto-handoff.sh"),
     ("UserPromptSubmit","",     f"{scripts_path}/handoff-inject.sh"),
-    ("PostToolUse",     "Bash", f"{scripts_path}/auto-polish-trigger.sh"),
     ("PreToolUse",      "Bash", f"{scripts_path}/pre-commit-check.sh"),
 ]
+stale = {f"{scripts_path}/auto-polish-trigger.sh"}
+for event, entries in list(hooks.items()):
+    for entry in entries:
+        entry["hooks"] = [
+            h for h in entry.get("hooks", [])
+            if os.path.expanduser(h.get("command", "")) not in stale
+        ]
 for event, matcher, command in desired:
     event_list = hooks.setdefault(event, [])
     entry = next((e for e in event_list if e.get("matcher") == matcher), None)
@@ -908,6 +914,82 @@ cmd_delete() {
   echo "Note: any projects with this skill registered will have a dangling reference — run 'skills.sh remove $skill' in those projects."
 }
 
+cmd_catalog() {
+  python3 - "$SKILLS_ROOT" <<'PYEOF'
+import pathlib, re, sys
+
+root = pathlib.Path(sys.argv[1])
+dirs = [root / "standards", root / "tools", root / "skills"]
+
+def fm(path):
+    text = path.read_text(errors="replace")
+    m = re.match(r"---\n(.*?)\n---", text, re.S)
+    data = {}
+    if not m:
+        return data
+    for line in m.group(1).splitlines():
+        if ":" in line:
+            k, v = line.split(":", 1)
+            data[k.strip()] = v.strip()
+    return data
+
+items = []
+for d in dirs:
+    if not d.exists():
+        continue
+    for p in sorted(d.glob("*.md")):
+        data = fm(p)
+        if data.get("name"):
+            data["path"] = p
+            items.append(data)
+
+deps = {}
+for item in items:
+    for dep in item.get("depends", "").strip("[]").split(","):
+        dep = dep.strip()
+        if dep:
+            deps.setdefault(dep, []).append(item["name"])
+
+standalone = [
+    i for i in items
+    if i.get("hidden") != "true" and i["name"] not in deps
+]
+subskills = [i for i in items if i["name"] in deps]
+
+lines = [
+    "# canon Catalog",
+    "",
+    "> Static snapshot - run `skills.sh list` for live output.",
+    "",
+    "## Standalone Skills",
+    "",
+    "Register these directly into a project with `skills.sh add <name>`.",
+    "",
+    "| Skill | Category | Description |",
+    "|---|---|---|",
+]
+for item in standalone:
+    desc = item.get("summary") or item.get("description", "")
+    lines.append(f"| `{item['name']}` | {item.get('category', '')} | {desc} |")
+
+lines += [
+    "",
+    "## Sub-skills",
+    "",
+    "Imported automatically by the skills above. Do not register directly.",
+    "",
+    "| Skill | Imported by |",
+    "|---|---|",
+]
+for item in subskills:
+    imported_by = ", ".join(sorted(deps.get(item["name"], []))) or "-"
+    lines.append(f"| `{item['name']}` | {imported_by} |")
+
+(root / "CATALOG.md").write_text("\n".join(lines) + "\n")
+PYEOF
+  echo "CATALOG.md updated."
+}
+
 # ── dispatch ────────────────────────────────────────────────────────────────
 
 # Handle: skills.sh --scan [dir]  or  skills.sh [dir] --scan
@@ -950,10 +1032,11 @@ case "$cmd" in
   status)  cmd_status  "$@" ;;
   remove)  cmd_remove  "$@" ;;
   delete)  cmd_delete  "$@" ;;
+  catalog) cmd_catalog "$@" ;;
   help)    cmd_help    "$@" ;;
   init)    cmd_init    "$@" ;;
   *)
-    echo "Usage: skills.sh <list|add|addall|refresh|status|remove|delete|help|init> [skill] [project-dir]"
+    echo "Usage: skills.sh <list|add|addall|refresh|status|remove|delete|catalog|help|init> [skill] [project-dir]"
     echo ""
     echo "  list                    Show all available skills"
     echo "  add <skill> [dir]       Register a skill into a project (default: cwd)"
@@ -962,8 +1045,9 @@ case "$cmd" in
     echo "  status [dir]            Show registered skills and detect issues (default: cwd)"
     echo "  remove <skill> [dir]    Unregister a skill from a project (default: cwd)"
     echo "  delete <skill>          Permanently remove a skill from canon"
+    echo "  catalog                 Regenerate CATALOG.md snapshot"
     echo "  help <skill>            Show full documentation for a skill"
-    echo "  init                    Wire Claude Code hooks for this install location"
+    echo "  init                    Wire agent hooks for this install location"
     echo "  <skill> --h             Same as: skills.sh help <skill>"
     echo "  --scan [dir]            Show skills registered in a project (default: cwd)"
     exit 1

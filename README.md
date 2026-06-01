@@ -266,7 +266,7 @@ Your agent reads the registered skills and follows them — no prompt engineerin
 
 **4. Try the Todo walkthrough**
 
-[`examples/todo-app`](examples/todo-app) is a small runnable project that shows the full flow: register `sprint`, open an empty board, start a ticket, create Acceptance/Blueprint/Plan docs in `sprint-check`, implement, test, check acceptance, and complete the sprint.
+[`examples/canon-todo-walkthrough`](examples/canon-todo-walkthrough) is a blank docs-only workspace that shows the full flow: register `sprint`, open an empty board, start a ticket, create Acceptance/Blueprint/Plan docs in `sprint-check`, implement a minimal Todo app, test, check acceptance, and complete the sprint. The finished reference app lives in [`examples/todo-app`](examples/todo-app).
 
 ---
 

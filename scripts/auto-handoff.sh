@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # auto-handoff.sh — Safety-net HANDOFF.md update from observable git state.
-# Called by the Claude Code Stop hook. Maintains a LIFO window of the last
-# 2 snapshots so the next agent can see current state + prior state.
+# Called by the Claude Code Stop hook. Maintains a FIFO window of the last
+# 2 snapshots: append newest, prune oldest.
 # Safe to run frequently — skips silently when working tree is clean.
 
 set -euo pipefail
@@ -70,15 +70,14 @@ marker = '<!-- HANDOFF-SNAPSHOT:START'
 split = content.find(marker)
 human = content[:split].rstrip() if split != -1 else content.rstrip()
 
-# Extract existing snapshot blocks (most recent first)
+# Extract existing snapshot blocks in file order.
 blocks = re.findall(
     r'<!-- HANDOFF-SNAPSHOT:START.*?<!-- HANDOFF-SNAPSHOT:END -->',
     content, re.DOTALL
 )
 
-# LIFO: new snapshot at front, keep max_snap-1 existing ones
-kept = blocks[:max_snap - 1]
-all_snapshots = [new_snap] + kept
+# FIFO: append newest, prune oldest.
+all_snapshots = (blocks + [new_snap])[-max_snap:]
 
 result = human + '\n\n' + '\n\n'.join(all_snapshots) + '\n'
 open(path, 'w').write(result)
@@ -113,4 +112,4 @@ fi
 git add "$HANDOFF" 2>/dev/null || true
 git commit -m "chore: auto-update handoff snapshot [$TIMESTAMP]" 2>/dev/null || true
 
-echo "[handoff] Snapshot saved → HANDOFF.md (LIFO, keeping last ${MAX_SNAPSHOTS})"
+echo "[handoff] Snapshot saved → HANDOFF.md (FIFO, keeping last ${MAX_SNAPSHOTS})"

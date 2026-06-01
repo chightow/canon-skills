@@ -19,11 +19,6 @@ Run `/context-check` to generate new findings. Append only on explicit confirmat
 **Issue:** "Installation Verification" section (`rtk --version`, `which rtk`) is debug tooling, irrelevant during normal work. Loaded every session.
 **Action:** Removed section.
 
-### 2026-05-23 — PostToolUse gap on Edit/Write
-**File:** `~/.claude/settings.json`
-**Issue:** PostToolUse hook only matched `Bash`. No feedback when managed files (e.g., `CATALOG.md`) were edited directly.
-**Action:** Added `guard-managed-files.sh` as `PostToolUse[Edit|Write]` hook.
-
 ### 2026-05-23 — CLAUDE.md Approach block duplicates AGENTS.md
 **File:** `~/.claude/CLAUDE.md` ↔ `AGENTS.md`
 **Issue:** Near-verbatim duplicate of the Approach section. CLAUDE.md imports AGENTS.md, so both loaded every session. ~8 redundant lines.

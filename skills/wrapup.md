@@ -66,34 +66,16 @@ Patch stale lines only. Skip files where nothing changed.
 
 ## Final Output
 
-```
-## Wrapup Report — <description of work>
+Report only what matters:
 
-### Changes
-| File | What changed | Impact | Flags |
-|------|-------------|--------|-------|
-| path/to/file.ext | one-line description | HIGH / MEDIUM / LOW | ✓ clean / ⚠ see below |
+- Changed files and user-visible impact
+- Tests run and result
+- Critical findings, if any
+- Follow-up captured in `HANDOFF.md`, if any
 
-### code-simplifier
-- <what was simplified and where>
+Address criticals before committing. Improvements are discretionary.
 
-### code-reviewer
-- [Critical] ...
-- [Improvement] ...
-
-### security-review
-- [High] ...
-```
-
-**Changes table columns:**
-- **File** — relative path
-- **What changed** — one line: what the code now does differently
-- **Impact** — carry forward the rating from `blueprint.md ## Impact Assessment`; use LOW if no sprint context
-- **Flags** — `✓ clean` if no findings; `⚠ critical` / `⚠ improvement` if the pipeline flagged anything for that file
-
-Address criticals before committing. Improvements and nitpicks are discretionary.
-
-If you ran `/wrapup` directly (not via the approve workflow) and a ticket is in-progress, use the approve workflow to close it — do not call `tkt close` directly.
+If a ticket is in progress, close it with `sprint complete`, not `tkt close`.
 
 ---
 

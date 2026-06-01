@@ -303,21 +303,21 @@
       background: var(--surface-raised); border: 1px solid var(--border);
       border-radius: var(--radius-sm); padding: 10px 12px;
       cursor: grab; transition: border-color .12s, background .12s, transform .1s;
-      user-select: none;
+      user-select: none; min-width: 0;
     }
     .card:active { cursor: grabbing; }
     .card:hover          { border-color: var(--border-hover); background: var(--surface-hover); transform: translateY(-1px); }
     .card.focused        { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent-dim); }
-    .card-top            { display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; }
-    .card-id             { font-family: ui-monospace, "Cascadia Code", monospace; font-size: 11px; color: var(--text-muted); }
-    .card-title          { font-size: 13px; font-weight: 500; color: var(--text); line-height: 1.4; margin-bottom: 7px; }
-    .card-footer         { display: flex; align-items: center; justify-content: space-between; gap: 6px; min-width: 0; }
+    .card-top            { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 5px 8px; margin-bottom: 5px; min-width: 0; }
+    .card-id             { font-family: ui-monospace, "Cascadia Code", monospace; font-size: 11px; color: var(--text-muted); overflow-wrap: anywhere; }
+    .card-title          { font-size: 13px; font-weight: 500; color: var(--text); line-height: 1.4; margin-bottom: 7px; overflow-wrap: anywhere; }
+    .card-footer         { display: flex; align-items: center; justify-content: flex-start; flex-wrap: wrap; gap: 6px 8px; min-width: 0; }
     .card-age            { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
-    .ready-indicator     { display: flex; align-items: center; gap: 4px; cursor: pointer; flex-shrink: 0; }
+    .ready-indicator     { display: flex; align-items: center; gap: 4px; cursor: pointer; min-width: 0; }
     .ready-dot           { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
     .ready-indicator.ready     .ready-dot { background: var(--col-done); }
     .ready-indicator.not-ready .ready-dot { background: var(--border-hover); }
-    .ready-label         { font-size: 10px; font-weight: 600; letter-spacing: .04em; white-space: nowrap; }
+    .ready-label         { font-size: 10px; font-weight: 600; letter-spacing: .04em; line-height: 1.25; overflow-wrap: anywhere; }
     .ready-indicator.ready     .ready-label { color: var(--col-done); }
     .ready-indicator.not-ready .ready-label { color: var(--text-muted); }
     .ready-popover {

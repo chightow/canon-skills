@@ -18,7 +18,7 @@ All skills live flat under `skills/`. No subdirectories. The dependency hierarch
 ## Naming
 
 - Lowercase, hyphenated: `code-reviewer.md`, `impact-analysis.md`
-- Use a prefix to signal a skill family: `sprint.md`, `sprint-check.md` (not yet in canon, shown for illustration)
+- Use a prefix to signal a skill family: `sprint.md`, `sprint-check.md`
 - Max ~20 characters — the name appears in `skills.sh list` output
 - The `name:` frontmatter field must match the filename without `.md`
 

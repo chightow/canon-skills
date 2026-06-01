@@ -1,6 +1,6 @@
-# 04 - Sprint Check
+# 03 - Sprint Check
 
-Type this in the command line from the project root:
+Type this in the command line from the walkthrough root:
 
 ```bash
 sprint-check
@@ -10,8 +10,10 @@ Use this page as a visual checkpoint during the walkthrough:
 
 1. Before `sprint start`, the board is empty.
 2. After `sprint start`, the ticket is In Progress and `not ready`.
-3. After `Acceptance`, `Blueprint`, and `Plan` are created, the docs appear as tabs.
-4. After tests pass and acceptance is checked, `sprint complete` moves the ticket to Done.
+3. After `Acceptance`, `Blueprint`, and `Plan` are created, the docs appear as
+   tabs.
+4. After tests pass and acceptance is checked, `sprint complete` moves the
+   ticket to Done.
 
 The board reads:
 

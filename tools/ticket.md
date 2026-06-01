@@ -1,6 +1,6 @@
 ---
 name: ticket
-description: Bundled minimal ticket system (tkt) for creating, tracking, and closing tasks. Used automatically by wrapup's approve workflow.
+description: Bundled minimal ticket system (tkt) for creating, tracking, and closing tasks. Used by sprint and sprint-check.
 category: tools
 tags: [project-management, tasks, cli, git]
 ---
@@ -39,19 +39,18 @@ tkt reopen <id>               # reopen
 tkt show <id>                 # show full ticket
 ```
 
-## Approve Workflow
+## Closing Sprint Work
 
-**Trigger**: user says "approve", "approve `<id>`", "ship it", or equivalent after testing.
-
-1. **Wrapup** — run `/wrapup` on all files modified since the ticket was started. All code modifications must happen before the ticket closes.
-2. **Close ticket** — `tkt close <id>` only after wrapup completes.
+Use `sprint complete` for sprint work. It validates required sprint files and
+acceptance checkboxes before closing the active ticket.
 
 ## Agent Workflow
 
 - Before starting work: run `tkt ls` to understand open tasks.
 - **When picking up a task: run `tkt start <id>` before writing any code.** This records `.tickets/ACTIVE` so agents agree on the current task.
 - Prepend the ticket ID to every commit message (e.g. `t-8ms5: add login rate limiter`).
-- **Never run `tkt close <id>` directly.** Always use the approve workflow so wrapup runs consistently.
+- **Do not run `tkt close <id>` for sprint work.** Use `sprint complete` so
+  validation runs consistently.
 - Don't create tickets for trivial 1-line fixes. Use judgment.
 - Prefer updating an existing ticket over creating a duplicate.
 

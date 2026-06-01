@@ -50,7 +50,7 @@ rtk discover          # commands that slipped through without RTK
 | `Stop` | `auto-handoff.sh` | Claude finishes a turn with uncommitted changes | Appends a timestamped git-state snapshot to `HANDOFF.md`, commits it |
 | `UserPromptSubmit` | `handoff-inject.sh` | First message of each session (4h window) | Injects `HANDOFF.md` into Claude's context via `rtk read` |
 
-**LIFO snapshot window:** The Stop hook keeps the last 2 snapshots — current state and prior state — so the next agent can see both where things stand now and where they were. Older snapshots are pruned automatically.
+**FIFO snapshot window:** The Stop hook appends the newest snapshot and keeps only the last 2, so the next agent can see current state and prior state without `HANDOFF.md` growing indefinitely.
 
 **Manual fallback (any agent):** Say "wrap up" — the agent writes `HANDOFF.md` and commits it. Works in Claude, Codex, and Pi.
 

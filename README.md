@@ -177,6 +177,12 @@ A ticket is a folder, not a card — it holds the ticket, Acceptance, Blueprint,
 
 Most tools track work in a service you have to open. Canon tracks it in your repo, where your agent already is.
 
+### Handoff Auto-Commit
+
+`HANDOFF.md` carries session context across agent switches, resets, and context-window exhaustion. To keep it current without manual saves, a `Stop` hook (and the equivalent Pi `agent_end` hook) refreshes the file's git-state snapshot and commits it whenever the working tree is dirty.
+
+The commit is path-scoped — `git commit --only HANDOFF.md` — so it records *only* `HANDOFF.md` and never sweeps your staged or unstaged changes to other files into it. In repos where `HANDOFF.md` is gitignored (canon itself is one), the snapshot is still written but nothing is committed.
+
 ---
 
 ## Sprint-Check — The Local Kanban Board

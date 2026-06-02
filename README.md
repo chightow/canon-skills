@@ -2,11 +2,9 @@
 
 <div align="center">
 
-### One Sprint Command for AI Agents.
+### Plan. Build. See it.
 
-Local tickets. Agent handoff. Browser board. No SaaS.
-
-Your agent can code. Canon makes the workflow yours.
+Two commands and a local board. Your agent forgets — your repo shouldn't.
 
 [![npm](https://img.shields.io/npm/v/canon-skills?color=3b82f6&label=npm)](https://www.npmjs.com/package/canon-skills)
 [![license](https://img.shields.io/badge/license-MIT-2563eb)](LICENSE)
@@ -15,123 +13,47 @@ Your agent can code. Canon makes the workflow yours.
 
 </div>
 
-![canon install terminal](meta/screenshots/canon-install-terminal.png)
-
-Install:
+<!-- TODO: replace static board image below with a ~5s demo GIF:
+     drag-to-Done → ticket opens → commit links. Highest-leverage hook;
+     GSD structurally can't show a GUI. Suggested path: meta/board-demo.gif -->
+![sprint-check board](meta/screenshots/board-light.png)
 
 ```bash
-npx canon-skills@latest
+npx canon-skills@latest          # installs canon to ~/Developer/canon
 cd /path/to/your-project
 ~/Developer/canon/skills.sh add sprint
 ```
 
-Use:
+Then build with two commands and a board:
 
 ```bash
-sprint start "add OAuth login"
-sprint-check
-sprint complete
+sprint start "add OAuth login"   # plan the work, create a local ticket
+sprint-check                     # open the board in your browser
+sprint complete                  # review, verify, close
 ```
 
-Your agent forgets. Your repo shouldn't.
+That's the whole surface. Your agent does the work; canon keeps it in your repo — not your prompt history.
 
-Canon keeps AI coding work in your repo instead of your prompt history:
+## The Board
 
-- `sprint` creates local tickets, planning docs, and acceptance-gated close.
-- `sprint-check` opens a browser board from `.tickets/`, `HANDOFF.md`, and `git log`.
-- `efficiency` is wired automatically so every registered project inherits focused editing, tight output, and context-budget rules.
+`sprint-check` reads your `.tickets/` folder, `HANDOFF.md`, and `git log`, and opens a local kanban board in your browser. No account, no remote, no commit — the work is already there. It shows git state, current focus, recent commits, ticket status, and sprint docs at a glance, and tickets link to commits automatically.
 
-![sprint-check board — light mode](meta/screenshots/board-light.png)
+Where phase-based frameworks like GSD Core give you a multi-command methodology to learn, canon gives you two commands and a board you can see.
 
-> canon /ˈkænən/ - the standard your agent follows across projects.
+**[Full feature tour →](docs/sprint-check.md)** — dark mode, ticket detail, in-place doc editing, commit intelligence, drag-to-update, completeness checks.
 
-canon is a shared skill library for AI coding agents. Define your standards once. Every project inherits them automatically — Claude Code, Codex, and Pi, all in sync.
+## The Two Commands
 
-## How It Works
+- **`sprint start "<what>"`** — creates a local ticket, then has your agent define acceptance, map the codebase, surface gray areas, rate risk, and write a plan before touching source. The plan lives in `.tickets/<id>/` and survives context resets.
+- **`sprint complete`** — runs the close path: simplify → review → security → repo/doc audit → acceptance check → close → commit & push prompt.
 
-The loop is three agent actions. `sprint-check` is the board; `sprint start` and
-`sprint complete` are the workflow gates that create active sprint state and run
-close validation.
+A ticket is a folder, not a card — ticket, acceptance, plan, and decisions, all markdown in your repo. When context resets mid-session, the agent reopens the folder and picks up where it left off.
 
-### 1. Start
-
-```bash
-sprint start "add OAuth login"
-```
-
-Run in your agent session or terminal. It creates a local ticket, records it as active, then has the agent define acceptance, map the codebase, surface gray areas, rate risk, and write a plan before source edits.
-
-### 2. Check
-
-```bash
-sprint-check
-```
-
-Opens the local board for `.tickets/`, `HANDOFF.md`, and `git log`. Read or edit ticket docs in the browser without leaving your repo.
-
-### 3. Complete
-
-```bash
-sprint complete
-```
-
-Run in your agent session when the work is done. It runs the close path: simplify, review, security, repo/doc audit when those surfaces change, acceptance validation, ticket close, then commit and push prompt.
-
-Creating a ticket or dragging it to Done in `sprint-check` updates local ticket state, but it does not run the `sprint complete` pipeline. Everything else - active sprint state, session context, quality gates, and handoff across resets - is wired into the sprint lifecycle. You describe what you want to build.
-
----
-
-## Why Canon
-
-Most agent repos I tried gave me homework: a vocabulary of commands, an invocation order to remember, and a setup ritual to repeat on every project.
-
-I wanted the opposite: define my standards once, have every agent read them automatically, and never think about configuration again. Open a session — your agent already knows how you work, what's in progress, and what decisions were made last week.
-
-The second problem was visibility. When I'm deep in a session and need to know what's in flight, I don't want to push commits to GitHub just to see a diff, spin up a Jira board, or maintain a project in three browser tabs. I want to see the work right now, in the repo.
-
-That's sprint-check: a kanban board that reads your `.tickets/` folder and `git log` directly, opens in a browser tab, and requires nothing else — no account, no remote, no commit. The same instinct behind canon: the best tool for a developer is one that disappears.
-
----
-
-## Solo or Team
-
-For one developer, canon is a personal standard library. Clone it once, register `sprint` in each project, and every agent session starts with the same workflow, same expectations, and same local ticket state.
-
-For a team, canon is a shared source of truth. Fork it to your org, have everyone clone that fork, and let team conventions live in one repo. One engineer improves a skill or standard; everyone else picks it up on the next `git pull`. No config drift, no stale copies, no setup guide that ages out before the next hire reads it.
-
----
-
-## Why Not Just Paste Instructions into CLAUDE.md?
-
-You can. Most people do — until they have five projects, each with a slightly different copy, all drifting apart. Canon solves this with a **live-reference model**: skills live in one repo and are `@`-imported directly into each project's config. Update once, every project picks it up on the next session start. No copies. No drift. No tribal knowledge trapped in one engineer's config.
-
----
-
-## What's Inside
-
-In normal use, register one workflow skill: `sprint`. `skills.sh add sprint`
-also wires the always-on `efficiency` standard. Optional audit skills can be
-registered separately when you want them.
-
-| Skill | What it does | Example |
-|---|---|---|
-| `sprint` | plan → build → ship. The CLI creates the ticket, tracks the active sprint, and validates close. The agent creates Acceptance, Blueprint, and Plan docs, maps the subsystem, grills gray areas, rates impact, and generates a test plan. Approved plan written to `.tickets/<id>/plan.md` — survives context resets. | *"sprint start — add OAuth login"* |
-| &nbsp;&nbsp;↳ `wrapup` | Quality pipeline at sprint complete (also runs on demand): simplify → review → security → repo/doc audit → doc refresh, then always prompts to commit & push. | *"sprint complete"* |
-| &nbsp;&nbsp;&nbsp;&nbsp;↳ `code-reviewer` | Structured review across 7 dimensions: correctness, maintainability, readability, efficiency, security, edge cases, and test coverage. | *"review my changes"* |
-| &nbsp;&nbsp;&nbsp;&nbsp;↳ `security-review` | High-confidence vulnerability detection — traces data flow before flagging anything. | *"security review the auth module"* |
-| &nbsp;&nbsp;↳ `handoff` | Session context that survives agent switches, resets, and context window exhaustion. | *auto-runs on session end* |
-| `efficiency` | Always-on coding, git, and token-efficiency standard. Added automatically when you register a project. | *loaded automatically via `@` import* |
-| `context-check` | Optional audit for always-on context budget — imports, active skills, hooks, memory. Appends findings to `standards/context-findings.md` on explicit confirmation. | *optional: `skills.sh add context-check`* |
-| &nbsp;&nbsp;↳ `doc-audit` | User-facing docs audit for overstated claims, missing prerequisites, and scope inflation. Runs inside wrapup when docs changed. | *"audit the README"* |
-| `sprint-check` | Local kanban dashboard. Reads `.tickets/`, `HANDOFF.md`, and `git log`. Runs in any browser. | *"show me what's in flight"* |
-
----
+**Gated, not vibes.** The CLI owns state: one active sprint at a time, and `sprint complete` refuses to close while any acceptance item is still unchecked. The agent owns judgment — the gate owns the close.
 
 ## How Sprint Works
 
-One workflow command drives the lifecycle. The CLI handles deterministic state; sub-skills are called by the agent at each stage — no manual orchestration.
-
-### Sprint Start
+`sprint start` plans before it builds:
 
 ```mermaid
 flowchart LR
@@ -141,22 +63,7 @@ flowchart LR
     class S4,S6 subskill
 ```
 
-Recommended sprint doc order: create `acceptance.md` first to define Done, then
-`blueprint.md` to capture the approach, then `plan.md` only after the approach is
-approved. `sprint-check` suggests that order in `+ New doc`.
-
-Only those markdown files are sprint docs the user or agent creates. The
-double-bordered steps are sub-skills: `orient` reads the codebase and feeds
-findings into the Blueprint, `impact-analysis` rates risk and feeds the test
-plan, and later `capture` writes notable discoveries to `HANDOFF.md`. They run
-as part of the `sprint` workflow; they are not separate docs to create and not
-commands the user has to invoke.
-
-### ↓ Build
-
-> The agent runs `capture` when non-obvious discoveries appear — saved to `HANDOFF.md`
-
-### Sprint Complete
+`sprint complete` gates the close:
 
 ```mermaid
 flowchart LR
@@ -165,151 +72,30 @@ flowchart LR
     class W1,W2,W3,W4,W5 subskill
 ```
 
-> Double-bordered nodes (`orient`, `impact-analysis`, `capture`, `code-simplifier`, `code-reviewer`, `security-review`, `repo-check`, `doc-audit`) are sub-skills loaded from canon automatically — not invoked separately.
+Double-bordered nodes are sub-skills the agent runs inside the flow — you don't invoke them. **[Full lifecycle →](docs/sprint-check.md#how-sprint-works)**
 
----
+## Why
 
-## Tickets
+Define your standards once; every project inherits them via `@`-import — Claude Code, Codex, and Pi, in sync. Update the canon repo, every project picks it up on the next session. No copies, no drift, no setup ritual per project. The `efficiency` standard is wired automatically when you register `sprint`.
 
-Every `sprint start` creates a ticket in `.tickets/<id>/ticket.md` and records it as active in `.tickets/ACTIVE`. The planning docs are added to the same folder as the sprint takes shape. Every `sprint complete` closes it after required sprint checklist items are resolved. No external service, no account.
+## Setup
 
-A ticket is a folder, not a card — it holds the ticket, Acceptance, Blueprint, approved Plan, decisions made mid-sprint, and any QA or research notes, all as markdown files. When context resets mid-session, the agent opens the ticket and picks up exactly where it left off.
-
-Most tools track work in a service you have to open. Canon tracks it in your repo, where your agent already is.
-
-### Handoff Auto-Commit
-
-`HANDOFF.md` carries session context across agent switches, resets, and context-window exhaustion. To keep it current without manual saves, a `Stop` hook (and the equivalent Pi `agent_end` hook) refreshes the file's git-state snapshot and commits it whenever the working tree is dirty.
-
-The commit is path-scoped — `git commit --only HANDOFF.md` — so it records *only* `HANDOFF.md` and never sweeps your staged or unstaged changes to other files into it. In repos where `HANDOFF.md` is gitignored (canon itself is one), the snapshot is still written but nothing is committed.
-
----
-
-## Sprint-Check — The Local Kanban Board
-
-No hosted server. No account. No SaaS. From your project root, run:
-
-```bash
-sprint-check
-```
-
-It reads your project's `.tickets/` folder and `git log` and opens a local kanban board in your browser. Tickets link to commits automatically.
-
-Tickets don't need to be created manually. Every `sprint start` creates one active ticket. From there, `+ New doc` adds the planning docs the agent needs, and `sprint complete` closes the ticket after validation. Open the board mid-session and your work is already there — no entry, no tagging, no context-switching.
-
-The board shows git state, current focus from `HANDOFF.md`, recent commits, ticket status, and sprint docs — everything you and your agent need at a glance.
-
-**[See the full feature tour →](docs/sprint-check.md)** — dark mode, ticket detail, in-place doc editing, commit intelligence, ticket creation, completeness checks, drag-to-update, and doc attachment, each with a screenshot.
-
----
-
-## The Contrast
-
-Frameworks like GSD Core are powerful phase-based systems: initialize, discuss, plan, execute, verify, ship, repeat. That works when you want a full methodology.
-
-Canon optimizes for the common case: most dev work should not require remembering a command sequence. Register `sprint` once. Then use one workflow command:
-
-- `sprint start` to plan and begin work
-- `sprint complete` to verify, wrap up, and close
-
-The sub-skills still exist — orient, impact analysis, capture, simplify, review, security, repo and doc audit — but the user does not invoke them in order. The agent does.
-
-| | canon | popular frameworks |
+| Tool | Required | For |
 |---|---|---|
-| Install | One command (`npx canon-skills@latest`) | Separate install per platform |
-| Things to learn | One workflow command: `sprint` | Multi-command phase workflow |
-| Built with | Markdown + bash | Methodology plugins |
-| External services | None | Often tied to platform/plugin state |
-| Updates | `git pull` in one repo | Plugin release per platform |
-| Agent support | Claude Code, Codex, Pi | Broader (Cursor, Gemini, Copilot + more) |
-| State lives in | Your repo (`.tickets/`, `HANDOFF.md`) | Plugin state |
-| Audits itself | Yes (`context-check`, `doc-audit`) | No |
-
----
-
-## Setup Details
-
-**1. Install**
+| Claude Code / Codex / Pi | At least one | running the agent |
+| Node.js ≥ 16 | `npx` install only | install |
+| Python 3 | `sprint-check` + hooks | the board |
 
 ```bash
-npx canon-skills@latest
-# Clones the repo to ~/Developer/canon and runs setup.
-# Existing install? It pulls the latest changes instead.
+~/Developer/canon/skills.sh add sprint          # plan → build → ship (includes wrapup, handoff)
+~/Developer/canon/skills.sh add context-check   # optional: context-budget audits
 ```
 
-Or clone directly:
-
-```bash
-git clone https://github.com/sunitghub/canon.git ~/Developer/canon
-~/Developer/canon/skills.sh init
-```
-
-**2. Register skills in a project**
-
-```bash
-cd /path/to/your-project
-
-~/Developer/canon/skills.sh add sprint        # plan → build → ship (includes wrapup, handoff)
-```
-
-That is the normal install. `efficiency` is added automatically. Add
-`context-check` separately only if you want periodic context-budget audits:
-
-```bash
-~/Developer/canon/skills.sh add context-check
-```
-
-**3. Start a session**
-
-Your agent reads the registered skills and follows them — no prompt engineering, no system prompt editing, no copy-pasting.
-
-**4. Try the Todo walkthrough**
-
-[`examples/canon-todo-walkthrough`](examples/canon-todo-walkthrough) is a blank docs-only workspace that shows the full flow: register `sprint`, open an empty board, start a ticket, create Acceptance/Blueprint/Plan docs in `sprint-check`, implement a minimal Todo app, test, check acceptance, and complete the sprint. The finished reference app lives in [`examples/todo-app`](examples/todo-app).
+- **[Full setup guide →](guides/AI-Agents-Setup.md)** — per-agent wiring, the live-reference model, verification.
+- **[Todo walkthrough →](examples/canon-todo-walkthrough)** — the full flow end to end, from empty board to shipped app.
 
 ---
 
-## The CLI
-
-![skills --h output](meta/screenshots/cli-help.png)
-
-`skills.sh help <skill>` prints the full skill documentation in the terminal — discover what any skill does without opening a file.
-
----
-
-## How the Live-Reference Model Works
-
-`skills.sh add` adds live imports to your project's config — not a copy of the skill, references:
-
-```
-# CLAUDE.md
-@/Users/you/Developer/canon/standards/efficiency.md
-@/Users/you/Developer/canon/skills/sprint.md
-
-# AGENTS.md
-| sprint | dev | /Users/you/Developer/canon/skills/sprint.md |
-```
-
-Claude Code reads `CLAUDE.md` at session start. The `@` prefix tells it to load the referenced file in full — which is the live skill from the canon repo. When canon updates, the next session picks up the change automatically. No re-registration.
-
-Configuration is living, not static. When a sprint surfaces a durable convention, the agent proposes an `AGENTS.md` update before close — the codebase teaches the agent, and the agent remembers.
-
----
-
-## Prerequisites
-
-| Tool | Required | Install |
-|---|---|---|
-| Claude Code / Codex / Pi | Yes — at least one | [claude.ai/code](https://claude.ai/code) |
-| Node.js ≥ 16 | For `npx` install only | [nodejs.org](https://nodejs.org) |
-| Python 3 | For `sprint-check` and hook setup helpers | [python.org](https://python.org) |
-
----
-
-## Full Setup Guide
-
-[`guides/AI-Agents-Setup.md`](guides/AI-Agents-Setup.md) — prerequisites, per-agent wiring, project registration, verification, and the full sprint + wrapup workflow.
-
----
+> canon /ˈkænən/ — the standard your agent follows across projects.
 
 *Make it canon.*

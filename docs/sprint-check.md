@@ -66,3 +66,11 @@ Click `+ New doc` on any ticket to attach a structured document. The picker guid
 | **Notes** | Any status | Freeform scratchpad — research, links, observations, anything that doesn't fit the others |
 
 Sprint docs land in `.tickets/<id>/` as markdown files and are read automatically by your agent after sprint start. Templates include comments that mark which headings and ticket ID lines should stay unchanged, and the editor toolbar inserts common Markdown such as checkboxes, bullets, numbered items, headings, inline code, and toggle blocks at the cursor.
+
+## How Sprint Works
+
+One workflow command drives the lifecycle. The CLI handles deterministic state; sub-skills are called by the agent at each stage — no manual orchestration. The two diagrams on the [README](../README.md#how-sprint-works) show the start and complete flows.
+
+Recommended sprint doc order: create `acceptance.md` first to define Done, then `blueprint.md` to capture the approach, then `plan.md` only after the approach is approved. `sprint-check` suggests that order in `+ New doc`.
+
+Only those markdown files are sprint docs the user or agent creates. The double-bordered steps in the diagrams are sub-skills: `orient` reads the codebase and feeds findings into the Blueprint, `impact-analysis` rates risk and feeds the test plan, and `capture` writes notable discoveries to `HANDOFF.md` when they appear mid-build. On `sprint complete`, `code-simplifier`, `code-reviewer`, `security-review`, `repo-check`, and `doc-audit` run before close. They run as part of the `sprint` workflow; they are not separate docs to create and not commands the user has to invoke.

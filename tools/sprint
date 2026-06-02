@@ -21,13 +21,8 @@ project_root() {
 }
 
 ticket_dir_for() {
-  local id="$1" dir
-  dir="$(tickets_dir)"
-  if [[ -d "$dir/$id" ]]; then
-    echo "$dir/$id"
-  else
-    echo "$dir/$id"
-  fi
+  local id="$1"
+  echo "$(tickets_dir)/$id"
 }
 
 ensure_context_files() {

@@ -32,6 +32,14 @@ find_skill() {
   return 1
 }
 
+# Emit a skill file's declared dependency names, one per line.
+resolve_deps() {
+  local file="$1" dep_str
+  dep_str=$(fm_field "$file" depends)
+  [ -z "$dep_str" ] && return 0
+  echo "$dep_str" | tr -d '[]' | tr ',' '\n' | tr -d ' ' | grep -v '^$' || true
+}
+
 cmd_list() {
   local cols skill_w cat_w indent_w desc_w
   cols=${COLUMNS:-$(tput cols 2>/dev/null || echo 100)}
@@ -57,13 +65,9 @@ cmd_list() {
   for dir in "${SEARCH_DIRS[@]}"; do
     [ -d "$dir" ] || continue
     while IFS= read -r f; do
-      local dep_str
-      dep_str=$(fm_field "$f" depends)
-      [ -z "$dep_str" ] && continue
       while IFS= read -r dep; do
-        dep=$(echo "$dep" | tr -d ' ')
         [ -n "$dep" ] && all_dep_names+=("$dep")
-      done <<< "$(echo "$dep_str" | tr -d '[]' | tr ',' '\n')"
+      done < <(resolve_deps "$f")
     done < <(find "$dir" -type f -name "*.md" 2>/dev/null)
   done
 
@@ -171,13 +175,9 @@ cmd_add() {
   local import_line="@$skill_file"
 
   # Resolve dependencies first — register their @-imports silently, no table row
-  if [ -n "$depends" ]; then
-    local deps
-    deps=$(echo "$depends" | tr -d '[]' | tr ',' '\n' | tr -d ' ')
-    while IFS= read -r dep; do
-      [ -n "$dep" ] && cmd_add "$dep" "$project_dir" "dep"
-    done <<< "$deps"
-  fi
+  while IFS= read -r dep; do
+    [ -n "$dep" ] && cmd_add "$dep" "$project_dir" "dep"
+  done < <(resolve_deps "$skill_file")
 
   # Deps are loaded transitively via @-imports inside the parent skill file.
   # Don't add them to target files — keep CLAUDE.md and AGENTS.md clean.
@@ -250,10 +250,9 @@ cmd_add() {
   if [ -n "$depends" ]; then
     local redundant=()
     while IFS= read -r dep; do
-      dep=$(echo "$dep" | tr -d ' ')
       [ -z "$dep" ] && continue
       grep -qF "| $dep |" "$agents_file" 2>/dev/null && redundant+=("$dep")
-    done <<< "$(echo "$depends" | tr -d '[]' | tr ',' '\n')"
+    done < <(resolve_deps "$skill_file")
     if [ ${#redundant[@]} -gt 0 ]; then
       for dep in "${redundant[@]}"; do
         cmd_remove "$dep" "$project_dir" > /dev/null || true
@@ -504,14 +503,11 @@ cmd_refresh() {
 
   while IFS= read -r skill; do
     [ -z "$skill" ] && continue
-    local sf dep_str
+    local sf
     sf=$(find_skill "$skill" 2>/dev/null) || continue
-    dep_str=$(fm_field "$sf" depends)
-    [ -z "$dep_str" ] && continue
     while IFS= read -r dep; do
-      dep=$(echo "$dep" | tr -d ' ')
       [ -n "$dep" ] && covered_deps+=("$dep")
-    done <<< "$(echo "$dep_str" | tr -d '[]' | tr ',' '\n')"
+    done < <(resolve_deps "$sf")
   done <<< "$skills_in_table"
 
   if [ ${#covered_deps[@]} -gt 0 ]; then
@@ -852,13 +848,11 @@ cmd_addall() {
   # Collect all dep names so we can skip skills already covered transitively
   local all_deps=" "
   for name in "${names[@]}"; do
-    local sf deps
+    local sf
     sf=$(find_skill "$name" 2>/dev/null) || continue
-    deps=$(fm_field "$sf" depends | tr -d '[]' | tr ',' '\n')
     while IFS= read -r dep; do
-      dep=$(echo "$dep" | tr -d ' ')
       [ -n "$dep" ] && all_deps="$all_deps$dep "
-    done <<< "$deps"
+    done < <(resolve_deps "$sf")
   done
 
   # Only register top-level skills — skip those covered as deps of another skill
@@ -909,16 +903,8 @@ cmd_delete() {
     rm "$skill_file"
   fi
 
-  # Regenerate CATALOG.md
-  {
-    echo "# canon Catalog"
-    echo ""
-    echo "> Auto-generated snapshot. Run \`skills.sh list\` for live output."
-    echo ""
-    echo "\`\`\`"
-    "$SKILLS_ROOT/skills.sh" list
-    echo "\`\`\`"
-  } > "$SKILLS_ROOT/CATALOG.md"
+  # Regenerate CATALOG.md through the structured generator
+  cmd_catalog >/dev/null
 
   echo ""
   echo "Deleted: $skill"
@@ -962,11 +948,15 @@ for item in items:
         if dep:
             deps.setdefault(dep, []).append(item["name"])
 
+def is_standard(item):
+    return item["path"].parent.name == "standards"
+
+standards  = [i for i in items if is_standard(i) and i.get("hidden") != "true"]
 standalone = [
     i for i in items
-    if i.get("hidden") != "true" and i["name"] not in deps
+    if not is_standard(i) and i.get("hidden") != "true" and i["name"] not in deps
 ]
-subskills = [i for i in items if i["name"] in deps]
+subskills = [i for i in items if not is_standard(i) and i["name"] in deps]
 
 lines = [
     "# canon Catalog",
@@ -981,6 +971,19 @@ lines = [
     "|---|---|---|",
 ]
 for item in standalone:
+    desc = item.get("summary") or item.get("description", "")
+    lines.append(f"| `{item['name']}` | {item.get('category', '')} | {desc} |")
+
+lines += [
+    "",
+    "## Standards",
+    "",
+    "Auto-injected / contributor reference — not registered directly.",
+    "",
+    "| Standard | Category | Description |",
+    "|---|---|---|",
+]
+for item in standards:
     desc = item.get("summary") or item.get("description", "")
     lines.append(f"| `{item['name']}` | {item.get('category', '')} | {desc} |")
 

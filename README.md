@@ -75,7 +75,7 @@ Opens the local board for `.tickets/`, `HANDOFF.md`, and `git log`. Read or edit
 sprint complete
 ```
 
-Run in your agent session when the work is done. It runs the close path: simplify, review, security, doc audit when docs changed, acceptance validation, ticket close, then commit and push prompt.
+Run in your agent session when the work is done. It runs the close path: simplify, review, security, repo/doc audit when those surfaces change, acceptance validation, ticket close, then commit and push prompt.
 
 Creating a ticket or dragging it to Done in `sprint-check` updates local ticket state, but it does not run the `sprint complete` pipeline. Everything else - active sprint state, session context, quality gates, and handoff across resets - is wired into the sprint lifecycle. You describe what you want to build.
 
@@ -116,7 +116,7 @@ registered separately when you want them.
 | Skill | What it does | Example |
 |---|---|---|
 | `sprint` | plan → build → ship. The CLI creates the ticket, tracks the active sprint, and validates close. The agent creates Acceptance, Blueprint, and Plan docs, maps the subsystem, grills gray areas, rates impact, and generates a test plan. Approved plan written to `.tickets/<id>/plan.md` — survives context resets. | *"sprint start — add OAuth login"* |
-| &nbsp;&nbsp;↳ `wrapup` | Quality pipeline at sprint complete (also runs on demand): simplify → review → security → doc refresh, then always prompts to commit & push. | *"sprint complete"* |
+| &nbsp;&nbsp;↳ `wrapup` | Quality pipeline at sprint complete (also runs on demand): simplify → review → security → repo/doc audit → doc refresh, then always prompts to commit & push. | *"sprint complete"* |
 | &nbsp;&nbsp;&nbsp;&nbsp;↳ `code-reviewer` | Structured review across 7 dimensions: correctness, maintainability, readability, efficiency, security, edge cases, and test coverage. | *"review my changes"* |
 | &nbsp;&nbsp;&nbsp;&nbsp;↳ `security-review` | High-confidence vulnerability detection — traces data flow before flagging anything. | *"security review the auth module"* |
 | &nbsp;&nbsp;↳ `handoff` | Session context that survives agent switches, resets, and context window exhaustion. | *auto-runs on session end* |
@@ -160,12 +160,12 @@ commands the user has to invoke.
 
 ```mermaid
 flowchart LR
-    W1[[simplifier]] --> W2[[reviewer]] --> W3[[security]] --> W4[[doc-audit]] --> C5[close]
+    W1[[simplifier]] --> W2[[reviewer]] --> W3[[security]] --> W4[[repo-check]] --> W5[[doc-audit]] --> C6[close]
     classDef subskill stroke:#8888dd,stroke-width:2px
-    class W1,W2,W3,W4 subskill
+    class W1,W2,W3,W4,W5 subskill
 ```
 
-> Double-bordered nodes (`orient`, `impact-analysis`, `capture`, `code-simplifier`, `code-reviewer`, `security-review`, `doc-audit`) are sub-skills loaded from canon automatically — not invoked separately.
+> Double-bordered nodes (`orient`, `impact-analysis`, `capture`, `code-simplifier`, `code-reviewer`, `security-review`, `repo-check`, `doc-audit`) are sub-skills loaded from canon automatically — not invoked separately.
 
 ---
 
@@ -263,7 +263,7 @@ Canon optimizes for the common case: most dev work should not require rememberin
 - `sprint start` to plan and begin work
 - `sprint complete` to verify, wrap up, and close
 
-The sub-skills still exist — orient, impact analysis, capture, review, security, doc audit — but the user does not invoke them in order. The agent does.
+The sub-skills still exist — orient, impact analysis, capture, simplify, review, security, repo and doc audit — but the user does not invoke them in order. The agent does.
 
 | | canon | popular frameworks |
 |---|---|---|

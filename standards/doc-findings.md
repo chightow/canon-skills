@@ -47,3 +47,21 @@ Evidence log for documentation accuracy. Run `/doc-audit` to generate new findin
 **Claim:** Release checklist went from standards updates directly to committing/tagging/publishing.
 **Issue:** `npm test` now verifies the core CLI workflow; publishing docs should require running it.
 **Action:** Added `npm test` before the release commit step.
+
+### 2026-06-03 — Wrapup pipeline described as three passes, not five
+**File:** `guides/AI-Agents-Setup.md`, `guides/context-optimization.md`
+**Claim:** "runs all three in order"; SHIP block and dep list omit `repo-check` and `doc-audit`.
+**Issue:** Wrapup pipeline is five steps (`code-simplifier → code-reviewer → security-review → repo-check → doc-audit`) per `wrapup.md` and the README mermaid. Guides predated the last two.
+**Action:** Updated both guides to five steps (SHIP block, Layer 5, skip table, dep list). Fixed in `b480735`.
+
+### 2026-06-03 — Wrong sprint-complete trigger phrase
+**File:** `guides/AI-Agents-Setup.md`
+**Claim:** "sprint complete: *sprint complete*, *approve*, *ship it*"
+**Issue:** `"approve"` is the sprint-start approval, not a complete trigger; `sprint.md` lists *sprint complete* / *complete the sprint* / *ship it*.
+**Action:** Replaced `"approve"` with `"complete the sprint"`. Fixed in `b480735`.
+
+### 2026-06-03 — $SKILLS used before definition
+**File:** `guides/AI-Agents-Setup.md`
+**Claim:** Step 2 main path `cd ~/Developer/canon && ./skills.sh init`; Step 3+ uses `$SKILLS/skills.sh …`.
+**Issue:** Primary setup path never exports `$SKILLS`, so subsequent `$SKILLS/...` commands don't run as written.
+**Action:** Step 2 now defines `export SKILLS=~/Developer/canon` before later steps use it. Fixed in `b480735`.

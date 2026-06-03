@@ -73,4 +73,20 @@ One workflow command drives the lifecycle. The CLI handles deterministic state; 
 
 Recommended sprint doc order: create `acceptance.md` first to define Done, then `blueprint.md` to capture the approach, then `plan.md` only after the approach is approved. `sprint-check` suggests that order in `+ New doc`.
 
-Only those markdown files are sprint docs the user or agent creates. The double-bordered steps in the diagrams are sub-skills: `orient` reads the codebase and feeds findings into the Blueprint, `impact-analysis` rates risk and feeds the test plan, and `capture` writes notable discoveries to `HANDOFF.md` when they appear mid-build. On `sprint complete`, `code-simplifier`, `code-reviewer`, `security-review`, `repo-check`, and `doc-audit` run before close. They run as part of the `sprint` workflow; they are not separate docs to create and not commands the user has to invoke.
+Only those markdown files are sprint docs the user or agent creates. The double-bordered steps in the diagrams are sub-skills: `orient` reads the codebase and feeds findings into the Blueprint, `impact-analysis` rates risk and feeds the test plan (detailed below), and `capture` writes notable discoveries to `HANDOFF.md` when they appear mid-build. On `sprint complete`, `code-simplifier`, `code-reviewer`, `security-review`, `repo-check`, and `doc-audit` run before close. They run as part of the `sprint` workflow; they are not separate docs to create and not commands the user has to invoke.
+
+### Impact Analysis — five dimensions
+
+Before any code is written, `sprint start` rates the change across five risk dimensions and writes the result to the Blueprint:
+
+| Dimension | Asks |
+|---|---|
+| **Audience** | Who and how many does this reach — one user, a tenant, everyone, or external systems? |
+| **Reversibility** | Can it be undone, or does it delete, send, or write money permanently? |
+| **Blast radius** | If it fails, is the damage contained or does it corrupt shared state? |
+| **Trigger paths** | How many UI paths, API callers, or jobs reach the same handler? |
+| **Cascade risk** | What downstream consumers — queues, tables, external APIs — react to the change? |
+
+Each dimension is rated HIGH, MEDIUM, or LOW. The ratings aren't advisory: **every HIGH adds required mitigation to the acceptance plan** — a rollback test for permanent operations, a handler-binding grep and server-side auth check for multiple trigger paths, a per-consumer test for cascade risk, an audit-log requirement for broad audience — and the `sprint complete` gate will not close the ticket until that work is checked off. All-LOW changes record the assessment silently and proceed.
+
+**Regression carryover.** `sprint start` also scans `.tickets/` for closed tickets that touched the same files this sprint will modify, and adds one regression test per match. Past work that passed stays passing — the test obligation rides along automatically, so a later change can't silently break behavior an earlier ticket established.

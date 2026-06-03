@@ -41,12 +41,12 @@ Phase-based frameworks give you a multi-command methodology to learn. canon give
 
 ## The Two Commands
 
-- **`sprint start "<what>"`** — creates a local ticket, then has your agent define acceptance, map the codebase, surface gray areas, rate risk, and write a plan before touching source. The plan lives in `.tickets/<id>/` and survives context resets.
+- **`sprint start "<what>"`** — creates a local ticket, then has your agent define acceptance, map the subsystem and its callers, surface gray areas, rate risk across five dimensions, and write a plan before touching source. The plan lives in `.tickets/<id>/` and survives context resets.
 - **`sprint complete`** — runs the close path: simplify → review → security → repo/doc audit → acceptance check → close → commit & push prompt.
 
 A ticket is a folder, not a card — ticket, acceptance, plan, and decisions, all markdown in your repo. When context resets mid-session, the agent reopens the folder and picks up where it left off.
 
-**Gated, not vibes.** The CLI owns state: one active sprint at a time, and `sprint complete` refuses to close while any acceptance item is still unchecked. The agent owns judgment — the gate owns the close.
+**Gated, not vibes.** The CLI owns state: one active sprint at a time, and `sprint complete` refuses to close while any acceptance item is still unchecked — a checklist check in code, not a judgment call. The agent owns judgment — the gate owns the close.
 
 ## How Sprint Works
 

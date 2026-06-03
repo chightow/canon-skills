@@ -17,6 +17,30 @@ Before opening a PR:
 `skills.sh lint` runs as part of `npm test`, so running the suite catches
 non-conforming skills before they merge.
 
+## Continuous Integration
+
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs `npm test` (the
+core suite plus `skills.sh lint`) on every pull request to `main` and every
+push to `main`.
+
+While the repository is **private**, this check is **advisory** — GitHub branch
+protection requires a public repo (or GitHub Pro), so a red check does not yet
+block a merge. Do not merge a PR with a failing check.
+
+Branch protection is kept as version-controlled config in
+[`.github/rulesets/main-protection.json`](.github/rulesets/main-protection.json):
+a PR is required (0 approvals — solo-friendly), the `test` check must pass with
+the branch up to date, and `main` allows no deletion, force-push, or merge
+commits (squash/rebase only). When the repo goes public, apply it once:
+
+```bash
+gh api --method POST repos/sunitghub/canon/rulesets \
+  --input .github/rulesets/main-protection.json
+```
+
+After that, direct pushes to `main` stop — all changes land through PRs that
+pass CI.
+
 ## Release Checklist
 
 1. **Bump version** in `package.json` (follow semver: patch for fixes, minor for new skills, major for breaking changes)

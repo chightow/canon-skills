@@ -52,7 +52,7 @@ Phase-based frameworks give you a multi-command methodology to learn. canon give
 
 A ticket is a folder, not a card — ticket, acceptance, plan, and decisions, all markdown in your repo. When context resets — or a fresh session starts — the agent reads `HANDOFF.md` (auto-injected at session start) and reopens the ticket folder, and picks up where it left off.
 
-**Gated, not vibes.** The CLI owns state: one active sprint at a time, and `sprint complete` refuses to close while any acceptance item is still unchecked — a checklist check in code, not a judgment call. The agent owns judgment — the gate owns the close.
+**Gated, not vibes.** The CLI owns state: one active sprint at a time, and `sprint complete` refuses to close while any acceptance or test-plan box is still unchecked — a checklist-state check in code, not a judgment call. The CLI gates the boxes; the agent verifies the tests and judges whether criteria are truly met before checking them. The agent owns the judgment — the gate owns the close.
 
 ## How Sprint Works
 

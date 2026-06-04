@@ -13,6 +13,7 @@ Find docs by what you're trying to do.
 - [Skill catalog](../CATALOG.md) — every skill, what it does, how it's registered.
 
 ### Understand the Why
+- [How canon works](how-it-works.md) — the design in one page: live references, the CLI/agent split, tiered planning, local-first state.
 - [Why canon](../README.md#why) — define your standards once; every project inherits them.
 - [How sprint works](sprint-check.md#how-sprint-works) — plan-then-build and the deterministic close gate.
 

@@ -49,8 +49,13 @@ Phase-based frameworks give you a multi-command methodology to learn. canon give
 
 ## The Two Commands
 
-- **`sprint start "<what>"`** — creates a local ticket, has your agent classify the work as normal or high-risk, define acceptance, and write a plan before touching source. Normal changes stay light; high-risk changes add subsystem mapping, gray-area resolution, five-dimension impact analysis, and mitigation tests. The plan lives in `.tickets/<id>/` and survives context resets.
-- **`sprint complete`** — runs the close path: simplify → review → security → repo/doc audit → acceptance check → close → commit & push prompt.
+**`sprint start "<what>"`** — Make your agent plan before it codes.
+
+Creates a ticket, defines acceptance criteria, and writes the plan before touching source. Normal changes stay light; high-risk changes add subsystem mapping, gray-area resolution, five-dimension impact analysis, and adversarial review. The plan lives in `.tickets/<id>/` and survives context resets.
+
+**`sprint complete`** — Block the merge until every box is checked.
+
+Runs the close path: simplify → review → security → repo/doc audit → acceptance check → close. Refuses to proceed while any acceptance or test-plan item is unchecked. The CLI gates the state; the agent verifies the tests and judges whether criteria are met.
 
 Each sprint produces two docs — no more, no less:
 
@@ -65,11 +70,9 @@ Both are plain markdown in `.tickets/<id>/`, committed alongside the code. Both 
 
 ## Code Archaeology
 
-```bash
-tkt why src/auth/middleware.py
-```
+**`tkt why <file>`** — Ask why this file was built this way.
 
-Surface every ticket — and every decision — that shaped a file. `tkt why` scans `git log` for ticket IDs in commit messages, then reads each ticket's `plan.md` for decisions made during that sprint. When commits predate ticket IDs, it falls back to keyword matching against ticket titles.
+Scans `git log` for ticket IDs in commit messages, then reads each ticket's `plan.md` for decisions made during that sprint. When commits predate ticket IDs, it falls back to keyword matching against ticket titles.
 
 ```
 t-34en  [closed]  Harden sprint-check board against cross-origin reads

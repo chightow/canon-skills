@@ -134,32 +134,40 @@ Verify before closing.
 1. **Wrapup.** Run the wrapup pipeline on files modified since sprint start.
    Apply skip rules from `wrapup.md`.
 
-2. **Test verification.** Review each item in `acceptance.md ## Test Plan`:
+2. **Adversarial review (HIGH-risk only).** If the sprint tier is HIGH-risk,
+   run the code-review output through a second model for genuine adversarial
+   coverage — same-model review has a blind-spot problem. Paste the diff or
+   key changed files into a different model (e.g. GPT-4o if you're on Claude,
+   or `claude` if you're on Codex) and ask: "What could go wrong here that the
+   author might have missed?" Surface any new findings to the user before
+   proceeding. Skip for normal and trivial tiers.
+
+3. **Test verification.** Review each item in `acceptance.md ## Test Plan`:
    - ✓ passed | ✗ failed | ? not run
    - If any ✗ or ?: report which tests did not pass. Do not close the ticket. Stop here.
    - Include impact and regression tests.
    - Confirm test results are documented in `acceptance.md` (pass/fail per item, date run).
    - Proceed only when all tests are ✓ or explicitly waived by the user with a documented reason.
 
-3. **Acceptance check.** Review each item in `acceptance.md`:
+4. **Acceptance check.** Review each item in `acceptance.md`:
    - ✓ met | ✗ not met | ? uncertain
    - If any ✗: report what is missing. Do not close the ticket. Stop here.
    - Proceed only when all criteria are ✓ or explicitly waived by the user.
 
-4. **DECISIONS.md.** Append any durable decisions made during this sprint — non-obvious
+5. **DECISIONS.md.** Append any durable decisions made during this sprint — non-obvious
    architectural choices, explicit tradeoffs, out-of-scope calls. One row per decision.
    Write the WHY, not the what. Skip if no new decisions were made.
 
-5. **Conventions.** While context is fresh, check if any convention-level learnings emerged — patterns, naming norms, non-obvious file relationships, gotchas — that would help a future agent working in this area. These are distinct from decisions: a decision is "we chose X"; a convention is "in this codebase, X always lives next to Y" or "never touch Z without also updating W."
+6. **Conventions.** While context is fresh, check if any convention-level learnings emerged — patterns, naming norms, non-obvious file relationships, gotchas — that would help a future agent working in this area. These are distinct from decisions: a decision is "we chose X"; a convention is "in this codebase, X always lives next to Y" or "never touch Z without also updating W."
    - If yes: propose the addition (one or two lines) and the target file (`AGENTS.md`, `CLAUDE.md`, or a subdirectory `CLAUDE.md` if one exists). Ask the user to confirm before writing.
    - If no new conventions emerged: skip silently.
 
-6. **HANDOFF.md.** Refresh the narrative per the handoff protocol (`../tools/handoff.md`): update `## Current Focus`, `## In Progress`, `## Recent Decisions`, and `## Next Steps` to reflect this sprint. `## Discoveries` is handled by capture mid-build — leave it.
+7. **HANDOFF.md.** Refresh the narrative per the handoff protocol (`../tools/handoff.md`): update `## Current Focus`, `## In Progress`, `## Recent Decisions`, and `## Next Steps` to reflect this sprint. `## Discoveries` is handled by capture mid-build — leave it.
 
-7. **Close.** Run `sprint complete`. If it refuses because checklist items
+8. **Close.** Run `sprint complete`. If it refuses because checklist items
    remain unchecked, report the blockers and stop.
 
-8. **Report.** One paragraph: what shipped, test results summary, any waived criteria and why, follow-up recorded.
+9. **Report.** One paragraph: what shipped, test results summary, any waived criteria and why, follow-up recorded.
 
 ---
 

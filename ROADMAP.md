@@ -9,6 +9,24 @@ this file is the public-facing shortlist.
   org references point at the real public repo. Includes aligning the install-terminal
   mockup with the installer's actual output.
 
+## Backlog — ideas from ecosystem research
+
+- **`session-learn` skill** — retrospective scan of `~/.claude/projects/<project>/*.jsonl` to
+  surface cross-session patterns that live-memory misses: repeated tool failures, consistently
+  rejected approaches, commands that blow up every sprint. Proposes targeted CLAUDE.md / memory
+  updates. Inspired by [headroom's `learn` module](https://github.com/chopratejas/headroom).
+
+  Design constraints before building:
+  - **Subagent isolation required.** Reading raw JSONL logs into main context is exactly the
+    token spend `efficiency.md` warns against. Headroom solves it with a separate model call +
+    ~80K digest budget. Canon's zero-install equivalent must delegate to a subagent that returns
+    only distilled patterns — not a read → analyze loop in the main session.
+  - **Signal threshold: 2+ occurrences or explicit user direction.** Below that, it's noise
+    injected into CLAUDE.md. False-positive "learnings" actively hurt. The scan must be strict.
+  - **Fits alongside `context-check`**: context-check audits what's loaded now; session-learn
+    mines history to improve what gets loaded next time. Natural pairing.
+  - Not a fit until canon has meaningful session volume to scan against.
+
 ## Planned — post-traction
 
 - **Windows 11 CI coverage** — add a WSL2 job to `.github/workflows/ci.yml` once the repo goes public; validates the `ss`/python3 port-detection path that `lsof` currently covers on macOS runners.

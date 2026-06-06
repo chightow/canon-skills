@@ -56,11 +56,11 @@ No separate release branches — canon is a living library, not a versioned prod
 
 ### Release model
 
-canon is a **living library tracked at `main`**, not a versioned product. Deliberately:
+canon is a **living library tracked at `main`**, not a versioned product:
 
-- **No GitHub Releases.** Users consume `main` live via `git pull` and `@`-import references; pinned whole-repo versions misrepresent how value ships. Skills and standards carry their own `version:` frontmatter where pinning matters.
-- **No auto-publish deployment pipeline.** The npm installer is published rarely and behind OTP/2FA; automating it would require an npm token in GitHub secrets for near-zero benefit. Keep the manual publish flow below.
-- **Optional:** tag the commit when you publish the installer (`git tag vX.Y.Z`, already in the `CONTRIBUTING.md` Release Checklist) for provenance — without a Releases page or a deployment pipeline.
+- **GitHub Releases align with npm publish events** — one release per installer publish, same version number. The first release (`v1.0.0`) lands with the first `npm publish`. Skills and standards don't trigger a release; they ship continuously via `git push`.
+- **No auto-publish pipeline.** npm publish is manual and behind OTP/2FA. Automating it would require an npm token in GitHub secrets for near-zero benefit.
+- **Release notes describe installer changes only** — not skill-level updates, which users get automatically via `git pull`.
 
 ---
 
@@ -153,12 +153,19 @@ npx canon-skills@latest
    git push
    ```
 
-5. **Publish:**
+5. **Create a GitHub Release:**
+   ```bash
+   git tag vX.Y.Z
+   git push origin vX.Y.Z
+   gh release create vX.Y.Z --title "vX.Y.Z" --notes "Brief description of installer change"
+   ```
+
+6. **Publish:**
    ```bash
    npm publish <path-to-canon> --access public
    ```
 
-6. **Verify:**
+7. **Verify:**
    ```bash
    npm info canon-skills version   # should show new version
    npx canon-skills@latest         # smoke test
@@ -208,10 +215,15 @@ git push
 # 3. dry run
 npm pack --dry-run <path-to-canon>
 
-# 4. publish
+# 4. create GitHub Release (tag + release notes)
+git tag vX.X.X
+git push origin vX.X.X
+gh release create vX.X.X --title "vX.X.X" --notes "Brief description"
+
+# 5. publish
 npm publish <path-to-canon> --access public
 
-# 5. verify
+# 6. verify
 npm info canon-skills version
 npx canon-skills@latest
 ```

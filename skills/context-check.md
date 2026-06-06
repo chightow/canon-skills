@@ -7,11 +7,11 @@ tags: [context, tokens, efficiency, audit]
 
 # Context Check
 
-Audit what Claude loads every session. Append to `standards/context-findings.md` only after explicit confirmation.
+Audit what Claude loads every session. Append to `context-findings.md` (project root) only after explicit confirmation.
 
 ## Steps
 
-1. Read `standards/context-findings.md`; skip logged issues.
+1. Read `context-findings.md` if it exists; skip logged issues.
 
 2. Read `~/.claude/CLAUDE.md`. For each `@` import, count lines and produce:
    | File | Lines |
@@ -36,7 +36,7 @@ Audit what Claude loads every session. Append to `standards/context-findings.md`
 
 8. Report the size table, then content findings. If none: say so and stop.
 
-9. If findings exist, ask: `Append these to context-findings.md? (y to confirm)`. Do not write without `y`.
+9. If findings exist, ask: `Append these to context-findings.md? (y to confirm)`. Do not write without `y`. Write to `context-findings.md` at the project root.
 
 ## context-findings.md entry format
 

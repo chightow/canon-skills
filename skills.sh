@@ -185,6 +185,13 @@ cmd_add() {
   skill_basename=$(basename "$skill_file")
   local import_line="@$skill_file"
 
+  # Hidden skills are internal-only — block direct registration
+  if [ -z "$as_dep" ] && [ "$(fm_field "$skill_file" hidden)" = "true" ]; then
+    echo "Error: '$skill' is an internal skill and cannot be registered directly."
+    echo "It is loaded automatically when a parent skill (e.g. wrapup) is registered."
+    exit 1
+  fi
+
   # Resolve dependencies first — register their @-imports silently, no table row
   while IFS= read -r dep; do
     [ -n "$dep" ] && cmd_add "$dep" "$project_dir" "dep"

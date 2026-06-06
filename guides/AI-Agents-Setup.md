@@ -6,6 +6,8 @@ A shared library of AI agent skills, tools, and automation. Your projects import
 
 ## Setup
 
+> **Windows 11:** canon's CLI tools require WSL2 (Ubuntu). Run all commands below inside the WSL2 terminal. See [fresh-machine-test.md → Windows 11](fresh-machine-test.md#windows-11-wsl2) for the full setup path.
+
 ### Step 1 — Clone canon
 
 ```bash

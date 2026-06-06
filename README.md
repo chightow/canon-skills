@@ -122,6 +122,8 @@ canon enforces its own standards. The test suite runs and blocks before every co
 | Node.js ≥ 16 | `npx` install only | install |
 | Python 3 | `sprint-check` + hooks | the board |
 
+**Windows 11:** canon's CLI tools are bash scripts — run them inside WSL2 (Ubuntu). See **[fresh-machine-test.md → Windows 11](guides/fresh-machine-test.md#windows-11-wsl2)** for the full setup path.
+
 Register canon in another project:
 
 ```bash

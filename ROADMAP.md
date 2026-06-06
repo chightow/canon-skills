@@ -12,3 +12,4 @@ this file is the public-facing shortlist.
 ## Planned — post-traction
 
 - **Windows 11 CI coverage** — add a WSL2 job to `.github/workflows/ci.yml` once the repo goes public; validates the `ss`/python3 port-detection path that `lsof` currently covers on macOS runners.
+- **crit companion note** — document [crit](https://github.com/tomasz-tomczyk/crit) as a complementary tool: canon owns the sprint lifecycle; crit owns the human-in-the-loop diff review. Natural handoff point is `sprint complete` → `crit push` to sync inline comments to the PR. One paragraph in `docs/README.md` or `guides/AI-Agents-Setup.md`, no code changes.

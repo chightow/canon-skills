@@ -24,15 +24,31 @@ missing_output="$(run_fail "$SPRINT" complete)"
 assert_contains "$missing_output" "Missing required sprint file: $project/.tickets/$id/acceptance.md"
 assert_contains "$missing_output" "Missing required sprint file: $project/.tickets/$id/plan.md"
 
+# Acceptance exists but is missing required sections — new section-aware gate
 cat > ".tickets/$id/acceptance.md" <<'EOF'
 # Acceptance
 
-- [ ] Required item remains.
-  - [ ] Indented item remains.
-* [ ] Asterisk item remains.
+- [ ] Item with no section headers.
 EOF
 cat > ".tickets/$id/plan.md" <<'EOF'
 # Plan
+EOF
+
+missing_sections_output="$(run_fail "$SPRINT" complete)"
+assert_contains "$missing_sections_output" "acceptance.md ## Criteria has no checklist items"
+assert_contains "$missing_sections_output" "acceptance.md ## Test Plan has no checklist items"
+
+# Acceptance has proper sections but items are unchecked — existing unchecked gate
+cat > ".tickets/$id/acceptance.md" <<'EOF'
+# Acceptance
+
+## Criteria
+- [ ] Required item remains.
+  - [ ] Indented item remains.
+* [ ] Asterisk item remains.
+
+## Test Plan
+- [ ] npm test
 EOF
 
 unchecked_output="$(run_fail "$SPRINT" complete)"
@@ -44,9 +60,13 @@ assert_contains "$unchecked_output" "* [ ] Asterisk item remains."
 cat > ".tickets/$id/acceptance.md" <<'EOF'
 # Acceptance
 
+## Criteria
 - [x] Required item remains.
   - [x] Indented item remains.
 * [x] Asterisk item remains.
+
+## Test Plan
+- [x] npm test
 EOF
 
 complete_output="$("$SPRINT" complete)"

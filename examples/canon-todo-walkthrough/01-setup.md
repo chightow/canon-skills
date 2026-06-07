@@ -1,13 +1,12 @@
 # 01 - Setup
 
-This folder lives inside the canon source repo, but it is used as its own agent
-project root for the walkthrough. In real use you run these commands from your
-own project directory; here the walkthrough folder doubles as that project.
+**What this step does:** Tells canon that this folder is a project, and puts the
+sprint tools on your PATH so the `sprint`, `tkt`, and `sprint-check` commands
+are available. You only do this once per project.
 
-`skills.sh add sprint` writes `CLAUDE.md` and `AGENTS.md` to the directory you
-run it from. It also ensures a local `.tickets/` folder exists, so `sprint`,
-`tkt`, and `sprint-check` treat this folder as the project instead of walking up
-to the canon repo root.
+This folder lives inside the canon source repo, but it acts as its own project
+root for the walkthrough. In real use you run these commands from your own
+project directory.
 
 ```bash
 cd examples/canon-todo-walkthrough
@@ -15,13 +14,13 @@ cd examples/canon-todo-walkthrough
 ../../skills.sh status
 ```
 
-What this does:
+Concretely, this:
 
-- Adds live canon references to `CLAUDE.md` and `AGENTS.md`.
-- Adds the always-on efficiency standard.
-- Makes the sprint workflow available to the agent.
+- Creates a local `.tickets/` folder — where tickets, acceptance criteria, and
+  sprint plans are stored on disk.
+- Writes `CLAUDE.md` and `AGENTS.md` so the agent knows the sprint workflow.
 - Offers to put the canon `tools` directory on PATH so `sprint`, `tkt`, and
-  `sprint-check` are available.
+  `sprint-check` are available as commands.
 
 If the tools are not on PATH yet:
 
@@ -29,5 +28,9 @@ If the tools are not on PATH yet:
 export PATH="$PATH:$(cd ../.. && pwd)/tools"
 ```
 
-This walkthrough starts without app files. The sprint implementation step will
+This walkthrough starts without app files. The implementation step later will
 create `package.json`, `src/`, and `tests/`.
+
+> **For product managers:** You don't need to run any of these commands. Ask
+> your developer to complete this step, then open the board with `sprint-check`
+> from the project folder. Everything else in the walkthrough is visible there.

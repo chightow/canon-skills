@@ -66,7 +66,7 @@ Each sprint produces two docs — no more, no less:
 
 Both are plain markdown in `.tickets/<id>/`, committed alongside the code. Both are injected into the agent's context at every session start — so a context reset or a fresh session never loses the thread.
 
-**Gated, not vibes.** The CLI owns state: one active sprint at a time, and `sprint complete` refuses to close while any acceptance or test-plan box is still unchecked — a checklist-state check in code, not a judgment call. The CLI gates the boxes; the agent verifies the tests and judges whether criteria are truly met before checking them. The agent owns the judgment — the gate owns the close.
+**Gated, not vibes.** The CLI owns state: one active sprint at a time, and `sprint complete` refuses to close while any acceptance or test-plan box is still unchecked — a checklist-state check in code, not a judgment call. The CLI gates the boxes; the agent verifies the tests and judges whether criteria are truly met before checking them. The agent owns the judgment — the gate owns the close. The board surfaces the same check early: cards flag `acceptance incomplete` in red when criteria or test-plan sections have no real items, and opening the doc shows an inline warning — so problems show up while you're still working, not as a close-time surprise.
 
 ## Code Archaeology
 

@@ -1,8 +1,8 @@
 # 02 - Sprint Start
 
-`sprint start` is where the agent plans the work *before* writing any code. You
-describe the outcome; the agent drafts the planning docs and you review them on
-the board.
+**What this step does:** The agent plans the work *before* writing any code. You
+describe the outcome in one sentence; the agent drafts the done criteria and
+test plan for you to review. Nothing is built until you approve.
 
 ```mermaid
 flowchart LR
@@ -12,8 +12,14 @@ flowchart LR
     class O,I subskill
 ```
 
-> The double-bordered steps are sub-skills the agent runs for you: `orient` maps
-> the codebase, `impact` rates risk. You don't invoke them.
+Steps in plain English:
+- **Acceptance** — the agent writes the checklist of "done" criteria and test commands.
+- **Blueprint** — the agent sketches the approach (files, structure).
+- **Orient** *(runs automatically)* — the agent reads the codebase to understand what already exists.
+- **Grill** — the agent asks you the questions that change what gets built (see Step 4 below).
+- **Impact** *(runs automatically)* — the agent rates the risk of the change.
+- **Approval** — you say "approved" and the agent locks in the plan.
+- **Plan** — the final brief the agent implements against; only written after your approval.
 
 ## Step 1 - Open the empty board
 
@@ -34,15 +40,14 @@ sprint start "Build a simple Todo list"
 The CLI creates the ticket and active state:
 
 ```text
-.tickets/ACTIVE
 .tickets/<id>/ticket.md
 DECISIONS.md
 HANDOFF.md
 ```
 
-Then the agent takes over: it drafts **Acceptance** (binary done criteria + test
-plan) and **Blueprint** (approach + files), maps the subsystem, and surfaces any
-gray areas as questions.
+Then the agent takes over: it drafts **Acceptance** (done criteria + test plan)
+and **Blueprint** (approach + files), reads the codebase, and surfaces gray-area
+questions.
 
 Reload `sprint-check`. The ticket is In Progress and `not ready` — only
 `ticket.md` plus the agent's drafts exist so far. Open it to read what the agent
@@ -61,20 +66,24 @@ The Acceptance the agent produces should read like this:
 - [ ] Users can add a non-empty Todo item.
 - [ ] Blank Todo titles are ignored.
 - [ ] Users can mark a Todo complete and back open.
-- [ ] Todo behavior is covered by tests.
 
 ## Test Plan
 - [ ] `npm test`
 ```
 
-If a criterion is missing or wrong, tell the agent — don't hand-edit the doc
-silently. The point is that the ticket reflects a shared understanding, not your
-private edits.
+**What to look for:** Every item should be something you can verify by running
+the app or running the tests — not vague prose. If a criterion is missing or
+wrong, tell the agent in chat. Don't hand-edit the doc yourself; the point is
+that acceptance reflects a shared agreement.
+
+If the board shows `acceptance incomplete` on the card, it means the agent left
+a section empty. Tell the agent to fill it before you approve.
 
 ## Step 4 - Answer the grill, then approve
 
-The agent asks the gray-area questions that change what gets built. For this app,
-for example: *"Should completed Todos be toggleable back to open?"*
+After drafting, the agent asks the questions that change what gets built. These
+are the things that have no right answer without your input — for example:
+*"Should completed Todos be toggleable back to open?"*
 
 Answer in chat:
 

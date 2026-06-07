@@ -126,6 +126,11 @@ cmd_status() {
   done
 }
 
+_acceptance_section() {
+  # Extract lines belonging to a ## Heading section of acceptance.md
+  awk -v h="$1" '$0 ~ "^##[[:space:]]+"h"[[:space:]]*$" { f=1; next } /^##[[:space:]]/ { f=0 } f' "$2"
+}
+
 cmd_complete() {
   local id tdir acceptance missing=0 unchecked=0
   local current_out current_rc
@@ -143,6 +148,19 @@ cmd_complete() {
       missing=1
     fi
   done
+  [[ "$missing" -eq 0 ]] || exit 1
+
+  # Require Criteria and Test Plan sections each have at least one checkbox item
+  if ! _acceptance_section "Criteria" "$acceptance" | grep -qE '^[[:space:]]*[-*] \[[ xX]\]'; then
+    echo "Sprint $id cannot close: acceptance.md ## Criteria has no checklist items."
+    echo "Add done criteria to acceptance.md, then re-run."
+    missing=1
+  fi
+  if ! _acceptance_section "Test Plan" "$acceptance" | grep -qE '^[[:space:]]*[-*] \[[ xX]\]'; then
+    echo "Sprint $id cannot close: acceptance.md ## Test Plan has no checklist items."
+    echo "Add test commands to acceptance.md, then re-run."
+    missing=1
+  fi
   [[ "$missing" -eq 0 ]] || exit 1
 
   if grep -qE '^[[:space:]]*[-*] \[ \]' "$acceptance"; then

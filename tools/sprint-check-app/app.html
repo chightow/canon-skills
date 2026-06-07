@@ -317,9 +317,11 @@
     .ready-dot           { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
     .ready-indicator.ready     .ready-dot { background: var(--col-done); }
     .ready-indicator.not-ready .ready-dot { background: var(--border-hover); }
+    .ready-indicator.incomplete .ready-dot { background: var(--col-discarded); opacity: .8; }
     .ready-label         { font-size: 10px; font-weight: 600; letter-spacing: .04em; line-height: 1.25; overflow-wrap: anywhere; }
     .ready-indicator.ready     .ready-label { color: var(--col-done); }
     .ready-indicator.not-ready .ready-label { color: var(--text-muted); }
+    .ready-indicator.incomplete .ready-label { color: var(--col-discarded); }
     .ready-popover {
       position: fixed; z-index: 9999; pointer-events: none;
       background: var(--surface-raised); border: 1px solid var(--border);
@@ -459,6 +461,15 @@
     }
     .btn-primary:hover { background: var(--accent); opacity: .85; }
     .modal-empty { color: var(--text-dim); font-style: italic; }
+    .acceptance-warning {
+      background: rgba(248,113,113,.07);
+      border: 1px solid rgba(248,113,113,.25);
+      border-radius: var(--radius-sm);
+      padding: 7px 11px;
+      margin-bottom: 12px;
+      color: var(--col-discarded);
+      font-size: 12px;
+    }
 
     /* ── Doc type picker ─────────────────────────── */
     .doc-picker-label { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; }
@@ -850,7 +861,7 @@ function detectTicketType(title) {
 const DOC_TYPES = [
   {
     name: 'Acceptance',  slug: 'acceptance',
-    hint: 'Define done criteria, the test plan, and QA sign-off before implementation.',
+    hint: 'Criteria and Test Plan sections both need checklist items — sprint complete blocks without them.',
     suggestedFor: ['open', 'in_progress'],
     template:
 `# Acceptance
@@ -1129,9 +1140,11 @@ function renderBoard() {
     document.body.appendChild(_popover);
   }
   function showReadyPopover(el, t) {
-    const { ready, hasAcceptance, hasPlan } = readiness(t);
+    const { ready, hasAcceptance, hasPlan, acceptanceIncomplete } = readiness(t);
+    const accIcon = !hasAcceptance ? '○' : acceptanceIncomplete ? '⚠' : '✓';
+    const accNote = acceptanceIncomplete ? ' — missing criteria or test items' : '';
     _popover.innerHTML =
-      `<div>${hasAcceptance ? '✓' : '○'} Acceptance</div>` +
+      `<div>${accIcon} Acceptance${accNote}</div>` +
       `<div>${hasPlan ? '✓' : '○'} Plan</div>` +
       (ready ? '<div style="margin-top:4px;color:var(--col-done)">Good to go</div>'
              : '<div style="margin-top:4px;color:var(--text-muted)">Add missing items to unblock</div>');
@@ -1194,15 +1207,18 @@ function readiness(t) {
   const slugs = (t.docs || []).map(d => docSlug(t, d.file));
   const hasAcceptance = slugs.includes('acceptance');
   const hasPlan = slugs.includes('plan');
-  const ready = hasAcceptance && hasPlan;
-  const label = ready ? 'ready'
-    : !hasAcceptance ? 'needs acceptance'
-    : 'needs plan';
-  return { ready, hasAcceptance, hasPlan, label };
+  // acceptance_has_items: true=complete, false=exists but missing criteria/test items, null=unknown
+  const acceptanceIncomplete = hasAcceptance && t.acceptance_has_items === false;
+  const ready = hasAcceptance && hasPlan && !acceptanceIncomplete;
+  const label = !hasAcceptance ? 'needs acceptance'
+    : acceptanceIncomplete ? 'acceptance incomplete'
+    : !hasPlan ? 'needs plan'
+    : 'ready';
+  return { ready, hasAcceptance, hasPlan, acceptanceIncomplete, label };
 }
 
 function cardHTML(t) {
-  const { ready, label } = readiness(t);
+  const { ready, label, acceptanceIncomplete } = readiness(t);
   return `
     <div class="card${t.id === state.selectedId ? ' focused' : ''}" data-id="${esc(t.id)}" draggable="true">
       <div class="card-top">
@@ -1213,7 +1229,7 @@ function cardHTML(t) {
       <div class="card-footer">
         ${priorityDots(t.priority)}
         <span class="card-age">${esc(age(t.created))}</span>
-        <span class="ready-indicator ${ready ? 'ready' : 'not-ready'}" data-id="${esc(t.id)}">
+        <span class="ready-indicator ${ready ? 'ready' : acceptanceIncomplete ? 'incomplete' : 'not-ready'}" data-id="${esc(t.id)}">
           <span class="ready-dot"></span>
           <span class="ready-label">${label}</span>
         </span>
@@ -1294,7 +1310,20 @@ function renderModalBody(t) {
     bodyEl.innerHTML = '<span class="modal-empty">Loading…</span>';
     fetch(`/api/doc/${encodeURIComponent(modalState.activeDoc)}`)
       .then(r => r.ok ? r.json() : Promise.reject())
-      .then(d => { bodyEl.innerHTML = d.content ? md(d.content) : '<span class="modal-empty">Empty doc.</span>'; })
+      .then(d => {
+        if (!d.content) { bodyEl.innerHTML = '<span class="modal-empty">Empty doc.</span>'; return; }
+        const slug = modalState.activeDoc ? docSlug(t, modalState.activeDoc) : '';
+        let warning = '';
+        if (slug === 'acceptance') {
+          const missing = [];
+          if (!hasFilledCheckbox(sectionContent(d.content, 'Criteria')))  missing.push('## Criteria');
+          if (!hasFilledCheckbox(sectionContent(d.content, 'Test Plan'))) missing.push('## Test Plan');
+          if (missing.length) {
+            warning = `<div class="acceptance-warning">⚠ ${missing.join(' and ')} ${missing.length > 1 ? 'need' : 'needs'} checklist items — sprint complete will block</div>`;
+          }
+        }
+        bodyEl.innerHTML = warning + md(d.content);
+      })
       .catch(() => { bodyEl.innerHTML = '<span class="modal-empty">Could not load doc.</span>'; });
   } else {
     let body = (t.body || '').trim();

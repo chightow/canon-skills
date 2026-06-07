@@ -42,7 +42,8 @@ readable.
 | Discarded | `cancelled` |
 
 **Cards** show ticket ID, type badge, title, priority dots, age, and a readiness indicator:
-- `● ready` (green) — has both Acceptance and Plan docs
+- `● ready` (green) — Acceptance and Plan both present and complete
+- `● acceptance incomplete` (gray) — acceptance.md exists but is missing checklist items under ## Criteria or ## Test Plan; `sprint complete` will block
 - `● needs acceptance` / `● needs plan` (gray) — the next sprint doc to add
 
 Click the readiness indicator for a checklist popover. Click anywhere else on the card to open the full ticket.

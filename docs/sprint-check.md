@@ -42,7 +42,13 @@ Click any commit in the sidebar to see what changed and which ticket it likely b
 
 ![Ticket completeness checker](../meta/screenshots/ticket-completeness.png)
 
-Hover a ticket card to see what's missing — usually description or sprint docs. The board surfaces gaps before they block your agent mid-sprint, with a direct prompt to add what's needed.
+Every card shows a readiness indicator. Three states:
+
+- **● ready** (green) — Acceptance and Plan both present, with real items under `## Criteria` and `## Test Plan`.
+- **● acceptance incomplete** (red) — Acceptance doc exists but one or both required sections have no checklist items. `sprint complete` will block. Opening the Acceptance tab shows an inline warning naming the empty sections.
+- **● needs acceptance / needs plan** (gray) — the next doc to add.
+
+Click or hover the indicator for a checklist popover. The same rule the CLI gate enforces is reflected on the card — problems show up while you're working, not when you try to close.
 
 ## Drag to Update Status
 
@@ -58,7 +64,7 @@ Click `+ New doc` on any ticket to attach a structured document. Two docs cover 
 
 | Doc | Add when | Use it to |
 |---|---|---|
-| **Acceptance** | First | Define done criteria, the test plan, and QA sign-off before implementation |
+| **Acceptance** | First | `## Criteria` and `## Test Plan` sections both need checklist items — `sprint complete` blocks without them |
 | **Plan** | After acceptance | Capture the approach and record decisions as you build — readable by future agents |
 
 Sprint docs land in `.tickets/<id>/` as markdown files and are read automatically by your agent after sprint start. Templates include comments that mark which headings and ticket ID lines should stay unchanged, and the editor toolbar inserts common Markdown such as checkboxes, bullets, numbered items, headings, inline code, and toggle blocks at the cursor.

@@ -76,6 +76,30 @@ def parse_ticket(path: Path) -> dict:
             if f.name == 'ticket.md':
                 continue
             docs.append({'name': _doc_name(f), 'file': f'{path.parent.name}/{f.name}'})
+        # Check acceptance completeness: Criteria and Test Plan each need ≥1 checkbox item
+        fields['acceptance_has_items'] = None
+        acc_path = path.parent / 'acceptance.md'
+        if acc_path.is_file():
+            try:
+                acc_text = acc_path.read_text(encoding='utf-8', errors='replace')
+                def _section(text: str, heading: str) -> str:
+                    lines, active = [], False
+                    for line in text.splitlines():
+                        if re.match(r'^##\s+' + re.escape(heading) + r'\s*$', line):
+                            active = True; continue
+                        if active and re.match(r'^##\s+', line):
+                            break
+                        if active:
+                            lines.append(line)
+                    return '\n'.join(lines)
+                # Require checkbox with actual text content (not bare placeholder `- [ ]`)
+                _cb = re.compile(r'^\s*[-*]\s+\[[ xX]\]\s+\S', re.MULTILINE)
+                fields['acceptance_has_items'] = (
+                    bool(_cb.search(_section(acc_text, 'Criteria'))) and
+                    bool(_cb.search(_section(acc_text, 'Test Plan')))
+                )
+            except Exception:
+                pass
     else:
         fields['layout'] = 'flat'
         stem = path.stem

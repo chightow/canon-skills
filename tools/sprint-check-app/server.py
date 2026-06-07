@@ -158,8 +158,10 @@ def load_handoff() -> dict:
         lines = [l for l in block.splitlines()
                  if l.strip() and not l.startswith('<!--')]
         focus = ' '.join(lines[:3]).strip() or None
-        if focus and len(focus) > 140:
-            focus = focus[:140].rsplit(' ', 1)[0] + '…'
+        if focus:
+            # First sentence only; fall back to 80-char cap
+            m2 = re.match(r'(.+?\.)\s', focus)
+            focus = m2.group(1) if m2 else (focus[:80].rsplit(' ', 1)[0] + '…' if len(focus) > 80 else focus)
     return {'focus': focus, 'raw': raw}
 
 # ── Git info ──────────────────────────────────────────────────────────────

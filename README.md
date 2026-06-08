@@ -42,7 +42,7 @@ That's the day-to-day surface. Setup wires the tools once; after that, your agen
 <details open>
 <summary><strong>Demo</strong></summary>
 
-A full, README-linked tour lives in [`docs/index.html`](docs/index.html).
+A full, README-linked tour with refreshed dark-mode clips lives in [`docs/index.html`](docs/index.html).
 
 ### Screenshots / clips
 

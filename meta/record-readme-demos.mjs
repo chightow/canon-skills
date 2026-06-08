@@ -70,10 +70,13 @@ function seedFixture() {
 Ticket: \`t-2510\`
 
 ## Criteria
+- [ ] Open checklist rows render first.
+- [ ] Open checklist rows use a distinct accent.
 - [x] README exposes an animated Demo panel.
 - [x] The tour links stay local.
 
 ## Test Plan
+- [ ] Verify the README clips load.
 - [x] Generate clips with Playwright.
 - [x] Run npm test.
 

@@ -48,19 +48,19 @@ A full, README-linked tour lives in [`docs/index.html`](docs/index.html).
 
 #### Board
 
-[![Board](meta/screenshots/board-dark.png)](docs/index.html#board)
+<a href="docs/index.html#board"><img src="meta/screenshots/board-demo.gif" alt="Board demo clip" width="680"></a>
 
 #### Ticket Detail
 
-[![Ticket detail](meta/screenshots/ticket-detail.png)](docs/index.html#ticket-detail)
+<a href="docs/index.html#ticket-detail"><img src="meta/screenshots/ticket-detail-demo.gif" alt="Ticket detail demo clip" width="680"></a>
 
 #### Doc Editing
 
-[![Doc editing](meta/screenshots/ticket-doc-editor.png)](docs/index.html#doc-editing)
+<a href="docs/index.html#doc-editing"><img src="meta/screenshots/doc-editing-demo.gif" alt="Doc editing demo clip" width="680"></a>
 
 #### Commit Context
 
-[![Commit context](meta/screenshots/commit-detail.png)](docs/index.html#commit-context)
+<a href="docs/index.html#commit-context"><img src="meta/screenshots/commit-context-demo.gif" alt="Commit context demo clip" width="680"></a>
 
 </details>
 

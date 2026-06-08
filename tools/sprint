@@ -4,21 +4,8 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/ticket-root.sh"
 TKT_BIN="$SCRIPT_DIR/tkt"
-
-tickets_dir() {
-  local dir="$PWD"
-  while [[ "$dir" != "/" ]]; do
-    [[ -d "$dir/.tickets" ]] && echo "$dir/.tickets" && return 0
-    [[ -d "$dir/.git" ]] && echo "$dir/.tickets" && return 0
-    dir="$(dirname "$dir")"
-  done
-  echo "$PWD/.tickets"
-}
-
-project_root() {
-  dirname "$(tickets_dir)"
-}
 
 ticket_dir_for() {
   local id="$1"

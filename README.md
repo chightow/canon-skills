@@ -13,7 +13,7 @@ Two commands and a local board. Your agent forgets — your repo shouldn't.
 
 </div>
 
-![sprint-check board — drag a ticket to Done, open it, follow the commit links](meta/board-demo.gif)
+![sprint-check board — local kanban with status-aware cards and repo context](meta/screenshots/sprint-check-board-dark.png)
 
 One-time setup:
 

@@ -8,7 +8,7 @@ hidden: true
 
 # Repo Audit
 
-A four-dimension analysis. Run from any project directory — the audit reads the repo under analysis, not canon. Produces an inline report and always writes or updates the latest report at `critique/canon-critique.md` in the repo under analysis.
+A four-dimension analysis. Run from any project directory — the audit reads the repo under analysis, not canon. Produces an inline report and always writes or updates the latest report at `critique/canon-critique.md` in the repo under analysis, with the audit run DateTime as the first line.
 
 ## Before Auditing
 
@@ -105,7 +105,13 @@ Questions to answer:
 
 Use this structure exactly. Omit sections that aren't applicable. After composing the report, ensure `critique/` exists and write the same report to `critique/canon-critique.md`, replacing the prior contents so the file is the latest critique snapshot.
 
+The first line must always be the local DateTime when the audit ran, formatted as `MM-DD-YYYY hh:mm AM/PM`:
+
+`Audit run: MM-DD-YYYY hh:mm AM/PM`
+
 ```
+Audit run: MM-DD-YYYY hh:mm AM/PM
+
 ## Repo Audit: <repo-name>
 
 ### 1. Uniqueness / Selling Point — [Distinct | Murky | Generic]

@@ -10,6 +10,10 @@ A shared library of AI agent skills, tools, and automation. Your projects import
 
 ### Step 1 — Clone canon
 
+For normal use, prefer the README's `npx canon-skills@latest` installer; it
+installs canon to `~/.canon` for you. Clone manually when developing canon
+itself, testing an unpublished branch, or recovering without `npx`:
+
 ```bash
 git clone https://github.com/sunitghub/canon.git ~/.canon
 ```

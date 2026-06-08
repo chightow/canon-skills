@@ -73,3 +73,11 @@ complete_output="$("$SPRINT" complete)"
 assert_contains "$complete_output" "Sprint completed: $id"
 assert_grep "^status: closed$" ".tickets/$id/ticket.md"
 [[ ! -f .tickets/ACTIVE ]] || fail "expected ACTIVE to be cleared after sprint complete"
+
+mkdir -p nested/deeper
+(
+  cd nested/deeper
+  nested_start_output="$("$SPRINT" start "Nested sprint")"
+  nested_id="$(printf '%s\n' "$nested_start_output" | awk '/Sprint started:/ { print $3 }')"
+  [[ -f "../../.tickets/$nested_id/ticket.md" ]] || fail "expected nested sprint to use project .tickets"
+)

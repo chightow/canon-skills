@@ -337,12 +337,31 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def send_image(self, path: Path):
+        ext = path.suffix.lower()
+        mime = {'png': 'image/png', 'gif': 'image/gif', 'jpg': 'image/jpeg',
+                'jpeg': 'image/jpeg', 'webp': 'image/webp'}.get(ext.lstrip('.'), 'application/octet-stream')
+        try:
+            body = path.read_bytes()
+        except FileNotFoundError:
+            self.send_error(404); return
+        self.send_response(200)
+        self.send_header('Content-Type', mime)
+        self.send_header('Content-Length', len(body))
+        self.send_header('Cache-Control', 'public, max-age=3600')
+        self.send_header('Connection', 'close')
+        self.end_headers()
+        self.wfile.write(body)
+
     def do_GET(self):
         if not self._host_ok():
             self.send_error(403); return
         path = urlparse(self.path).path.rstrip('/')
         if path in ('', '/'):
             self.send_html(APP_HTML)
+        elif re.match(r'^/meta/screenshots/[a-zA-Z0-9_-]+\.(png|gif|jpg|jpeg|webp)$', path):
+            img = PROJECT_ROOT / path.lstrip('/')
+            self.send_image(img); return
         elif path == '/api/tickets':
             self.send_json(load_tickets())
         elif path == '/api/handoff':

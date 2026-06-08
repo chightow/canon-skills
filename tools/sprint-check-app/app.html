@@ -15,7 +15,10 @@
       --border:         #232333;
       --border-muted:   #1b1b28;
       --border-hover:   #353548;
+      --modal-border:   #34344a;
+      --panel-border:   #2b2b3d;
       --text:           #e0e0ec;
+      --text-body:      #a5a5bc;
       --text-muted:     #6a6a82;
       --text-dim:       #363650;
       --accent:         #7c6af7;
@@ -41,7 +44,10 @@
       --border:         #dcdce8;
       --border-muted:   #e8e8f2;
       --border-hover:   #c0c0d4;
+      --modal-border:   #c9c9dc;
+      --panel-border:   #d8d8e8;
       --text:           #1a1a2e;
+      --text-body:      #424269;
       --text-muted:     #52527a;
       --text-dim:       #b8b8d0;
       --accent:         #6c5cf7;
@@ -57,7 +63,7 @@
     html { transition: background .2s, color .2s; }
 
     html, body { height: 100%; background: var(--bg); color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
       font-size: 13px; line-height: 1.5; overflow: hidden; }
 
     /* ── App shell ────────────────────────────── */
@@ -81,7 +87,7 @@
       display: flex; align-items: center; gap: 5px; font-size: 12px;
       color: var(--text-muted);
     }
-    .branch-name { font-family: ui-monospace, "Cascadia Code", monospace; color: var(--accent); }
+    .branch-name { font-family: "JetBrains Mono", "Fira Code", "JetBrains Mono", ui-monospace, monospace; color: var(--accent); }
     .refresh-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--col-done);
                    transition: background .3s; flex-shrink: 0; }
     .refresh-dot.mock    { background: #fb923c; }
@@ -106,8 +112,26 @@
       overflow: hidden; display: flex; flex-direction: column;
       transition: width .2s ease;
     }
-    #sidebar.collapsed { width: 36px; }
+    #sidebar.collapsed { width: 44px; }
     #sidebar.collapsed .sidebar-content { display: none; }
+
+    /* ── Icon rail (collapsed sidebar) ──────────── */
+    .sidebar-icon-rail {
+      display: none; flex-direction: column; align-items: center;
+      padding: 6px 0; gap: 2px; flex: 1; overflow-y: auto;
+    }
+    #sidebar.collapsed .sidebar-icon-rail { display: flex; }
+    .rail-icon {
+      width: 32px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: var(--radius-sm); color: var(--text-muted);
+      cursor: pointer; transition: background .1s, color .1s;
+    }
+    .rail-icon:hover { background: var(--surface-hover); color: var(--text); }
+    .rail-icon svg {
+      width: 14px; height: 14px; stroke: currentColor; fill: none;
+      stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+    }
 
     .sidebar-toggle {
       flex-shrink: 0; height: 34px;
@@ -157,7 +181,7 @@
     .wip-item:hover { background: rgba(124,106,247,0.12); }
     .wip-item:last-child { border-bottom: none; }
     .wip-id {
-      font-family: ui-monospace, "Cascadia Code", monospace;
+      font-family: "JetBrains Mono", "Fira Code", "JetBrains Mono", ui-monospace, monospace;
       font-size: 11px; font-weight: 700; color: var(--accent); flex-shrink: 0;
     }
     .wip-title {
@@ -187,7 +211,7 @@
     }
     .commit-item:hover { background: var(--surface-hover); }
     .commit-hash {
-      font-family: ui-monospace, "Cascadia Code", monospace;
+      font-family: "JetBrains Mono", "Fira Code", "JetBrains Mono", ui-monospace, monospace;
       font-size: 11px; color: var(--accent); flex-shrink: 0; padding-top: 1px;
     }
     .commit-msg { color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -201,33 +225,61 @@
     }
     #commit-overlay.open { opacity: 1; pointer-events: auto; }
     #commit-panel {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: 12px; width: min(580px, 90vw); max-height: 75vh;
+      background: var(--surface); border: 1px solid var(--modal-border);
+      border-radius: 10px; width: min(700px, 92vw); max-height: 82vh;
       display: flex; flex-direction: column; overflow: hidden;
       box-shadow: 0 24px 64px rgba(0,0,0,.6);
-      transform: translateY(8px) scale(.98); transition: transform .15s;
+      transform: translate(var(--drag-x, 0px), calc(var(--drag-y, 0px) + 12px)) scale(.97);
+      transition: transform .4s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
-    #commit-overlay.open #commit-panel { transform: translateY(0) scale(1); }
-    .commit-detail-body { flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 14px; }
-    .commit-detail-meta { font-size: 12px; color: var(--text-muted); }
-    .commit-detail-msg  { font-size: 13px; color: var(--text); white-space: pre-wrap; line-height: 1.6; }
-    .commit-section-label { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
+    #commit-overlay.open #commit-panel { transform: translate(var(--drag-x, 0px), var(--drag-y, 0px)) scale(1); }
+    #commit-panel.dragging-panel { transition: none; }
+    .commit-detail-body {
+      flex: 1; overflow-y: auto; padding: 18px 20px;
+      display: flex; flex-direction: column; gap: 14px;
+      background: var(--surface-raised);
+    }
+    .commit-detail-meta {
+      display: flex; align-items: center; gap: 7px; flex-wrap: wrap;
+      padding: 10px 20px; border-bottom: 1px solid var(--border-muted);
+      background: var(--surface-raised); flex-shrink: 0;
+    }
+    .commit-meta-chip {
+      display: inline-flex; align-items: center; gap: 6px; font-size: 12px;
+      padding: 3px 8px; border: 1px solid var(--border-muted);
+      border-radius: 999px; background: var(--surface);
+      color: var(--text-body);
+    }
+    .commit-detail-msg {
+      font-size: 13px; color: var(--text-body); white-space: pre-wrap; line-height: 1.7;
+      background: var(--surface); border: 1px solid var(--panel-border);
+      border-radius: 8px; padding: 16px 18px;
+    }
+    .commit-detail-msg:empty { display: none; }
+    .commit-section {
+      background: var(--surface); border: 1px solid var(--panel-border);
+      border-radius: 8px; padding: 14px 16px;
+    }
+    .commit-section-label { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
+    .commit-section-note { font-size: 11px; color: var(--text-muted); margin-bottom: 8px; line-height: 1.5; }
     .commit-ticket-chips { display: flex; flex-wrap: wrap; gap: 6px; }
     .commit-ticket-chip {
-      padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 500;
+      padding: 5px 10px; border-radius: 999px; font-size: 12px; font-weight: 600;
       border: 1px solid var(--border); background: var(--surface-raised);
-      color: var(--accent); cursor: pointer; font-family: ui-monospace, monospace;
+      color: var(--accent); cursor: pointer; font-family: "JetBrains Mono", ui-monospace, monospace;
       transition: background .1s, border-color .1s;
     }
     .commit-ticket-chip:hover { background: var(--accent-dim); border-color: var(--accent); }
-    .commit-file-list { display: flex; flex-direction: column; gap: 3px; }
+    .commit-file-list { display: flex; flex-direction: column; gap: 5px; }
     .commit-file {
-      font-family: ui-monospace, "Cascadia Code", monospace; font-size: 11px;
-      color: var(--text-muted); padding: 2px 0;
+      font-family: "JetBrains Mono", "Fira Code", "JetBrains Mono", ui-monospace, monospace; font-size: 11px;
+      color: var(--text-body); padding: 5px 8px;
+      border: 1px solid var(--panel-border); border-radius: 6px;
+      background: var(--surface-raised);
     }
     .sidebar-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
     .summary-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); }
-    .summary-dot  { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .summary-icon { width: 14px; height: 14px; flex-shrink: 0; }
 
     /* ── Board ────────────────────────────────── */
     #board {
@@ -257,7 +309,7 @@
       padding: 1px 8px; border-radius: 10px;
     }
     .column-body {
-      flex: 1; overflow-y: auto; padding: 8px;
+      flex: 1; min-height: 0; overflow-y: auto; padding: 8px;
       display: flex; flex-direction: column; gap: 6px;
     }
     .column-empty {
@@ -301,27 +353,77 @@
     /* ── Card ─────────────────────────────────── */
     .card {
       background: var(--surface-raised); border: 1px solid var(--border);
-      border-radius: var(--radius-sm); padding: 10px 12px;
-      cursor: grab; transition: border-color .12s, background .12s, transform .1s;
-      user-select: none; min-width: 0;
+      border-radius: var(--radius); overflow: hidden;
+      cursor: grab; transition: border-color .15s, box-shadow .2s, transform .15s;
+      user-select: none; min-width: 0; flex-shrink: 0; position: relative;
+    }
+    .card::before {
+      content: ''; position: absolute; left: 0; right: 0; top: 0; height: 2px;
+      background: linear-gradient(90deg, var(--status-color, var(--accent)), transparent 82%);
+      transform: scaleX(0); transform-origin: left; opacity: .95;
+      transition: transform .18s ease; z-index: 2;
     }
     .card:active { cursor: grabbing; }
-    .card:hover          { border-color: var(--border-hover); background: var(--surface-hover); transform: translateY(-1px); }
-    .card.focused        { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent-dim); }
-    .card-top            { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 5px 8px; margin-bottom: 5px; min-width: 0; }
-    .card-id             { font-family: ui-monospace, "Cascadia Code", monospace; font-size: 11px; color: var(--text-muted); overflow-wrap: anywhere; }
-    .card-title          { font-size: 13px; font-weight: 500; color: var(--text); line-height: 1.4; margin-bottom: 7px; overflow-wrap: anywhere; }
-    .card-footer         { display: flex; align-items: center; justify-content: flex-start; flex-wrap: wrap; gap: 6px 8px; min-width: 0; }
-    .card-age            { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
-    .ready-indicator     { display: flex; align-items: center; gap: 4px; cursor: pointer; min-width: 0; }
-    .ready-dot           { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .card:hover {
+      border-color: var(--border-hover); transform: translateY(-1px);
+      box-shadow:
+        -1px 3px 7px -5px var(--card-glow, rgba(0,0,0,.15)),
+         3px 3px 10px -2px var(--card-glow, rgba(0,0,0,.15)),
+         0   4px 7px  -6px var(--card-glow, rgba(0,0,0,.12));
+    }
+    .card:hover::before { transform: scaleX(1); }
+    .card:hover .card-head { border-bottom-color: var(--status-color, var(--border-hover)); }
+    .card.focused { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-dim); }
+
+    /* Card header zone — subtle raised strip for ID + badge */
+    .card-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 7px 11px 6px;
+      background: var(--surface-hover);
+      border-bottom: 1px solid var(--border);
+      position: relative; overflow: hidden; min-width: 0;
+    }
+    /* Subtle dot-matrix texture (inspired by flight card) */
+    .card-head::after {
+      content: ''; position: absolute; inset: 0; pointer-events: none;
+      background-image: radial-gradient(circle, var(--border) 1px, transparent 1px);
+      background-size: 10px 10px; opacity: .35;
+    }
+    .card-id {
+      font-size: 10px; font-weight: 700; letter-spacing: .06em;
+      color: var(--text-muted); position: relative; z-index: 1;
+    }
+
+    /* Card body — title zone */
+    .card-body { padding: 10px 11px 8px; }
+    .card-title {
+      font-size: 13px; font-weight: 500; color: var(--text);
+      line-height: 1.5; overflow-wrap: anywhere; margin: 0;
+      letter-spacing: -.1px;
+    }
+    html[data-theme="light"] .card-title { color: #3d3d60; }
+
+    /* Card footer — 3-column label-above-value grid */
+    .card-footer {
+      display: grid; grid-template-columns: auto auto 1fr;
+      padding: 8px 11px 10px; border-top: 1px solid var(--border-muted);
+      gap: 2px 14px;
+    }
+    .card-meta-col { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+    .card-meta-col:last-child { align-items: flex-end; }
+    .card-meta-label { font-size: 9px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); }
+    html[data-theme="light"] .card-meta-label { color: var(--text-dim); }
+    .card-meta-val   { font-size: 11px; color: var(--text-muted); }
+
+    .ready-indicator     { display: flex; align-items: center; gap: 3px; cursor: pointer; min-width: 0; }
+    .ready-dot           { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
     .ready-indicator.ready     .ready-dot { background: var(--col-done); }
     .ready-indicator.not-ready .ready-dot { background: var(--border-hover); }
-    .ready-indicator.incomplete .ready-dot { background: var(--col-discarded); opacity: .8; }
-    .ready-label         { font-size: 10px; font-weight: 600; letter-spacing: .04em; line-height: 1.25; overflow-wrap: anywhere; }
-    .ready-indicator.ready     .ready-label { color: var(--col-done); }
-    .ready-indicator.not-ready .ready-label { color: var(--text-muted); }
-    .ready-indicator.incomplete .ready-label { color: var(--col-discarded); }
+    .ready-indicator.incomplete .ready-dot { background: var(--col-discarded); opacity: .85; }
+    .ready-label         { font-size: 9px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; }
+    .ready-indicator.ready      .ready-label { color: var(--col-done); }
+    .ready-indicator.not-ready  .ready-label { color: var(--text-dim); }
+    .ready-indicator.incomplete .ready-label { color: var(--col-discarded); opacity: .75; font-weight: 500; }
     .ready-popover {
       position: fixed; z-index: 9999; pointer-events: none;
       background: var(--surface-raised); border: 1px solid var(--border);
@@ -333,22 +435,41 @@
     .ready-popover.visible { opacity: 1; }
 
     /* Type badges */
-    .type-badge { font-size: 10px; padding: 1px 6px; border-radius: 4px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
+    .type-badge { font-size: 10px; padding: 1px 6px; border-radius: 4px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; position: relative; z-index: 1; }
     .type-bug     { background: rgba(248,113,113,.15); color: #f87171; }
     .type-feature { background: rgba(167,139,250,.15); color: #a78bfa; }
     .type-task    { background: rgba(96,165,250,.15);  color: #60a5fa; }
     .type-chore   { background: rgba(156,163,175,.12); color: #9ca3af; }
     .type-epic    { background: rgba(251,146,60,.15);  color: #fb923c; }
 
-    /* Priority dots */
-    .priority-dots { display: flex; gap: 3px; align-items: center; }
-    .pdot          { width: 6px; height: 6px; border-radius: 50%; background: var(--text-dim); }
-    .pdot.on       { background: var(--accent); }
-    .p0 .pdot.on   { background: #f87171; }
-    .p1 .pdot.on   { background: #fb923c; }
-    .p2 .pdot.on   { background: var(--accent); }
-    .p3 .pdot.on   { background: #60a5fa; }
-    .p4 .pdot.on   { background: var(--text-dim); }
+    /* Column-status left border + hover glow color */
+    .col-open      { --card-glow: rgba(148,163,184, .45); --status-color: rgba(148,163,184, .72); }
+    .col-progress  { --card-glow: rgba(96,165,250,  .5);  --status-color: rgba(96,165,250,  .78); }
+    .col-done      { --card-glow: rgba(74,222,128,  .5);  --status-color: rgba(74,222,128,  .78); }
+    .col-discarded { --card-glow: rgba(248,113,113, .45); --status-color: rgba(248,113,113, .72); }
+    html[data-theme="light"] .col-open      { --card-glow: rgba(100,116,139, .35); --status-color: rgba(100,116,139, .55); }
+    html[data-theme="light"] .col-progress  { --card-glow: rgba(37,99,235,   .35); --status-color: rgba(37,99,235,   .62); }
+    html[data-theme="light"] .col-done      { --card-glow: rgba(22,163,74,   .4);  --status-color: rgba(22,163,74,   .65); }
+    html[data-theme="light"] .col-discarded { --card-glow: rgba(220,38,38,   .35); --status-color: rgba(220,38,38,   .58); }
+
+    .col-open      .card { border-left: 3px solid rgba(148,163,184, .5); }
+    .col-progress  .card { border-left: 3px solid rgba(96,165,250,  .5); }
+    .col-done      .card { border-left: 3px solid rgba(74,222,128,  .5); }
+    .col-discarded .card { border-left: 3px solid rgba(248,113,113, .4); }
+    html[data-theme="light"] .col-open      .card { border-left: 3px solid rgba(100,116,139, .4); }
+    html[data-theme="light"] .col-progress  .card { border-left: 3px solid rgba(37,99,235,   .35); }
+    html[data-theme="light"] .col-done      .card { border-left: 3px solid rgba(22,163,74,   .4); }
+    html[data-theme="light"] .col-discarded .card { border-left: 3px solid rgba(220,38,38,   .35); }
+
+    /* Domino card entrance (first render only) */
+    @keyframes card-in {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .card.animate-in {
+      animation: card-in 0.3s cubic-bezier(0.22, 1.61, 0.36, 1) both;
+      animation-delay: calc(var(--i, 0) * 35ms);
+    }
 
     /* ── Modal ────────────────────────────────── */
     #modal-overlay {
@@ -359,20 +480,33 @@
     }
     #modal-overlay.open { opacity: 1; pointer-events: auto; }
     #modal {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: 12px; width: min(680px,90vw); max-height: 80vh;
+      background: var(--surface); border: 1px solid var(--modal-border);
+      border-radius: 10px; width: min(740px,92vw); max-height: 86vh;
       display: flex; flex-direction: column; overflow: hidden;
       box-shadow: 0 24px 64px rgba(0,0,0,.6);
-      transform: translateY(8px) scale(.98); transition: transform .15s;
+      transform: translate(var(--drag-x, 0px), calc(var(--drag-y, 0px) + 12px)) scale(.97);
+      transition: transform .4s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
-    #modal-overlay.open #modal { transform: translateY(0) scale(1); }
+    #modal-overlay.open #modal { transform: translate(var(--drag-x, 0px), var(--drag-y, 0px)) scale(1); }
+    #modal.dragging-panel { transition: none; }
 
     .modal-header {
-      display: flex; align-items: center; gap: 10px;
-      padding: 16px 20px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+      display: flex; align-items: center; gap: 12px;
+      padding: 17px 20px 15px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+      background: var(--surface);
+      cursor: grab;
     }
-    .modal-id    { font-family: ui-monospace, "Cascadia Code", monospace; font-size: 12px; color: var(--text-muted); flex-shrink:0; }
-    .modal-title { flex: 1; font-size: 15px; font-weight: 600; color: var(--text); }
+    .modal-header.dragging { cursor: grabbing; }
+    .modal-id {
+      font-family: "JetBrains Mono", "Fira Code", "JetBrains Mono", ui-monospace, monospace;
+      font-size: 11px; color: var(--text-muted); flex-shrink: 0;
+      padding: 2px 7px; border: 1px solid var(--border-muted);
+      border-radius: 999px; background: var(--surface-raised);
+    }
+    .modal-title {
+      flex: 1; font-size: 18px; font-weight: 700; color: var(--text);
+      line-height: 1.25; letter-spacing: 0;
+    }
     .modal-close {
       width: 28px; height: 28px; border-radius: 6px;
       border: 1px solid var(--border); background: transparent;
@@ -382,91 +516,145 @@
     .modal-close:hover { background: var(--surface-raised); color: var(--text); }
 
     .modal-meta {
-      display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
-      padding: 9px 20px; border-bottom: 1px solid var(--border-muted);
+      display: flex; align-items: center; gap: 7px; flex-wrap: wrap;
+      padding: 10px 20px; border-bottom: 1px solid var(--border-muted);
       background: var(--surface-raised); flex-shrink: 0;
     }
-    .meta-item  { display: flex; align-items: center; gap: 6px; font-size: 13px; }
-    .meta-label { color: var(--text-muted); font-size: 12px; }
-    .meta-val   { color: var(--text); font-weight: 500; }
+    .meta-item {
+      display: flex; align-items: center; gap: 6px; font-size: 12px;
+      padding: 3px 8px; border: 1px solid var(--border-muted);
+      border-radius: 999px; background: var(--surface);
+    }
+    .meta-label { color: var(--text-muted); font-size: 11px; }
+    .meta-val   { color: var(--text); font-weight: 600; }
 
     .modal-docs {
       display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
-      padding: 8px 20px; border-bottom: 1px solid var(--border-muted);
-      background: var(--surface-raised); flex-shrink: 0;
+      padding: 10px 20px; border-bottom: 1px solid var(--border-muted);
+      background: var(--surface); flex-shrink: 0;
     }
     .modal-docs:empty { display: none; }
+    .modal-docs.editing { border-bottom-color: var(--accent); }
     .doc-tab {
-      padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 500;
+      padding: 5px 12px; border-radius: 999px; font-size: 12px; font-weight: 600;
       border: 1px solid var(--border); background: transparent;
       color: var(--text-muted); cursor: pointer; transition: background .1s, color .1s, border-color .1s;
     }
     .doc-tab:hover { background: var(--surface-hover); color: var(--text); border-color: var(--border-hover); }
     .doc-tab.active { background: var(--accent-dim); color: var(--accent); border-color: var(--accent); }
     .doc-tab-new {
-      padding: 3px 10px; border-radius: 20px; font-size: 12px;
+      padding: 5px 12px; border-radius: 999px; font-size: 12px;
       border: 1px dashed var(--border-hover); background: transparent;
       color: var(--text-muted); cursor: pointer; transition: color .1s, border-color .1s;
     }
     .doc-tab-new:hover { color: var(--text); border-color: var(--accent); }
     .doc-edit-btn {
-      margin-left: auto; padding: 3px 10px; border-radius: 20px; font-size: 12px;
+      margin-left: auto; padding: 5px 13px; border-radius: 999px; font-size: 12px; font-weight: 600;
       border: 1px solid var(--border); background: transparent;
       color: var(--text-muted); cursor: pointer; transition: background .1s, color .1s;
     }
     .doc-edit-btn:hover { background: var(--surface-hover); color: var(--text); }
-    .doc-edit-btn:disabled,
-    .doc-tab-new:disabled {
-      opacity: .45; cursor: not-allowed;
+    .doc-edit-btn:disabled {
+      background: var(--accent-dim); border-color: var(--accent);
+      color: var(--accent); opacity: 1; cursor: default;
     }
+    .doc-tab-new:disabled { opacity: .45; cursor: not-allowed; }
+    .doc-locked-badge {
+      margin-left: auto; font-size: 11px; color: var(--text-dim);
+      display: flex; align-items: center; gap: 5px;
+      padding: 3px 9px; border: 1px solid var(--border-muted); border-radius: 20px;
+      cursor: default;
+    }
+    .doc-locked-badge::before { content: '⊘'; font-size: 10px; }
 
-    .modal-body { flex: 1; overflow-y: auto; padding: 20px; }
+    .modal-body {
+      flex: 1; overflow-y: auto; padding: 18px 20px;
+      background: var(--surface-raised);
+    }
     .modal-body-text {
-      font-size: 13px; color: var(--text-muted); line-height: 1.75; white-space: pre-wrap;
+      font-size: 13px; color: var(--text-body); line-height: 1.75; white-space: pre-wrap;
+      background: var(--surface); border: 1px solid var(--panel-border);
+      border-radius: 8px; padding: 18px 20px; min-height: 180px;
+      box-shadow: 0 1px 0 rgba(255,255,255,.02);
+    }
+    .doc-heading-1,
+    .doc-heading-2,
+    .doc-heading-3 {
+      display: block; color: var(--text); font-weight: 700; letter-spacing: 0;
+      white-space: normal;
+    }
+    .doc-heading-1 { font-size: 17px; margin: 0 0 8px; }
+    .doc-heading-2 { font-size: 14px; margin: 14px 0 4px; }
+    .doc-heading-3 { font-size: 13px; margin: 10px 0 3px; }
+    .doc-code {
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: 11px; background: var(--surface-raised);
+      padding: 1px 5px; border-radius: 4px; color: var(--accent);
+    }
+    .doc-bullet {
+      display: block; margin: 3px 0; padding-left: 2px; color: var(--text-body);
     }
     .editor-toolbar {
-      display: none; align-items: center; gap: 6px; flex-wrap: wrap;
-      margin-bottom: 8px;
+      display: none; align-items: center; gap: 4px; flex-wrap: wrap;
+      margin-bottom: 10px; padding: 8px 9px;
+      background: var(--surface); border: 1px solid var(--modal-border);
+      border-radius: 8px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.025);
     }
     .editor-toolbar.open { display: flex; }
+    .toolbar-sep { width: 1px; height: 22px; background: var(--modal-border); margin: 0 5px; flex-shrink: 0; opacity: .85; }
     .editor-tool {
-      width: 34px; height: 30px; padding: 0; border-radius: 6px; font-size: 12px;
-      border: 1px solid var(--border); background: var(--surface-raised);
-      color: var(--text-muted); cursor: pointer;
+      width: 36px; height: 32px; padding: 0; border-radius: 7px; font-size: 12px;
+      border: 1px solid var(--modal-border); background: var(--surface-hover);
+      color: var(--text); cursor: pointer;
       display: inline-flex; align-items: center; justify-content: center;
-      transition: background .1s, border-color .1s, color .1s;
+      transition: background .1s, border-color .1s, color .1s, box-shadow .1s, transform .1s;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.035),
+        0 1px 0 rgba(0,0,0,.16);
     }
     .editor-tool:hover {
-      background: var(--surface-hover); border-color: var(--accent); color: var(--text);
+      background: var(--accent-dim); border-color: var(--accent); color: var(--text);
+      box-shadow: 0 0 0 1px var(--accent-dim);
+      transform: translateY(-1px);
+    }
+    .editor-tool:focus-visible {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--accent-dim);
+    }
+    .editor-tool:active {
+      transform: translateY(0);
+      background: var(--surface-hover);
     }
     .editor-tool svg {
       width: 17px; height: 17px; stroke: currentColor; fill: none;
       stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
     }
     .editor-tool .tool-text {
-      font-family: ui-monospace, "Cascadia Code", monospace;
+      font-family: "JetBrains Mono", "Fira Code", "JetBrains Mono", ui-monospace, monospace;
       font-size: 11px; font-weight: 700;
     }
     .modal-edit-area {
-      width: 100%; height: 100%; min-height: 200px; resize: vertical;
-      background: var(--surface-raised); border: 1px solid var(--border);
-      border-radius: var(--radius-sm); color: var(--text);
-      font-family: ui-monospace, "Cascadia Code", monospace; font-size: 13px;
-      line-height: 1.6; padding: 12px; outline: none;
-      transition: border-color .1s;
+      width: 100%; height: 100%; min-height: 330px; resize: vertical;
+      background: var(--surface); border: 1px solid var(--panel-border);
+      border-radius: 8px; color: var(--text);
+      font-family: "JetBrains Mono", "Fira Code", "JetBrains Mono", ui-monospace, monospace; font-size: 13px;
+      line-height: 1.65; padding: 16px 18px; outline: none;
+      transition: border-color .1s, box-shadow .1s;
     }
-    .modal-edit-area:focus { border-color: var(--accent); }
+    .modal-edit-area:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-dim); }
     .btn-primary {
       background: var(--accent); border-color: var(--accent); color: #fff;
     }
     .btn-primary:hover { background: var(--accent); opacity: .85; }
     .modal-empty { color: var(--text-dim); font-style: italic; }
     .acceptance-warning {
-      background: rgba(248,113,113,.07);
+      background: rgba(248,113,113,.09);
       border: 1px solid rgba(248,113,113,.25);
-      border-radius: var(--radius-sm);
-      padding: 7px 11px;
-      margin-bottom: 12px;
+      border-radius: 7px;
+      padding: 9px 12px;
+      margin-bottom: 14px;
       color: var(--col-discarded);
       font-size: 12px;
     }
@@ -481,7 +669,12 @@
       transition: border-color .12s, background .12s;
     }
     .doc-type-card:hover    { border-color: var(--border-hover); background: var(--surface-hover); }
-    .doc-type-card.suggested { border-color: var(--accent); background: var(--accent-dim); }
+    .doc-type-card.suggested { border-color: var(--border-hover); }
+    .doc-type-card.selected {
+      border-color: var(--accent);
+      background: var(--accent-dim);
+      box-shadow: inset 0 0 0 1px var(--accent);
+    }
     .doc-type-name {
       font-size: 13px; font-weight: 600; color: var(--text);
       display: flex; align-items: center; gap: 7px; margin-bottom: 1px;
@@ -494,14 +687,15 @@
 
     .modal-footer {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 12px 20px; border-top: 1px solid var(--border); flex-shrink: 0;
+      padding: 13px 20px; border-top: 1px solid var(--border); flex-shrink: 0;
+      background: var(--surface);
     }
     .modal-actions { display: flex; gap: 8px; }
 
     .btn {
-      padding: 5px 13px; border-radius: 6px;
+      padding: 7px 14px; border-radius: 7px;
       border: 1px solid var(--border); background: var(--surface-raised);
-      color: var(--text); font-size: 12px; cursor: pointer;
+      color: var(--text); font-size: 12px; font-weight: 600; cursor: pointer;
       transition: background .1s, border-color .1s;
     }
     .btn:hover    { background: var(--surface-hover); border-color: var(--border-hover); }
@@ -542,7 +736,7 @@
       border-radius: 12px; width: min(560px, 90vw);
       display: flex; flex-direction: column; overflow: hidden;
       box-shadow: 0 24px 64px rgba(0,0,0,.6);
-      transform: translateY(8px) scale(.98); transition: transform .15s;
+      transform: translateY(12px) scale(.97); transition: transform .4s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
     #create-overlay.open #create-modal { transform: translateY(0) scale(1); }
 
@@ -570,11 +764,65 @@
     .create-pill.active { border-color: var(--accent); background: var(--accent-dim); color: var(--accent); }
     .create-textarea { min-height: 140px; resize: vertical; }
 
+    /* ── Tour panel ──────────────────────────── */
+    #tour-overlay {
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(0,0,0,.4); backdrop-filter: blur(2px);
+      opacity: 0; pointer-events: none; transition: opacity .2s;
+    }
+    #tour-overlay.open { opacity: 1; pointer-events: auto; }
+    #tour-panel {
+      position: absolute; top: 0; right: 0; bottom: 0; width: min(600px, 92vw);
+      background: var(--surface); border-left: 1px solid var(--border);
+      display: flex; flex-direction: column; overflow: hidden;
+      transform: translateX(100%); transition: transform .35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    #tour-overlay.open #tour-panel { transform: translateX(0); }
+    .tour-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 20px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+    }
+    .tour-title { font-size: 14px; font-weight: 700; letter-spacing: -.2px; }
+    .tour-subtitle { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .tour-body { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 0; }
+    .tour-section-title {
+      font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+      color: var(--text-muted); margin-bottom: 14px;
+    }
+    .tour-feature { margin-bottom: 14px; }
+    .tour-feature-name { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+    .tour-feature-name span { color: var(--accent); margin: 0 4px; }
+    .tour-feature-desc { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
+    .tour-feature-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px; }
+    .tour-tag {
+      font-size: 10px; padding: 1px 7px; border-radius: 10px;
+      background: var(--surface-raised); border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+    .tour-divider { border: none; border-top: 1px solid var(--border-muted); margin: 18px 0; }
+    /* Collapsible screenshot sections */
+    .tour-demo { margin-bottom: 12px; }
+    .tour-demo summary {
+      display: flex; align-items: center; gap: 8px; cursor: pointer;
+      font-size: 12px; font-weight: 600; color: var(--text-muted);
+      padding: 7px 0; list-style: none; border-bottom: 1px solid var(--border-muted);
+      transition: color .1s;
+    }
+    .tour-demo summary:hover { color: var(--text); }
+    .tour-demo summary::before { content: '▶'; font-size: 9px; transition: transform .15s; }
+    .tour-demo[open] summary::before { transform: rotate(90deg); }
+    .tour-demo-body { padding: 12px 0; display: flex; flex-direction: column; gap: 10px; }
+    .tour-screenshot {
+      width: 100%; border-radius: var(--radius); border: 1px solid var(--border);
+      display: block;
+    }
+    .tour-caption { font-size: 11px; color: var(--text-muted); line-height: 1.6; }
+
     /* ── Scrollbars ───────────────────────────── */
     ::-webkit-scrollbar       { width: 4px; height: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-    ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+    ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 2px; opacity: .6; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
   </style>
 </head>
 <body>
@@ -606,6 +854,7 @@
         </div>
       </div>
       <button class="create-btn" id="btn-create">+ New ticket</button>
+      <button class="theme-toggle" id="tour-btn" title="Feature tour" style="font-size:13px;font-weight:700;letter-spacing:-.5px">?</button>
       <button class="theme-toggle" id="theme-toggle" title="Toggle light/dark mode">🌙</button>
     </div>
   </header>
@@ -615,6 +864,24 @@
       <div class="sidebar-toggle" id="sidebar-toggle" title="Toggle sidebar">
         <!-- chevron-left icon -->
         <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+      <!-- Icon rail: visible only when sidebar is collapsed -->
+      <div class="sidebar-icon-rail" id="sidebar-rail">
+        <div class="rail-icon" data-section="s-wip" title="Now Working On">
+          <svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>
+        </div>
+        <div class="rail-icon" data-section="s-branch" title="Git">
+          <svg viewBox="0 0 24 24"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg>
+        </div>
+        <div class="rail-icon" data-section="s-focus" title="Current Focus">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+        </div>
+        <div class="rail-icon" data-section="s-commits" title="Recent Commits">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div class="rail-icon" data-section="s-summary" title="Tickets">
+          <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        </div>
       </div>
       <div class="sidebar-content">
         <div class="sidebar-section" id="s-wip">
@@ -667,26 +934,29 @@
     <div class="modal-body">
       <div class="modal-body-text" id="m-body"></div>
       <div class="editor-toolbar" id="m-editor-toolbar">
-        <button class="editor-tool" type="button" data-insert="checkbox" title="Add checkbox" aria-label="Add checkbox">
+        <button class="editor-tool" type="button" data-insert="checkbox" title="Checkbox" aria-label="Add checkbox">
           <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"></rect></svg>
         </button>
-        <button class="editor-tool" type="button" data-insert="checked" title="Add checked item" aria-label="Add checked item">
+        <button class="editor-tool" type="button" data-insert="checked" title="Checked item" aria-label="Add checked item">
           <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"></rect><path d="m8 12 3 3 5-6"></path></svg>
         </button>
-        <button class="editor-tool" type="button" data-insert="bullet" title="Add bullet" aria-label="Add bullet">
+        <span class="toolbar-sep"></span>
+        <button class="editor-tool" type="button" data-insert="bullet" title="Bullet list" aria-label="Add bullet">
           <svg viewBox="0 0 24 24"><path d="M8 6h12"></path><path d="M8 12h12"></path><path d="M8 18h12"></path><path d="M4 6h.01"></path><path d="M4 12h.01"></path><path d="M4 18h.01"></path></svg>
         </button>
-        <button class="editor-tool" type="button" data-insert="number" title="Add numbered item" aria-label="Add numbered item">
+        <button class="editor-tool" type="button" data-insert="number" title="Numbered list" aria-label="Add numbered item">
           <svg viewBox="0 0 24 24"><path d="M10 6h10"></path><path d="M10 12h10"></path><path d="M10 18h10"></path><path d="M4 6h1v4"></path><path d="M4 10h2"></path><path d="M4 14h2l-2 4h2"></path></svg>
         </button>
-        <button class="editor-tool" type="button" data-insert="heading" title="Add heading" aria-label="Add heading">
+        <span class="toolbar-sep"></span>
+        <button class="editor-tool" type="button" data-insert="heading" title="Heading" aria-label="Add heading">
           <span class="tool-text">H2</span>
         </button>
-        <button class="editor-tool" type="button" data-insert="code" title="Add inline code" aria-label="Add inline code">
+        <span class="toolbar-sep"></span>
+        <button class="editor-tool" type="button" data-insert="code" title="Inline code" aria-label="Add inline code">
           <svg viewBox="0 0 24 24"><path d="m16 18 6-6-6-6"></path><path d="m8 6-6 6 6 6"></path></svg>
         </button>
-        <button class="editor-tool" type="button" data-insert="toggle" title="Add toggle block" aria-label="Add toggle block">
-          <span class="tool-text">&lt;&gt;</span>
+        <button class="editor-tool" type="button" data-insert="toggle" title="Code block" aria-label="Add code block">
+          <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18"/><path d="M7 13h4"/></svg>
         </button>
       </div>
       <textarea id="m-edit-area" class="modal-edit-area" style="display:none" spellcheck="false"></textarea>
@@ -706,8 +976,8 @@
       <div class="modal-title" id="co-subject"></div>
       <button class="modal-close" id="commit-close">✕</button>
     </div>
+    <div class="commit-detail-meta" id="co-meta"></div>
     <div class="commit-detail-body">
-      <div class="commit-detail-meta" id="co-meta"></div>
       <div class="commit-detail-msg" id="co-body"></div>
       <div id="co-tickets"></div>
       <div id="co-files"></div>
@@ -734,26 +1004,29 @@
         <div class="create-pills" id="c-priorities"></div>
       </div>
       <div class="editor-toolbar open" id="c-editor-toolbar">
-        <button class="editor-tool" type="button" data-insert="checkbox" title="Add checkbox" aria-label="Add checkbox">
+        <button class="editor-tool" type="button" data-insert="checkbox" title="Checkbox" aria-label="Add checkbox">
           <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"></rect></svg>
         </button>
-        <button class="editor-tool" type="button" data-insert="checked" title="Add checked item" aria-label="Add checked item">
+        <button class="editor-tool" type="button" data-insert="checked" title="Checked item" aria-label="Add checked item">
           <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"></rect><path d="m8 12 3 3 5-6"></path></svg>
         </button>
-        <button class="editor-tool" type="button" data-insert="bullet" title="Add bullet" aria-label="Add bullet">
+        <span class="toolbar-sep"></span>
+        <button class="editor-tool" type="button" data-insert="bullet" title="Bullet list" aria-label="Add bullet">
           <svg viewBox="0 0 24 24"><path d="M8 6h12"></path><path d="M8 12h12"></path><path d="M8 18h12"></path><path d="M4 6h.01"></path><path d="M4 12h.01"></path><path d="M4 18h.01"></path></svg>
         </button>
-        <button class="editor-tool" type="button" data-insert="number" title="Add numbered item" aria-label="Add numbered item">
+        <button class="editor-tool" type="button" data-insert="number" title="Numbered list" aria-label="Add numbered item">
           <svg viewBox="0 0 24 24"><path d="M10 6h10"></path><path d="M10 12h10"></path><path d="M10 18h10"></path><path d="M4 6h1v4"></path><path d="M4 10h2"></path><path d="M4 14h2l-2 4h2"></path></svg>
         </button>
-        <button class="editor-tool" type="button" data-insert="heading" title="Add heading" aria-label="Add heading">
+        <span class="toolbar-sep"></span>
+        <button class="editor-tool" type="button" data-insert="heading" title="Heading" aria-label="Add heading">
           <span class="tool-text">H2</span>
         </button>
-        <button class="editor-tool" type="button" data-insert="code" title="Add inline code" aria-label="Add inline code">
+        <span class="toolbar-sep"></span>
+        <button class="editor-tool" type="button" data-insert="code" title="Inline code" aria-label="Add inline code">
           <svg viewBox="0 0 24 24"><path d="m16 18 6-6-6-6"></path><path d="m8 6-6 6 6 6"></path></svg>
         </button>
-        <button class="editor-tool" type="button" data-insert="toggle" title="Add toggle block" aria-label="Add toggle block">
-          <span class="tool-text">&lt;&gt;</span>
+        <button class="editor-tool" type="button" data-insert="toggle" title="Code block" aria-label="Add code block">
+          <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18"/><path d="M7 13h4"/></svg>
         </button>
       </div>
       <textarea id="c-body" class="modal-edit-area create-textarea" placeholder="Description" spellcheck="false"></textarea>
@@ -764,6 +1037,119 @@
         <button class="btn" id="c-cancel">Cancel</button>
       </div>
       <div class="kbd-hint" id="c-queue"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Tour panel -->
+<div id="tour-overlay">
+  <div id="tour-panel">
+    <div class="tour-header">
+      <div>
+        <div class="tour-title">sprint-check</div>
+        <div class="tour-subtitle">local kanban · no server · no account</div>
+      </div>
+      <button class="modal-close" id="tour-close">✕</button>
+    </div>
+    <div class="tour-body">
+
+      <div class="tour-section-title">What's inside</div>
+
+      <div class="tour-feature">
+        <div class="tour-feature-name">Kanban board<span>—</span>your <code style="font-size:11px;background:var(--surface-raised);padding:1px 5px;border-radius:3px;color:var(--accent)">.tickets/</code> folder as a live board.</div>
+        <div class="tour-feature-desc">Four columns: Open, In Progress, Done, Discarded. Drag cards to update status instantly. Auto-refreshes every 8 seconds.</div>
+        <div class="tour-feature-tags">
+          <span class="tour-tag">drag-to-move</span>
+          <span class="tour-tag">auto-refresh</span>
+          <span class="tour-tag">light &amp; dark</span>
+        </div>
+      </div>
+
+      <div class="tour-feature">
+        <div class="tour-feature-name">Ticket completeness<span>—</span>readiness baked into every card.</div>
+        <div class="tour-feature-desc">Three states — ready (green), acceptance incomplete (red), needs docs (gray). Hover the indicator for a checklist popover. The same rule the <code style="font-size:11px;background:var(--surface-raised);padding:1px 5px;border-radius:3px;color:var(--accent)">sprint complete</code> gate enforces.</div>
+        <div class="tour-feature-tags">
+          <span class="tour-tag">acceptance gate</span>
+          <span class="tour-tag">test plan check</span>
+          <span class="tour-tag">inline warnings</span>
+        </div>
+      </div>
+
+      <div class="tour-feature">
+        <div class="tour-feature-name">Sprint docs<span>—</span>Acceptance and Plan attached to tickets, edited inline.</div>
+        <div class="tour-feature-desc">Open any ticket → click a doc tab to read or edit. Templates guide the format. The editor toolbar inserts checkboxes, bullets, headings, and code at the cursor.</div>
+        <div class="tour-feature-tags">
+          <span class="tour-tag">acceptance.md</span>
+          <span class="tour-tag">plan.md</span>
+          <span class="tour-tag">in-browser editor</span>
+        </div>
+      </div>
+
+      <div class="tour-feature">
+        <div class="tour-feature-name">Commit intelligence<span>—</span>click any commit to see what it touched.</div>
+        <div class="tour-feature-desc">Direct ticket ID matches show first. When no ID is present, semantic keyword matching surfaces the most likely related ticket.</div>
+        <div class="tour-feature-tags">
+          <span class="tour-tag">ID linking</span>
+          <span class="tour-tag">keyword fallback</span>
+          <span class="tour-tag">file diff</span>
+        </div>
+      </div>
+
+      <div class="tour-feature">
+        <div class="tour-feature-name">Create from the board<span>—</span>new tickets without leaving the browser.</div>
+        <div class="tour-feature-desc">The title auto-detects type (feature, task, bug, chore, epic). Set priority, add a description, hit Create — the ticket appears in <code style="font-size:11px;background:var(--surface-raised);padding:1px 5px;border-radius:3px;color:var(--accent)">.tickets/</code> immediately.</div>
+        <div class="tour-feature-tags">
+          <span class="tour-tag">type detection</span>
+          <span class="tour-tag">priority</span>
+          <span class="tour-tag">instant</span>
+        </div>
+      </div>
+
+      <hr class="tour-divider">
+      <div class="tour-section-title">See it in action</div>
+
+      <details class="tour-demo">
+        <summary>Board overview</summary>
+        <div class="tour-demo-body">
+          <img class="tour-screenshot" src="/meta/screenshots/board-dark.png" alt="sprint-check board in dark mode" loading="lazy">
+          <p class="tour-caption">The full kanban board — four columns, sidebar with git context, and the ticket count stats in the header.</p>
+        </div>
+      </details>
+
+      <details class="tour-demo">
+        <summary>Ticket detail &amp; docs</summary>
+        <div class="tour-demo-body">
+          <img class="tour-screenshot" src="/meta/screenshots/ticket-detail.png" alt="Ticket detail modal" loading="lazy">
+          <img class="tour-screenshot" src="/meta/screenshots/ticket-doc-editor.png" alt="Doc editor in ticket modal" loading="lazy">
+          <p class="tour-caption">Click any card to open the detail modal. Switch doc tabs to read or edit Acceptance and Plan without leaving the board.</p>
+        </div>
+      </details>
+
+      <details class="tour-demo">
+        <summary>Ticket completeness</summary>
+        <div class="tour-demo-body">
+          <img class="tour-screenshot" src="/meta/screenshots/ticket-completeness.png" alt="Ticket completeness states" loading="lazy">
+          <p class="tour-caption">Every card shows its readiness state. Red means the Acceptance doc is missing required checklist items — <code style="font-size:11px;background:var(--surface-raised);padding:1px 5px;border-radius:3px;color:var(--accent)">sprint complete</code> will block until fixed.</p>
+        </div>
+      </details>
+
+      <details class="tour-demo">
+        <summary>Commit intelligence</summary>
+        <div class="tour-demo-body">
+          <img class="tour-screenshot" src="/meta/screenshots/commit-detail.png" alt="Commit detail panel" loading="lazy">
+          <p class="tour-caption">Click a commit hash in the sidebar. See the full message, changed files, and which ticket it most likely belongs to.</p>
+        </div>
+      </details>
+
+      <details class="tour-demo">
+        <summary>Drag to move &amp; create tickets</summary>
+        <div class="tour-demo-body">
+          <img class="tour-screenshot" src="/meta/screenshots/drag-drop.png" alt="Drag and drop" loading="lazy">
+          <img class="tour-screenshot" src="/meta/screenshots/new-ticket.png" alt="New ticket modal" loading="lazy">
+          <p class="tour-caption">Drag any card to a new column to update status. Click <strong>+ New ticket</strong> to create from the board — the title suggests a type automatically.</p>
+        </div>
+      </details>
+
     </div>
   </div>
 </div>
@@ -928,7 +1314,7 @@ function docSlug(t, file) {
 function docFileFor(t, slug) {
   return t.layout === 'folder' ? `${t.id}/${slug}.md` : `${t.id}-${slug}.md`;
 }
-const state = { tickets:[], handoff:null, git:null, selectedId:null, expandedCols: new Set() };
+const state = { tickets:[], handoff:null, git:null, selectedId:null, expandedCols: new Set(), boardFirstRender: true };
 
 // ── Data layer ───────────────────────────────────────────────────────────
 
@@ -986,24 +1372,16 @@ function typeBadge(type) {
   return `<span class="type-badge type-${esc(t)}">${esc(t)}</span>`;
 }
 
-function priorityDots(p) {
-  p = p ?? 2;
-  const filled = 5 - p;
-  let h = `<div class="priority-dots p${p}">`;
-  for (let i = 0; i < 5; i++) h += `<div class="pdot${i < filled ? ' on' : ''}"></div>`;
-  return h + '</div>';
-}
-
 // Minimal markdown: headers, bold, inline code, bullet lists
 function md(raw) {
   if (!raw) return '';
   return esc(raw.replace(/<!--[\s\S]*?-->/g, '').replace(/\n{3,}/g, '\n\n').trim())
-    .replace(/^# (.+)$/gm,  '<strong style="display:block;font-size:15px;color:var(--text);margin:10px 0 4px">$1</strong>')
-    .replace(/^## (.+)$/gm, '<strong style="display:block;font-size:14px;color:var(--text);margin:8px 0 4px">$1</strong>')
-    .replace(/^### (.+)$/gm,'<strong style="display:block;color:var(--text);margin:6px 0 3px">$1</strong>')
+    .replace(/^# (.+)$/gm,  '<strong class="doc-heading-1">$1</strong>')
+    .replace(/^## (.+)$/gm, '<strong class="doc-heading-2">$1</strong>')
+    .replace(/^### (.+)$/gm,'<strong class="doc-heading-3">$1</strong>')
     .replace(/\*\*(.+?)\*\*/g,'<strong style="color:var(--text)">$1</strong>')
-    .replace(/`([^`]+)`/g,  '<code style="font-family:ui-monospace,monospace;font-size:11px;background:var(--surface-raised);padding:1px 5px;border-radius:3px;color:var(--accent)">$1</code>')
-    .replace(/^- (.+)$/gm,  '<span style="display:block;margin:1px 0">· $1</span>');
+    .replace(/`([^`]+)`/g,  '<code class="doc-code">$1</code>')
+    .replace(/^- (.+)$/gm,  '<span class="doc-bullet">· $1</span>');
 }
 
 // ── Render ────────────────────────────────────────────────────────────────
@@ -1078,14 +1456,21 @@ function renderSidebar() {
     el.addEventListener('click', () => openCommitPanel(el.dataset.hash));
   });
 
+  const STATUS_ICONS = {
+    open:        `<svg class="summary-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><path d="M8 5v3.5l2 1.5"/></svg>`,
+    in_progress: `<svg class="summary-icon" viewBox="0 0 16 16" fill="currentColor"><path d="M6 4.5l6 3.5-6 3.5V4.5z"/><rect x="3" y="4" width="1.5" height="8" rx=".5"/></svg>`,
+    closed:      `<svg class="summary-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><path d="M5.5 8.5l2 2 3-4"/></svg>`,
+    cancelled:   `<svg class="summary-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><path d="M5.5 5.5l5 5M10.5 5.5l-5 5"/></svg>`,
+  };
   document.getElementById('s-summary').innerHTML = COLUMNS.map(col => {
     const count = tickets.filter(t => t.status === col.status).length;
-    const dotColor = col.status === 'in_progress' ? 'var(--col-progress)'
-                   : col.status === 'cancelled'   ? 'var(--col-discarded)'
-                   : `var(--col-${col.status})`;
-    return `<div class="summary-item">
-      <div class="summary-dot" style="background:${dotColor}"></div>
-      <span>${count} ${esc(col.label.toLowerCase())}</span>
+    const iconColor = col.status === 'in_progress' ? 'var(--col-progress)'
+                    : col.status === 'closed'      ? 'var(--col-done)'
+                    : col.status === 'cancelled'   ? 'var(--col-discarded)'
+                    : `var(--col-${col.status})`;
+    return `<div class="summary-item" style="color:${iconColor}">
+      ${STATUS_ICONS[col.status] || ''}
+      <span style="color:var(--text-muted)">${count} ${esc(col.label.toLowerCase())}</span>
     </div>`;
   }).join('');
 }
@@ -1107,7 +1492,7 @@ function renderBoard() {
         </div>
         <div class="column-body" data-status="${esc(col.status)}">
           ${visible.length
-            ? visible.map(t => cardHTML(t)).join('')
+            ? visible.map((t, i) => cardHTML(t, state.boardFirstRender ? i : undefined)).join('')
             : '<div class="column-empty">empty</div>'}
           ${hidden > 0
             ? `<button class="col-show-more" data-status="${esc(col.status)}">+${hidden} more</button>`
@@ -1118,6 +1503,8 @@ function renderBoard() {
         </div>
       </div>`;
   }).join('');
+
+  state.boardFirstRender = false;
 
   board.querySelectorAll('.col-show-more').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -1210,29 +1597,44 @@ function readiness(t) {
   // acceptance_has_items: true=complete, false=exists but missing criteria/test items, null=unknown
   const acceptanceIncomplete = hasAcceptance && t.acceptance_has_items === false;
   const ready = hasAcceptance && hasPlan && !acceptanceIncomplete;
-  const label = !hasAcceptance ? 'needs acceptance'
-    : acceptanceIncomplete ? 'acceptance incomplete'
+  const label = !hasAcceptance ? 'needs acc'
+    : acceptanceIncomplete ? 'incomplete'
     : !hasPlan ? 'needs plan'
     : 'ready';
   return { ready, hasAcceptance, hasPlan, acceptanceIncomplete, label };
 }
 
-function cardHTML(t) {
+function cardHTML(t, idx) {
   const { ready, label, acceptanceIncomplete } = readiness(t);
+  const animClass = (idx !== undefined) ? ' animate-in' : '';
+  const animStyle = (idx !== undefined) ? ` style="--i:${idx}"` : '';
+  const pri = t.priority ?? 2;
+  const priLabel = ['P0 critical','P1 high','P2 normal','P3 low','P4 backlog'][pri] ?? `P${pri}`;
   return `
-    <div class="card${t.id === state.selectedId ? ' focused' : ''}" data-id="${esc(t.id)}" draggable="true">
-      <div class="card-top">
+    <div class="card${t.id === state.selectedId ? ' focused' : ''}${animClass}" data-id="${esc(t.id)}" data-priority="${pri}" draggable="true"${animStyle}>
+      <div class="card-head">
         <span class="card-id">${esc(t.id)}</span>
         ${typeBadge(t.type)}
       </div>
-      <div class="card-title">${esc(t.title)}</div>
+      <div class="card-body">
+        <p class="card-title">${esc(t.title)}</p>
+      </div>
       <div class="card-footer">
-        ${priorityDots(t.priority)}
-        <span class="card-age">${esc(age(t.created))}</span>
-        <span class="ready-indicator ${ready ? 'ready' : acceptanceIncomplete ? 'incomplete' : 'not-ready'}" data-id="${esc(t.id)}">
-          <span class="ready-dot"></span>
-          <span class="ready-label">${label}</span>
-        </span>
+        <div class="card-meta-col">
+          <span class="card-meta-label">Age</span>
+          <span class="card-meta-val">${esc(age(t.created))}</span>
+        </div>
+        <div class="card-meta-col">
+          <span class="card-meta-label">Priority</span>
+          <span class="card-meta-val">${esc(priLabel)}</span>
+        </div>
+        <div class="card-meta-col">
+          <span class="card-meta-label">Status</span>
+          <span class="ready-indicator ${ready ? 'ready' : acceptanceIncomplete ? 'incomplete' : 'not-ready'}" data-id="${esc(t.id)}">
+            <span class="ready-dot"></span>
+            <span class="ready-label">${label}</span>
+          </span>
+        </div>
       </div>
     </div>`;
 }
@@ -1247,6 +1649,8 @@ function openModal(id) {
   state.selectedId = id;
   modalState.editMode = false;
   modalState.activeDoc = null;
+  modalState.pickingDoc = false;
+  resetPanelDrag(document.getElementById('modal'));
 
   setText('m-id',    t.id);
   setText('m-title', t.title);
@@ -1273,30 +1677,43 @@ function openModal(id) {
   renderBoard();
 }
 
+const HIDDEN_DOC_SLUGS = new Set(['blueprint']);
+
 function renderModalDocs(t) {
-  const docs = t.docs || [];
+  const docs = (t.docs || []).filter(d => !HIDDEN_DOC_SLUGS.has(docSlug(t, d.file)));
   const bar = document.getElementById('m-docs');
   // Only show the Description tab when there are other docs to switch between
   const allTabs = docs.length > 0 ? [{ name: 'Description', file: null }, ...docs] : docs;
+
+  const locked = t.status === 'closed' || t.status === 'cancelled';
+  const pickingDoc = modalState.pickingDoc;
 
   bar.innerHTML = allTabs.map(d => {
     const active = d.file === modalState.activeDoc;
     return `<button class="doc-tab${active ? ' active' : ''}" data-file="${d.file ?? ''}">${esc(d.name)}</button>`;
   }).join('') +
-  `<button class="doc-tab-new" id="btn-new-doc" title="Add companion doc"${modalState.editMode ? ' disabled' : ''}>+ New doc</button>` +
-  `<button class="doc-edit-btn" id="btn-edit-doc"${modalState.editMode ? ' disabled' : ''}>${modalState.editMode ? 'Editing' : 'Edit'}</button>`;
+  (!locked
+    ? `<button class="doc-tab-new" id="btn-new-doc" title="Add companion doc"${modalState.editMode || pickingDoc ? ' disabled' : ''}>+ New doc</button>` +
+      (pickingDoc ? '' : `<button class="doc-edit-btn" id="btn-edit-doc"${modalState.editMode ? ' disabled' : ''}>${modalState.editMode ? 'Editing' : 'Edit'}</button>`)
+    : `<span class="doc-locked-badge" title="Reopen ticket to edit">read-only</span>`
+  );
 
   bar.querySelectorAll('.doc-tab').forEach(btn => {
     btn.addEventListener('click', () => {
       if (modalState.editMode) return;
+      modalState.pickingDoc = false;
       modalState.activeDoc = btn.dataset.file || null;
       renderModalDocs(t);
       renderModalBody(t);
+      refreshModalActions(t);
+      document.getElementById('m-kbd').style.display = '';
     });
   });
 
-  document.getElementById('btn-new-doc').addEventListener('click', () => promptNewDoc(t));
-  document.getElementById('btn-edit-doc').addEventListener('click', () => enterEditMode(t));
+  if (!locked) {
+    document.getElementById('btn-new-doc')?.addEventListener('click', () => promptNewDoc(t));
+    document.getElementById('btn-edit-doc')?.addEventListener('click', () => enterEditMode(t));
+  }
 }
 
 function renderModalBody(t) {
@@ -1335,8 +1752,10 @@ function renderModalBody(t) {
 
 function enterEditMode(t) {
   if (modalState.editMode) return;
+  if (t.status === 'closed' || t.status === 'cancelled') return;
   modalState.editMode = true;
   renderModalDocs(t);
+  document.getElementById('m-docs').classList.add('editing');
   const bodyEl = document.getElementById('m-body');
   const editEl = document.getElementById('m-edit-area');
 
@@ -1364,6 +1783,7 @@ function enterEditMode(t) {
 
 function exitEditMode(t) {
   modalState.editMode = false;
+  document.getElementById('m-docs').classList.remove('editing');
   document.getElementById('m-editor-toolbar').classList.remove('open');
   setText('m-title', t.title);
   renderModalDocs(t);
@@ -1491,6 +1911,9 @@ function validateDocContent(slug, content) {
 }
 
 function promptNewDoc(t) {
+  modalState.pickingDoc = true;
+  renderModalDocs(t);
+
   const bodyEl = document.getElementById('m-body');
   const editEl = document.getElementById('m-edit-area');
   editEl.style.display = 'none';
@@ -1499,12 +1922,28 @@ function promptNewDoc(t) {
   const existingSlugs = (t.docs || []).map(d => docSlug(t, d.file));
   const suggested     = recommendedSlug(t.status, existingSlugs);
   const available = DOC_TYPES.filter(dt => !existingSlugs.includes(dt.slug));
+  let selectedSlug = available.some(dt => dt.slug === suggested) ? suggested : (available[0]?.slug || '');
   const statusLabel   = titleCase(t.status.replace('_', ' '));
+
+  const selectedType = () => available.find(dt => dt.slug === selectedSlug);
+  const updateSelection = () => {
+    bodyEl.querySelectorAll('.doc-type-card').forEach(card => {
+      const selected = card.dataset.slug === selectedSlug;
+      card.classList.toggle('selected', selected);
+      card.setAttribute('aria-pressed', selected ? 'true' : 'false');
+    });
+    const editBtn = document.getElementById('act-picker-edit');
+    const dt = selectedType();
+    if (editBtn) {
+      editBtn.disabled = !dt;
+      editBtn.textContent = dt ? `Edit ${dt.name}` : 'Edit doc';
+    }
+  };
 
   bodyEl.innerHTML = [
     `<div class="doc-picker-label">This ticket is <strong>${esc(statusLabel)}</strong> — choose a doc type to add:</div>`,
     ...available.map(dt =>
-      `<button class="doc-type-card${dt.slug === suggested ? ' suggested' : ''}" data-slug="${esc(dt.slug)}" data-name="${esc(dt.name)}">` +
+      `<button type="button" class="doc-type-card${dt.slug === suggested ? ' suggested' : ''}${dt.slug === selectedSlug ? ' selected' : ''}" data-slug="${esc(dt.slug)}" data-name="${esc(dt.name)}" aria-pressed="${dt.slug === selectedSlug ? 'true' : 'false'}">` +
         `<div class="doc-type-name">${esc(dt.name)}${dt.slug === suggested ? ' <span class="doc-type-badge">Suggested</span>' : ''}</div>` +
         `<div class="doc-type-hint">${esc(dt.hint)}</div>` +
       `</button>`
@@ -1513,20 +1952,32 @@ function promptNewDoc(t) {
   ].join('');
 
   document.getElementById('m-actions').innerHTML =
+    `<button class="btn btn-primary" id="act-picker-edit"${available.length === 0 ? ' disabled' : ''}>Edit doc</button>` +
     `<button class="btn" id="act-picker-cancel">Cancel</button>`;
   document.getElementById('m-kbd').style.display = 'none';
 
+  document.getElementById('act-picker-edit').addEventListener('click', () => {
+    const dt = selectedType();
+    if (dt) selectDocType(t, dt.slug, dt.name);
+  });
+
   document.getElementById('act-picker-cancel').addEventListener('click', () => {
+    modalState.pickingDoc = false;
     renderModalBody(t); renderModalDocs(t); refreshModalActions(t);
     document.getElementById('m-kbd').style.display = '';
   });
 
   bodyEl.querySelectorAll('.doc-type-card').forEach(card => {
-    card.addEventListener('click', () => selectDocType(t, card.dataset.slug, card.dataset.name));
+    card.addEventListener('click', () => {
+      selectedSlug = card.dataset.slug;
+      updateSelection();
+    });
   });
+  updateSelection();
 }
 
 function selectDocType(t, slug, name) {
+  modalState.pickingDoc = false;
   const file     = docFileFor(t, slug);
   const rawTemplate = DOC_TYPES.find(d => d.slug === slug)?.template || `# ${name}\n\n`;
   const template = rawTemplate.replaceAll('<id>', t.id);
@@ -1662,19 +2113,20 @@ function ensureDocGuideComments(t, content) {
 function closeModal() {
   if (modalState.editMode) return; // don't close while editing
   document.getElementById('modal-overlay').classList.remove('open');
+  modalState.pickingDoc = false;
   state.selectedId = null;
   renderBoard();
 }
 
 function refreshModalActions(t) {
+  const locked = t.status === 'closed' || t.status === 'cancelled';
   const idx = STATUS_ORDER.indexOf(t.status);
   const prev = idx > 0 ? COLUMNS[idx-1].label : null;
   const next = idx < STATUS_ORDER.length-1 ? COLUMNS[idx+1].label : null;
-  const showDiscard = t.status !== 'cancelled' && t.status !== 'closed';
-  document.getElementById('m-actions').innerHTML = `
+  document.getElementById('m-actions').innerHTML = locked ? '' : `
     ${prev ? `<button class="btn" id="act-prev">← Back</button>` : ''}
     ${next ? `<button class="btn" id="act-next">${esc(next)} →</button>` : ''}
-    ${showDiscard ? '<button class="btn btn-danger" id="act-discard" title="Move this ticket to Discarded when the work is abandoned or no longer needed.">Discard ticket ✕</button>' : ''}
+    <button class="btn btn-danger" id="act-discard" title="Move this ticket to Discarded when the work is abandoned or no longer needed.">Discard ticket ✕</button>
   `;
   document.getElementById('act-prev')?.addEventListener('click', () => moveCard(t, STATUS_ORDER[idx-1]));
   document.getElementById('act-next')?.addEventListener('click', () => moveCard(t, STATUS_ORDER[idx+1]));
@@ -1719,6 +2171,7 @@ function semanticScore(commitText, ticketTitle) {
 
 async function openCommitPanel(hash) {
   const overlay = document.getElementById('commit-overlay');
+  resetPanelDrag(document.getElementById('commit-panel'));
   document.getElementById('co-hash').textContent    = hash.slice(0, 7);
   document.getElementById('co-subject').textContent = '…';
   document.getElementById('co-meta').textContent    = '';
@@ -1730,7 +2183,9 @@ async function openCommitPanel(hash) {
   try {
     const d = await fetch(`/api/commit/${hash}`).then(r => r.json());
     document.getElementById('co-subject').textContent = d.subject;
-    document.getElementById('co-meta').textContent    = `${d.author}  ·  ${d.date}`;
+    document.getElementById('co-meta').innerHTML =
+      `<span class="commit-meta-chip">${esc(d.author || 'Unknown author')}</span>` +
+      `<span class="commit-meta-chip">${esc(d.date || 'Unknown date')}</span>`;
     document.getElementById('co-body').textContent    = d.body || '';
 
     const ticketsEl = document.getElementById('co-tickets');
@@ -1751,18 +2206,18 @@ async function openCommitPanel(hash) {
       chips = scored.map(x => x.t);
       label = chips.length ? 'Likely related tickets' : 'Active sprint context';
       note  = chips.length
-        ? `<div style="font-size:11px;color:var(--text-dim);margin-bottom:6px">No ticket IDs in commit — matched by keyword.</div>`
-        : `<div style="font-size:11px;color:var(--text-dim);margin-bottom:6px">No ticket IDs in commit. Tip: prefix commits with <code>${state.tickets.find(t=>t.status==='in_progress')?.id ?? 't-xxxx'}: </code></div>`;
+        ? `<div class="commit-section-note">No ticket IDs in commit — matched by keyword.</div>`
+        : `<div class="commit-section-note">No ticket IDs in commit. Tip: prefix commits with <code class="doc-code">${state.tickets.find(t=>t.status==='in_progress')?.id ?? 't-xxxx'}: </code></div>`;
       if (!chips.length) chips = state.tickets.filter(t => t.status === 'open' || t.status === 'in_progress');
     }
 
     if (chips.length) {
       ticketsEl.innerHTML =
-        `<div class="commit-section-label">${label}</div>${note}` +
+        `<div class="commit-section"><div class="commit-section-label">${label}</div>${note}` +
         `<div class="commit-ticket-chips">` +
         chips.map(t =>
           `<button class="commit-ticket-chip" data-id="${esc(t.id)}">${esc(t.id)} — ${esc(t.title)}</button>`
-        ).join('') + `</div>`;
+        ).join('') + `</div></div>`;
       ticketsEl.querySelectorAll('.commit-ticket-chip').forEach(btn => {
         btn.addEventListener('click', () => { closeCommitPanel(); openModal(btn.dataset.id); });
       });
@@ -1770,10 +2225,10 @@ async function openCommitPanel(hash) {
 
     if (d.files.length) {
       document.getElementById('co-files').innerHTML =
-        `<div class="commit-section-label">${d.files.length} file${d.files.length > 1 ? 's' : ''} changed</div>` +
+        `<div class="commit-section"><div class="commit-section-label">${d.files.length} file${d.files.length > 1 ? 's' : ''} changed</div>` +
         `<div class="commit-file-list">` +
         d.files.map(f => `<div class="commit-file">${esc(f)}</div>`).join('') +
-        `</div>`;
+        `</div></div>`;
     }
   } catch {
     document.getElementById('co-subject').textContent = 'Could not load commit.';
@@ -1788,6 +2243,64 @@ document.getElementById('commit-close').addEventListener('click', closeCommitPan
 document.getElementById('commit-overlay').addEventListener('click', e => {
   if (e.target === e.currentTarget) closeCommitPanel();
 });
+
+function resetPanelDrag(panel) {
+  if (!panel) return;
+  panel.dataset.dragX = '0';
+  panel.dataset.dragY = '0';
+  panel.style.setProperty('--drag-x', '0px');
+  panel.style.setProperty('--drag-y', '0px');
+}
+
+function makePanelDraggable(panelId) {
+  const panel = document.getElementById(panelId);
+  const header = panel?.querySelector('.modal-header');
+  if (!panel || !header) return;
+
+  let dragging = false;
+  let startX = 0;
+  let startY = 0;
+  let baseX = 0;
+  let baseY = 0;
+
+  header.addEventListener('pointerdown', e => {
+    if (e.target.closest('button, a, input, textarea, select')) return;
+    dragging = true;
+    startX = e.clientX;
+    startY = e.clientY;
+    baseX = Number(panel.dataset.dragX || 0);
+    baseY = Number(panel.dataset.dragY || 0);
+    header.classList.add('dragging');
+    panel.classList.add('dragging-panel');
+    document.body.style.userSelect = 'none';
+    header.setPointerCapture(e.pointerId);
+  });
+
+  header.addEventListener('pointermove', e => {
+    if (!dragging) return;
+    const nextX = baseX + e.clientX - startX;
+    const nextY = baseY + e.clientY - startY;
+    panel.dataset.dragX = String(nextX);
+    panel.dataset.dragY = String(nextY);
+    panel.style.setProperty('--drag-x', `${nextX}px`);
+    panel.style.setProperty('--drag-y', `${nextY}px`);
+  });
+
+  const stopDrag = e => {
+    if (!dragging) return;
+    dragging = false;
+    header.classList.remove('dragging');
+    panel.classList.remove('dragging-panel');
+    document.body.style.userSelect = '';
+    try { header.releasePointerCapture(e.pointerId); } catch {}
+  };
+
+  header.addEventListener('pointerup', stopDrag);
+  header.addEventListener('pointercancel', stopDrag);
+}
+
+makePanelDraggable('modal');
+makePanelDraggable('commit-panel');
 
 // ── Create ticket ─────────────────────────────────────────────────────────
 
@@ -1970,7 +2483,7 @@ function setText(id, val) {
     if (!animate) sidebar.style.transition = 'none';
     if (collapsed) {
       sidebar.classList.add('collapsed');
-      sidebar.style.width = '36px';   // must override inline width explicitly
+      sidebar.style.width = '44px';
       handle.style.display = 'none';
     } else {
       sidebar.classList.remove('collapsed');
@@ -1980,10 +2493,26 @@ function setText(id, val) {
     if (!animate) requestAnimationFrame(() => { sidebar.style.transition = ''; });
   }
 
+  function expandAndScrollTo(sectionId) {
+    if (collapsed) {
+      collapsed = false;
+      localStorage.setItem(C_KEY, false);
+      applyState(true);
+    }
+    const target = document.getElementById(sectionId);
+    if (target) {
+      setTimeout(() => target.scrollIntoView({ behavior: 'smooth', block: 'start' }), 220);
+    }
+  }
+
   toggle.addEventListener('click', () => {
     collapsed = !collapsed;
     localStorage.setItem(C_KEY, collapsed);
     applyState(true);
+  });
+
+  document.querySelectorAll('.rail-icon').forEach(icon => {
+    icon.addEventListener('click', () => expandAndScrollTo(icon.dataset.section));
   });
 
   // Drag-to-resize
@@ -2014,6 +2543,18 @@ function setText(id, val) {
   });
 
   applyState(false);
+})();
+
+// ── Tour panel ────────────────────────────────────────────────────────────
+
+(function initTour() {
+  const overlay = document.getElementById('tour-overlay');
+  const open  = () => overlay.classList.add('open');
+  const close = () => overlay.classList.remove('open');
+  document.getElementById('tour-btn').addEventListener('click', open);
+  document.getElementById('tour-close').addEventListener('click', close);
+  overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && overlay.classList.contains('open')) close(); });
 })();
 
 // ── Theme toggle ──────────────────────────────────────────────────────────

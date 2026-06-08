@@ -10,6 +10,7 @@ cd "$project"
 
 id="$("$TKT" create "Write tests" -t task -p 1 -d "Cover the ticket lifecycle")"
 
+[[ "$id" =~ ^t-[a-f0-9]{4}$ ]] || fail "expected ticket ID to be four hex chars, got: $id"
 assert_dir_exists ".tickets/$id"
 assert_file_exists ".tickets/$id/ticket.md"
 assert_grep "^id: $id$" ".tickets/$id/ticket.md"
@@ -38,3 +39,10 @@ assert_grep "^status: closed$" ".tickets/$second_id/ticket.md"
 
 missing_output="$(run_fail "$TKT" show does-not-exist)"
 assert_contains "$missing_output" "Error: no ticket matching 'does-not-exist'"
+
+mkdir -p nested/deeper
+(
+  cd nested/deeper
+  nested_id="$("$TKT" create "Nested ticket")"
+  [[ -f "../../.tickets/$nested_id/ticket.md" ]] || fail "expected nested create to use project .tickets"
+)

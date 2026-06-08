@@ -46,6 +46,40 @@ resolve_deps() {
   echo "$dep_str" | tr -d '[]' | tr ',' '\n' | tr -d ' ' | grep -v '^$' || true
 }
 
+registered_skill_rows() {
+  local agents_file="$1"
+  [ -f "$agents_file" ] || return 0
+  sed -n '/AI-SKILLS:BEGIN/,/AI-SKILLS:END/p' "$agents_file" \
+    | grep "^| " | grep -v "^| Skill" || true
+}
+
+skill_row_name() {
+  awk -F'|' '{gsub(/[[:space:]]/,"",$2); print $2}' <<< "$1"
+}
+
+skill_row_path() {
+  awk -F'|' '{gsub(/^[[:space:]]+|[[:space:]]+$/,"",$4); print $4}' <<< "$1"
+}
+
+registered_skill_names() {
+  local agents_file="$1" line name
+  while IFS= read -r line; do
+    name="$(skill_row_name "$line")"
+    [ -n "$name" ] && printf '%s\n' "$name"
+  done < <(registered_skill_rows "$agents_file")
+}
+
+covered_deps_for_skills() {
+  local skill sf dep
+  while IFS= read -r skill; do
+    [ -z "$skill" ] && continue
+    sf=$(find_skill "$skill" 2>/dev/null) || continue
+    while IFS= read -r dep; do
+      [ -n "$dep" ] && printf '%s\n' "$dep"
+    done < <(resolve_deps "$sf")
+  done
+}
+
 cmd_list() {
   local cols skill_w cat_w indent_w desc_w
   cols=${COLUMNS:-$(tput cols 2>/dev/null || echo 100)}
@@ -307,8 +341,8 @@ cmd_status() {
     echo "Skills:"
     while IFS= read -r line; do
       local sname spath
-      sname=$(echo "$line" | awk -F'|' '{gsub(/[[:space:]]/,"",$2); print $2}')
-      spath=$(echo "$line" | awk -F'|' '{gsub(/^[[:space:]]+|[[:space:]]+$/,"",$4); print $4}')
+      sname=$(skill_row_name "$line")
+      spath=$(skill_row_path "$line")
       [ -z "$sname" ] && continue
       skill_names+=("$sname")
 
@@ -332,8 +366,7 @@ cmd_status() {
       fi
 
       printf "  %-25s %s%s\n" "$sname" "[$tag]" "$suffix"
-    done < <(sed -n '/AI-SKILLS:BEGIN/,/AI-SKILLS:END/p' "$agents_file" \
-               | grep "^| " | grep -v "^| Skill")
+    done < <(registered_skill_rows "$agents_file")
   else
     echo "Skills: none"
   fi
@@ -523,18 +556,11 @@ cmd_refresh() {
   # If skill A is in the depends list of registered skill B, A is loaded
   # transitively via B's @-imports — the explicit registration is redundant.
   local skills_in_table covered_deps=()
-  skills_in_table=$(sed -n '/AI-SKILLS:BEGIN/,/AI-SKILLS:END/p' "$agents_file" \
-    | grep "^| " | grep -v "^| Skill" \
-    | awk -F'|' '{gsub(/[[:space:]]/, "", $2); print $2}')
+  skills_in_table=$(registered_skill_names "$agents_file")
 
-  while IFS= read -r skill; do
-    [ -z "$skill" ] && continue
-    local sf
-    sf=$(find_skill "$skill" 2>/dev/null) || continue
-    while IFS= read -r dep; do
-      [ -n "$dep" ] && covered_deps+=("$dep")
-    done < <(resolve_deps "$sf")
-  done <<< "$skills_in_table"
+  while IFS= read -r dep; do
+    [ -n "$dep" ] && covered_deps+=("$dep")
+  done < <(covered_deps_for_skills <<< "$skills_in_table")
 
   if [ ${#covered_deps[@]} -gt 0 ]; then
     # Pre-compute file paths for each covered dep so we can filter @-imports inline
@@ -555,7 +581,7 @@ cmd_refresh() {
     while IFS= read -r line; do
       if [[ "$line" == "| "* ]] && [[ "$line" != "| Skill"* ]]; then
         local sname
-        sname=$(echo "$line" | awk -F'|' '{gsub(/[[:space:]]/,"",$2); print $2}')
+        sname=$(skill_row_name "$line")
         for dep in "${covered_deps[@]}"; do
           if [ "$sname" = "$dep" ]; then
             echo "  [pruned]  covered by parent dep: $sname" >&2
@@ -575,9 +601,7 @@ cmd_refresh() {
 
   # ── Re-register all remaining skills ─────────────────────────────────────
   local skills
-  skills=$(sed -n '/AI-SKILLS:BEGIN/,/AI-SKILLS:END/p' "$agents_file" \
-    | grep "^| " | grep -v "^| Skill" \
-    | awk -F'|' '{gsub(/[[:space:]]/, "", $2); print $2}')
+  skills=$(registered_skill_names "$agents_file")
 
   echo "Refreshing skills in: $project_dir"
   echo ""
@@ -603,13 +627,10 @@ cmd_refresh() {
 
   # ── upgrade suggestion ───────────────────────────────────────────────────
   local _refresh_has_wrapup=false _refresh_has_sprint=false
-  while IFS= read -r line; do
-    local sname
-    sname=$(echo "$line" | awk -F'|' '{gsub(/[[:space:]]/,"",$2); print $2}')
+  while IFS= read -r sname; do
     [[ "$sname" == "wrapup" ]] && _refresh_has_wrapup=true
     [[ "$sname" == "sprint" ]] && _refresh_has_sprint=true
-  done < <(sed -n '/AI-SKILLS:BEGIN/,/AI-SKILLS:END/p' "$agents_file" \
-             | grep "^| " | grep -v "^| Skill")
+  done < <(registered_skill_names "$agents_file")
 
   echo ""
   if $any_updated; then echo "Done."; else echo "All up to date."; fi

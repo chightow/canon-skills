@@ -131,10 +131,30 @@ High-risk sprints run orient, grill, impact-analysis, required mitigation tests,
 
 **Trigger:** "sprint complete", "complete the sprint", "ship it"
 
-Verify before closing.
+**Confirmation required.** Before doing anything, ask:
+
+> "Ready to close sprint `<id>`? This will run wrapup and move the ticket to Done. Confirm to proceed."
+
+Wait for explicit confirmation. Do not proceed if the trigger came from a broad instruction like "resume", "continue", or "finish" without the user specifically approving closeout. The cost of an unwanted close is high; the cost of asking is zero.
 
 1. **Wrapup.** Run the wrapup pipeline on files modified since sprint start.
-   Apply skip rules from `wrapup.md`.
+   Apply skip rules from `wrapup.md`. After assessing each gate, append a
+   `## Wrapup Gates` section to `acceptance.md` recording every gate's outcome:
+
+   ```markdown
+   ## Wrapup Gates
+   | Gate | Status | Reason |
+   |------|--------|--------|
+   | simplifier | skipped | docs-only change |
+   | reviewer | ran | — |
+   | security | skipped | no security-sensitive patterns |
+   | repo-check | skipped | no repo surface changed |
+   | doc-audit | ran | README updated |
+   ```
+
+   Use `ran` or `skipped`. Always include a reason — even for gates that ran,
+   note what they checked. This makes the acceptance record complete: what was
+   tested and what quality gates ran.
 
 2. **Adversarial review (HIGH-risk only).** If the sprint tier is HIGH-risk,
    run the code-review output through a second model for genuine adversarial

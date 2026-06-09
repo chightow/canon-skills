@@ -16,6 +16,10 @@ template placeholder.
 
 Open the ticket on the board and check every item as it passes tests.
 
+Before running `sprint complete`, open the ticket on the board and confirm all Acceptance items are checked — criteria, test plan, and QA sign-off:
+
+![Ticket showing fully checked Acceptance](ticket-acceptance-complete.png)
+
 ## Step 2 - See the gate in action (try it early)
 
 You can run the close command with unchecked or missing items to see the guard.
@@ -66,6 +70,28 @@ The agent should:
 - Update `HANDOFF.md` with follow-up work.
 - Run `sprint complete` to close the active ticket.
 
+Each gate in the wrapup pipeline either runs or is skipped based on what changed:
+
+![Wrapup pipeline gates before close](wrapup-pipeline.png)
+
+After wrapup, the agent appends a `## Wrapup Gates` section to `acceptance.md`
+recording every gate's outcome. For this Todo sprint it should look like:
+
+```markdown
+## Wrapup Gates
+| Gate | Status | Reason |
+|------|--------|--------|
+| simplifier | skipped | clean minimal code, no simplification opportunities |
+| reviewer | skipped | no design implications in greenfield app |
+| security | skipped | no security-sensitive patterns (no auth, DB, user input handling, or API endpoints) |
+| repo-check | skipped | no repo surface changed |
+| doc-audit | skipped | no user-facing docs changed |
+```
+
+Open the ticket's Acceptance tab on the board after close to confirm the section
+is there. This makes `acceptance.md` the complete record: what was tested *and*
+what quality gates ran.
+
 For this Todo sprint, impact analysis should have stayed light because there is
 no broad audience, irreversible operation, shared-state blast radius, duplicate
 trigger path, or downstream cascade. If any of those were HIGH, their mitigation
@@ -76,7 +102,7 @@ would be checked through the same gate.
 Expected output when all items are checked:
 
 ```
-Sprint completed: t-xxxx
+Sprint t-xxxx is closed.
 ```
 
 ## Step 4 - Verify Done
@@ -84,6 +110,10 @@ Sprint completed: t-xxxx
 Reload `sprint-check`. The Todo ticket should now appear in Done, with the same
 Acceptance and Plan tabs still available in the detail view. The ticket is
 read-only in the modal because closed work should not be edited in place.
+
+Open the Acceptance tab to confirm the Wrapup Gates section is present at the bottom:
+
+![Acceptance tab showing wrapup gates on closed ticket](acceptance-wrapup-gates.png)
 
 Use the search box to find the closed ticket by title or id. Then clear the
 search and click the latest commit in the sidebar to confirm the final commit is

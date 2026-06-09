@@ -55,6 +55,37 @@ The agent records that kind of discovery in `HANDOFF.md ## Discoveries`, where a
 future session can recover it. Do not add another sprint doc; useful discoveries
 feed the handoff context.
 
+After tests pass, the agent produces a build summary confirming what shipped, all
+acceptance criteria met, and the human-in-the-loop checkpoint recorded:
+
+![Agent build-and-verify summary](agent-built-verified.png)
+
+The agent will then ask whether to proceed to `sprint complete`:
+
+![Agent asking to proceed to sprint complete](agent-ask-sprint-complete.png)
+
+**Say not yet.** There are walkthrough steps remaining before closeout. Reply:
+
+```text
+Not yet. I want to go through the remaining walkthrough steps first.
+```
+
+Before moving on, run the app to confirm it works in the browser:
+
+```bash
+npm run serve
+```
+
+![npm run serve terminal output](serve-terminal.png)
+
+Then open `http://127.0.0.1:4173`:
+
+![Todo app running in browser](todo-app-browser.png)
+
+The important canon habit is that tests come from `.tickets/<id>/acceptance.md`,
+not from memory. If scope changes, update the ticket before treating the work as
+done.
+
 ## Step 3 - Exit And Come Back
 
 Simulate the thing canon is built for: losing the current chat context.
@@ -65,18 +96,30 @@ Simulate the thing canon is built for: losing the current chat context.
 Pause here and update HANDOFF.md with current focus, in-progress files, the captured discovery, and next steps.
 ```
 
+   Check `HANDOFF.md` to confirm the discovery and next steps were captured:
+
+   ```bash
+   cat HANDOFF.md
+   ```
+
+   ![HANDOFF.md showing Discoveries and Next Steps](handoff-discoveries.png)
+
 2. End the agent session.
 3. Start a fresh agent session in `examples/canon-todo-walkthrough`.
 4. Ask:
 
 ```text
-Open sprint-check and resume the Todo sprint from HANDOFF.md.
+Open sprint-check and tell me where the Todo sprint left off. Don't proceed yet — I want to review the state first.
 ```
 
 Expected result: the agent should know the active ticket, what was built, what
 still needs testing, and the captured `src/` structure discovery without you
 re-explaining the sprint. `sprint-check` should show the same Current Focus in
 the sidebar.
+
+> **Important:** Do not say "resume" or "continue" here — that gives the agent
+> permission to run wrapup and close the sprint. The goal is to verify it can
+> re-orient from `HANDOFF.md` alone, not to finish the work.
 
 If the board already has older tickets, the returning agent should use them as
 bounded context: active and open tickets first, then only recent or file-related
@@ -93,21 +136,7 @@ the board's inline editor or let the agent edit the markdown file.
 Do not check an item just because code was written. Check it only after the
 behavior or command has been verified.
 
-## Step 5 - Run the App
-
-Type this in the command line:
-
-```bash
-npm run serve
-```
-
-Then open `http://127.0.0.1:4173`.
-
-The important canon habit is that tests come from `.tickets/<id>/acceptance.md`,
-not from memory. If scope changes, update the ticket before treating the work as
-done.
-
-## Step 6 - Commit With The Ticket Id
+## Step 5 - Commit With The Ticket Id
 
 After tests pass, commit the Todo app with the ticket id in the message:
 

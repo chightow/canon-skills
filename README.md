@@ -81,6 +81,10 @@ A full, README-linked tour with refreshed dark-mode clips lives in [`docs/index.
 
 <a href="docs/index.html#commit-context"><img src="meta/screenshots/commit-context-demo.gif" alt="Commit context demo clip" width="680"></a>
 
+#### Completed Sprint Acceptance
+
+<img src="meta/screenshots/acceptance-closed-dark.png" alt="Closed ticket Acceptance tab showing criteria, test plan, QA sign-off, and wrapup gates" width="680">
+
 </details>
 
 Phase-based frameworks give you a multi-command methodology to learn. canon gives you two commands and a board you can see.

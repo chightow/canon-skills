@@ -21,19 +21,6 @@ The folder starts with docs only. Setup creates the local `.tickets/` project
 marker, `sprint start` creates ticket state, and the implementation step creates
 the app files.
 
-Recommended: copy the walkthrough out of the canon checkout first, then work in
-the copy so local sprint state and generated Todo app files stay disposable.
-
-```bash
-scripts/copy-todo-walkthrough.sh ~/Developer/canon-todo-walkthrough
-cd ~/Developer/canon-todo-walkthrough
-```
-
-From an installed canon checkout, use:
-
-```bash
-~/.canon/scripts/copy-todo-walkthrough.sh ~/Developer/canon-todo-walkthrough
-```
 
 Canon uses two sprint docs:
 
@@ -49,8 +36,7 @@ mandatory tests and any required human checkpoint to the two sprint docs.
 
 ## Agentic Coding Concerns Covered
 
-IBM's [agentic coding guidance](https://www.ibm.com/think/topics/agentic-coding)
-calls out practical concerns such as guardrails, human-in-the-loop review,
+Practical concerns with Agentic Workflows are called out such as guardrails, human-in-the-loop review,
 observability, clear context, feedback, and treating AI-generated code as a
 reviewed first draft. This walkthrough shows those in the app flow rather than
 as a separate process:
@@ -66,10 +52,10 @@ as a separate process:
 
 ## Walk The Canon Flow
 
-1. Copy the walkthrough and enter the disposable project folder:
+1. Copy the walkthrough files into a destination folder by running this script:
    ```bash
-   ~/.canon/scripts/copy-todo-walkthrough.sh ~/Developer/canon-todo-walkthrough
-   cd ~/Developer/canon-todo-walkthrough
+   ~/.canon/scripts/copy-todo-walkthrough.sh <path_to_dest_folder>
+   cd <path_to_dest_folder>
    ```
 2. Read [01-setup.md](01-setup.md) — wire the tools.
 3. Start the sprint in [02-sprint-start.md](02-sprint-start.md) — describe the work; the agent plans it.

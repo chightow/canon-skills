@@ -5,12 +5,22 @@ sprint tools on your PATH so the `sprint`, `tkt`, and `sprint-check` commands
 are available. You only do this once per project.
 
 Recommended: run this walkthrough from a disposable copy, not from the canon
-source checkout:
+source checkout as stated earlier:
 
 ```bash
-~/.canon/scripts/copy-todo-walkthrough.sh ~/Developer/canon-todo-walkthrough
-cd ~/Developer/canon-todo-walkthrough
+# Copy the todo project files
+~/.canon/scripts/copy-todo-walkthrough.sh <path_to_dest_folder>
+cd <path_to_dest_folder>
+
+# Check the folder status. It should report 'Skills: none'
+~/.canon/skills.sh status
+
+# List the skills available
+~/.canon/skills.sh list
+
+# Add the sprint skill to the project 
 ~/.canon/skills.sh add sprint
+
 ~/.canon/skills.sh status
 ```
 

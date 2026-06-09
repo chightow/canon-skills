@@ -122,16 +122,12 @@ Both are plain markdown in `.tickets/<id>/` and are injected into the agent's co
 
 Scans `git log` for ticket IDs in commit messages, then reads each ticket's `plan.md` for decisions made during that sprint. When commits predate ticket IDs, it falls back to keyword matching against ticket titles.
 
+<a href="docs/sprint-check.md#ticket-search"><img src="meta/screenshots/why-mode-demo.gif" alt="sprint-check Why mode showing file-history context inline" width="680"></a>
+
 Prefer the board when you want to explore visually: switch the `sprint-check`
 query control from `Search` to `Why`, enter a project-relative file path, and it
 shows the same ticket/decision context inline without leaving the kanban view.
 Keyboard shortcut: type `why:path/to/file`.
-
-```
-t-34en  [closed]  Harden sprint-check board against cross-origin reads
-  → Dropped CORS; Host allowlist gates every request
-t-91r9  [closed]  Clarify close-gate scope: CLI gates checklist, agent verifies
-```
 
 Your repo accumulates intent, not just history. A new agent — or you, six months later — can ask *why* before touching anything.
 

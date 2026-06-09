@@ -200,6 +200,7 @@ function encodeGif(name, clipDir, box) {
     'ticket-detail-demo': 0.7,
     'doc-editing-demo': 1.0,
     'commit-context-demo': 0.6,
+    'why-mode-demo': 2.0,
   };
   const trim = startByName[name] ? `trim=start=${startByName[name]},setpts=PTS-STARTPTS,` : '';
   const vf = `${trim}${cropFilter(box)}fps=10,scale=${SCALE_WIDTH}:-1:flags=lanczos`;
@@ -238,6 +239,18 @@ async function main() {
       await page.keyboard.type('plan incomplete', { delay: 55 });
       await sleep(900);
       return page.locator('#app').boundingBox();
+    })]);
+
+    clips.push(['why-mode-demo', await withPage(port, 'why-mode-demo', async (page) => {
+      await page.click('#search-mode-why');
+      await sleep(250);
+      await page.click('#board-search');
+      await sleep(200);
+      await page.keyboard.type('README.md', { delay: 60 });
+      await sleep(1100);
+      await page.locator('.why-result').first().hover();
+      await sleep(500);
+      return page.locator('#board-wrap').boundingBox();
     })]);
 
     clips.push(['ticket-detail-demo', await withPage(port, 'ticket-detail-demo', async (page) => {

@@ -38,8 +38,8 @@ That's the day-to-day surface. Setup wires the tools once; after that, your agen
 Guided walkthrough:
 
 ```bash
-~/.canon/scripts/copy-todo-walkthrough.sh ~/Developer/canon-todo-walkthrough
-cd ~/Developer/canon-todo-walkthrough
+~/.canon/scripts/copy-todo-walkthrough.sh <dest_folder_path>
+cd <dest_folder_path>
 ~/.canon/skills.sh add sprint
 ```
 

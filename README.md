@@ -114,9 +114,10 @@ mechanics:
    compaction or a session break can lose it.
 3. **Risk-aware planning.** Simple work stays light. High-impact work runs impact
    analysis before code, and every HIGH risk becomes a required Acceptance test.
-4. **Visible workflow.** `sprint-check` turns the repo-local state into a board:
-   readiness, search, inline docs, current focus, git status, and commit context
-   are inspectable by developers and reviewers.
+4. **Queryable intent.** Every sprint records decisions, acceptance criteria, and
+   rejected alternatives in `.tickets/<id>/` as plain markdown. The board's search
+   and Why mode make that record queryable without touching `git log` — ask why a
+   file was built the way it was and get the plan and decisions behind it directly.
 5. **Mechanical close gate.** The CLI refuses to close while Acceptance or Test
    Plan items are unchecked. The agent still owns judgment; canon owns the gate.
 
@@ -160,7 +161,7 @@ then reads each ticket's `plan.md` for decisions made during that sprint. When
 commits predate ticket IDs, it falls back to keyword matching against ticket
 titles.
 
-Your repo accumulates intent, not just history. A new agent — or you, six months later — can ask *why* before touching anything.
+`git log` tells you what changed. `.tickets/` tells you why — decisions made, alternatives rejected, the acceptance bar set. The board makes it searchable without touching git history. A new agent, or you six months later, gets the full picture before touching a line.
 
 ## How Sprint Works
 

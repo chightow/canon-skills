@@ -7,7 +7,7 @@ const os   = require('os');
 const path = require('path');
 const fs   = require('fs');
 
-const REPO = 'https://github.com/sunitghub/canon.git';
+const REPO = 'https://github.com/sunitghub/canon-skills.git';
 
 function expandTilde(p, home) {
   if (p === '~') return home;

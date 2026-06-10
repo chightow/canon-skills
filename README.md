@@ -23,9 +23,9 @@ npx canon-skills@latest
 CANON_HOME=/path/to/dir npx canon-skills@latest   # custom install path
 
 # without Node.js (curl|bash — installs to ~/.canon)
-curl -fsSL https://raw.githubusercontent.com/sunitghub/canon/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/sunitghub/canon-skills/main/install.sh | bash
 # or to a custom path:
-# CANON_HOME=/path/to/dir bash <(curl -fsSL https://raw.githubusercontent.com/sunitghub/canon/main/install.sh)
+# CANON_HOME=/path/to/dir bash <(curl -fsSL https://raw.githubusercontent.com/sunitghub/canon-skills/main/install.sh)
 
 cd /path/to/your-project
 ~/.canon/skills.sh add sprint

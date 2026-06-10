@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # Usage:
-#   curl -fsSL https://raw.githubusercontent.com/sunitghub/canon/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/sunitghub/canon-skills/main/install.sh | bash
 #   CANON_HOME=/path/to/dir bash <(curl -fsSL ...)
 #   bash <(curl -fsSL ...) /path/to/dir
 
 set -euo pipefail
 
-CANON_REPO='https://github.com/sunitghub/canon.git'
+CANON_REPO='https://github.com/sunitghub/canon-skills.git'
 
 # Precedence: positional arg > CANON_HOME env > ~/.canon
 _resolve_target() {

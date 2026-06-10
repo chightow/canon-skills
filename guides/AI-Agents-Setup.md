@@ -16,7 +16,7 @@ developing canon itself, testing an unpublished branch, or recovering without
 a supported installer:
 
 ```bash
-git clone https://github.com/sunitghub/canon.git ~/.canon
+git clone https://github.com/sunitghub/canon-skills.git ~/.canon
 ```
 
 ### Step 2 — Run init (once)

@@ -45,7 +45,7 @@ Install these before running anything canon-related.
 npx canon-skills@latest
 
 # without Node.js (curl|bash)
-curl -fsSL https://raw.githubusercontent.com/sunitghub/canon/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/sunitghub/canon-skills/main/install.sh | bash
 ```
 
 Both clone to `~/.canon` and run `skills.sh init`. The curl path validates the Node-free install; the npx path validates the npm-published artifact. Test whichever matches the user profile you're validating — or both.
@@ -55,7 +55,7 @@ Expected output: `Cloning canon → ~/.canon`, `Wiring agent hooks…`, then a `
 ### 3b — Current branch (validates your pending changes)
 
 ```bash
-git clone https://github.com/sunitghub/canon.git ~/.canon
+git clone https://github.com/sunitghub/canon-skills.git ~/.canon
 ~/.canon/skills.sh init
 ```
 
@@ -202,10 +202,10 @@ Same as the Linux path — run these inside the WSL2 terminal:
 npx canon-skills@latest
 
 # without Node.js
-curl -fsSL https://raw.githubusercontent.com/sunitghub/canon/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/sunitghub/canon-skills/main/install.sh | bash
 
 # or from a specific branch
-# git clone https://github.com/sunitghub/canon.git ~/.canon && ~/.canon/skills.sh init
+# git clone https://github.com/sunitghub/canon-skills.git ~/.canon && ~/.canon/skills.sh init
 ```
 
 ### Test suite

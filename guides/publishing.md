@@ -10,7 +10,7 @@ canon has two independent distribution channels:
 
 | Channel | What it delivers | When to update |
 |---------|-----------------|---------------|
-| **GitHub** (`sunitghub/canon`) | The actual tool — skills, tools, standards, scripts | Every meaningful change |
+| **GitHub** (`sunitghub/canon-skills`) | The public tool — skills, tools, standards, scripts | Every meaningful change |
 | **npm** (`canon-skills`) | The installer only — `bin/install.js` | Rarely — only when the installer itself changes |
 
 These are decoupled. GitHub is the source of truth. npm is just the discovery and delivery entry point. Most updates only touch GitHub.

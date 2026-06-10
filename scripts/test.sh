@@ -15,6 +15,7 @@ tests=(
   "$ROOT/tests/install-sh.sh"
   "$ROOT/tests/copy-todo-walkthrough.sh"
   "$ROOT/tests/sprint-check-server.sh"
+  "$ROOT/tests/sprint-check-app.sh"
 )
 
 for test_file in "${tests[@]}"; do

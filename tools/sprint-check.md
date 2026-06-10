@@ -60,8 +60,8 @@ syntax `why:path/to/file` switches modes from the keyboard.
 
 **Moving tickets:**
 - Drag and drop between columns
-- Or open the ticket and use `← Back` / `Forward →` buttons
-- Keyboard: `←` / `→` to move, `Esc` to close
+- Open ticket modals use `Esc` to close; status changes happen by dragging cards
+  between columns.
 
 **Column count badge** is hidden when a column is empty.
 
@@ -83,7 +83,8 @@ Click any card to open its detail view:
 - **Tabs** — Description tab appears only when companion docs exist; otherwise body is shown directly
 - **Docs** — Acceptance and Plan as tabs; click `+ New doc` only while one of those docs is missing
 - **Edit** — inline edit for the ticket body or any doc; Save / Cancel
-- **Footer** — `← Back`, `Forward →`, `Discard ticket ×`; keyboard hints bottom-right
+- **Resize** — drag the bottom-right handle when long Description, Acceptance, or Plan content needs more room
+- **Footer** — `Discard ticket ×`; keyboard hint bottom-right shows `Esc`
 
 Closed and discarded tickets are read-only in the modal.
 

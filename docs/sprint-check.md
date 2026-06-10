@@ -20,6 +20,8 @@ Toggle between light and dark with the button in the top-right corner.
 
 Click any ticket to see its status, type, priority, readiness, description, and attached docs in one place.
 
+Drag the bottom-right corner of the ticket detail modal to resize it when long Description, Acceptance, or Plan content needs more room. Press `Esc` to close the modal.
+
 Closed and discarded tickets open read-only. Their sprint docs remain inspectable, but edit controls are hidden until the work is reopened or a new ticket is created.
 
 ## Edit Sprint Docs in Place

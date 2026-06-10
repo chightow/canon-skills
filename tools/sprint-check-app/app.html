@@ -575,14 +575,17 @@
     #modal-overlay.open { opacity: 1; pointer-events: auto; }
     #modal {
       background: var(--surface); border: 1px solid var(--modal-border);
-      border-radius: 10px; width: min(740px,92vw); max-height: 86vh;
+      border-radius: 10px; width: min(740px,92vw); max-height: calc(100vh - 24px);
+      min-width: min(420px, calc(100vw - 24px)); min-height: 320px;
+      max-width: calc(100vw - 24px);
       display: flex; flex-direction: column; overflow: hidden;
       box-shadow: 0 24px 64px rgba(0,0,0,.6);
       transform: translate(var(--drag-x, 0px), calc(var(--drag-y, 0px) + 12px)) scale(.97);
       transition: transform .4s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
     #modal-overlay.open #modal { transform: translate(var(--drag-x, 0px), var(--drag-y, 0px)) scale(1); }
-    #modal.dragging-panel { transition: none; }
+    #modal.dragging-panel,
+    #modal.resizing-panel { transition: none; }
     #modal { position: relative; }
     .modal-side-drag {
       position: absolute; top: 0; bottom: 0; width: 10px; z-index: 10;
@@ -591,6 +594,19 @@
     .modal-side-drag.drag-left  { left: 0;  border-radius: 10px 0 0 10px; }
     .modal-side-drag.drag-right { right: 0; border-radius: 0 10px 10px 0; }
     .modal-side-drag.dragging   { cursor: grabbing; }
+    .modal-resize-handle {
+      position: absolute; right: 0; bottom: 0; width: 22px; height: 22px;
+      z-index: 12; cursor: nwse-resize;
+    }
+    .modal-resize-handle::before {
+      content: ''; position: absolute; right: 6px; bottom: 6px;
+      width: 10px; height: 10px;
+      border-right: 2px solid var(--text-muted);
+      border-bottom: 2px solid var(--text-muted);
+      opacity: 1;
+    }
+    .modal-resize-handle:hover::before,
+    .modal-resize-handle.resizing::before { border-color: var(--accent); opacity: 1; }
 
     .modal-header {
       display: flex; align-items: center; gap: 12px;
@@ -1151,8 +1167,9 @@
     </div>
     <div class="modal-footer">
       <div class="modal-actions" id="m-actions"></div>
-      <div class="kbd-hint" id="m-kbd">← → Esc</div>
+      <div class="kbd-hint" id="m-kbd">Esc</div>
     </div>
+    <div class="modal-resize-handle" title="Resize dialog" aria-label="Resize dialog"></div>
   </div>
 </div>
 
@@ -2001,6 +2018,7 @@ function openModal(id) {
   modalState.activeDoc = null;
   modalState.pickingDoc = false;
   resetPanelDrag(document.getElementById('modal'));
+  resetPanelResize(document.getElementById('modal'));
 
   setText('m-id',    t.id);
   setText('m-title', t.title);
@@ -2520,16 +2538,9 @@ function closeModal() {
 
 function refreshModalActions(t) {
   const locked = t.status === 'closed' || t.status === 'cancelled';
-  const idx = STATUS_ORDER.indexOf(t.status);
-  const prev = idx > 0 ? COLUMNS[idx-1].label : null;
-  const next = idx < STATUS_ORDER.length-1 ? COLUMNS[idx+1].label : null;
   document.getElementById('m-actions').innerHTML = locked ? '' : `
-    ${prev ? `<button class="btn" id="act-prev">← Back</button>` : ''}
-    ${next ? `<button class="btn" id="act-next">${esc(next)} →</button>` : ''}
     <button class="btn btn-danger" id="act-discard" title="Move this ticket to Discarded when the work is abandoned or no longer needed.">Discard ticket ✕</button>
   `;
-  document.getElementById('act-prev')?.addEventListener('click', () => moveCard(t, STATUS_ORDER[idx-1]));
-  document.getElementById('act-next')?.addEventListener('click', () => moveCard(t, STATUS_ORDER[idx+1]));
   document.getElementById('act-discard')?.addEventListener('click', () => {
     if (confirm('Discard this ticket? Use Discard only when the work is abandoned or no longer needed.')) {
       moveCard(t, 'cancelled');
@@ -2652,6 +2663,12 @@ function resetPanelDrag(panel) {
   panel.style.setProperty('--drag-y', '0px');
 }
 
+function resetPanelResize(panel) {
+  if (!panel) return;
+  panel.style.width = '';
+  panel.style.height = '';
+}
+
 function makePanelDraggable(panelId) {
   const panel = document.getElementById(panelId);
   const header = panel?.querySelector('.modal-header');
@@ -2707,8 +2724,60 @@ function makePanelDraggable(panelId) {
   });
 }
 
+function makePanelResizable(panelId) {
+  const panel = document.getElementById(panelId);
+  const handle = panel?.querySelector('.modal-resize-handle');
+  if (!panel || !handle) return;
+
+  let resizing = false;
+  let startX = 0;
+  let startY = 0;
+  let startWidth = 0;
+  let startHeight = 0;
+
+  handle.addEventListener('pointerdown', e => {
+    resizing = true;
+    startX = e.clientX;
+    startY = e.clientY;
+    const rect = panel.getBoundingClientRect();
+    startWidth = rect.width;
+    startHeight = rect.height;
+    handle.classList.add('resizing');
+    panel.classList.add('resizing-panel');
+    document.body.style.userSelect = 'none';
+    handle.setPointerCapture(e.pointerId);
+    e.preventDefault();
+    e.stopPropagation();
+  });
+
+  handle.addEventListener('pointermove', e => {
+    if (!resizing) return;
+    const maxWidth = Math.max(320, window.innerWidth - 24);
+    const maxHeight = Math.max(320, window.innerHeight - 24);
+    const minWidth = Math.min(420, maxWidth);
+    const minHeight = Math.min(320, maxHeight);
+    const nextWidth = Math.min(maxWidth, Math.max(minWidth, startWidth + e.clientX - startX));
+    const nextHeight = Math.min(maxHeight, Math.max(minHeight, startHeight + e.clientY - startY));
+    panel.style.width = `${nextWidth}px`;
+    panel.style.height = `${nextHeight}px`;
+  });
+
+  const stopResize = e => {
+    if (!resizing) return;
+    resizing = false;
+    handle.classList.remove('resizing');
+    panel.classList.remove('resizing-panel');
+    document.body.style.userSelect = '';
+    try { handle.releasePointerCapture(e.pointerId); } catch {}
+  };
+
+  handle.addEventListener('pointerup', stopResize);
+  handle.addEventListener('pointercancel', stopResize);
+}
+
 makePanelDraggable('modal');
 makePanelDraggable('commit-panel');
+makePanelResizable('modal');
 
 // ── Inline checkbox toggle ────────────────────────────────────────────────
 
@@ -2897,15 +2966,6 @@ document.addEventListener('keydown', e => {
     }
     return;
   }
-
-  if (modalState.editMode) return; // don't move cards while editing
-
-  const t = state.tickets.find(t => t.id === state.selectedId);
-  if (!t) return;
-  const idx = STATUS_ORDER.indexOf(t.status);
-
-  if (e.key === 'ArrowLeft'  && idx > 0)                     moveCard(t, STATUS_ORDER[idx-1]);
-  if (e.key === 'ArrowRight' && idx < STATUS_ORDER.length-1) moveCard(t, STATUS_ORDER[idx+1]);
 });
 
 document.getElementById('modal-overlay').addEventListener('click', e => {

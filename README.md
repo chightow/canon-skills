@@ -22,15 +22,16 @@ One-time setup:
 npx canon-skills@latest
 CANON_HOME=/path/to/dir npx canon-skills@latest   # custom install path
 
-# without Node.js (curl|bash)
+# without Node.js (curl|bash — installs to ~/.canon)
 curl -fsSL https://raw.githubusercontent.com/sunitghub/canon/main/install.sh | bash
-CANON_HOME=/path/to/dir bash <(curl -fsSL https://raw.githubusercontent.com/sunitghub/canon/main/install.sh)
+# or to a custom path:
+# CANON_HOME=/path/to/dir bash <(curl -fsSL https://raw.githubusercontent.com/sunitghub/canon/main/install.sh)
 
 cd /path/to/your-project
 ~/.canon/skills.sh add sprint
 ```
 
-> Installs to `~/.canon` by default. The `CANON_HOME` env var and a positional argument are also supported — see the usage comment at the top of `install.sh`.
+> Each method installs to `~/.canon` by default. To use a custom path with `npx`: `CANON_HOME=/path npx canon-skills@latest`. To use a custom path with `curl`: `CANON_HOME=/path bash <(curl -fsSL ...)`. (The env var must be passed to `bash`, not `curl`, which is why the pipe form doesn't support it.)
 
 Daily workflow:
 

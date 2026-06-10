@@ -63,6 +63,24 @@ That is the setup surface. Day to day, work starts with `sprint start "<what>"`,
 
 Registering any skill also automatically injects the **efficiency standard** into your project — coding principles, git conventions, and token-efficiency rules that apply to every session without any invocation.
 
+### Uninstall
+
+Before deleting the canon install folder, remove canon-managed agent hooks:
+
+```bash
+~/.canon/skills.sh uninstall
+rm -rf ~/.canon
+```
+
+This removes canon hook entries from `~/.claude/settings.json`, the canon RTK
+import from `~/.codex/AGENTS.md` when present, the canon Pi handoff extension
+when present, and `~/.config/canon/install_path` when it points at this install.
+It preserves unrelated user settings.
+
+If the install folder was already deleted, re-clone canon to the same path and
+run uninstall, or manually remove stale commands that point at the deleted
+folder from `~/.claude/settings.json`.
+
 **Existing project only** — `CLAUDE.md` and `AGENTS.md` are extended with `@`-imports, existing content is preserved. If you have prior architectural decisions worth keeping, add them to `DECISIONS.md` manually before the first sprint using the format in the [How it works](#how-it-works) section; sprint will append from there. `HANDOFF.md` and `DECISIONS.md` are both created automatically on the first `sprint start` if they don't exist.
 
 Here's what gets created and by whom:

@@ -33,6 +33,13 @@ cd /path/to/your-project
 
 > Each method installs to `~/.canon` by default. To use a custom path with `npx`: `CANON_HOME=/path npx canon-skills@latest`. To use a custom path with `curl`: `CANON_HOME=/path bash <(curl -fsSL ...)`. (The env var must be passed to `bash`, not `curl`, which is why the pipe form doesn't support it.)
 
+To remove canon-managed agent hooks before deleting the install folder:
+
+```bash
+~/.canon/skills.sh uninstall
+rm -rf ~/.canon
+```
+
 Daily workflow:
 
 ```bash

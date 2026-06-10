@@ -828,6 +828,135 @@ _init_pi() {
   fi
 }
 
+_uninstall_claude() {
+  local settings="$HOME/.claude/settings.json"
+
+  if [ ! -f "$settings" ]; then
+    echo "  [skip]  ~/.claude/settings.json not found"
+    return 0
+  fi
+  if ! command -v python3 &>/dev/null; then
+    echo "  [fail]  python3 required for settings.json cleanup"
+    return 1
+  fi
+
+  local py_script
+  py_script=$(cat << 'PYEOF'
+import json, os, sys
+settings_path = sys.argv[1]
+skills_root = os.path.realpath(sys.argv[2])
+scripts_path = os.path.join(skills_root, "scripts")
+commands = {
+    os.path.realpath(os.path.join(scripts_path, name))
+    for name in (
+        "auto-handoff.sh",
+        "handoff-inject.sh",
+        "sprint-inject.sh",
+        "pre-commit-check.sh",
+        "auto-polish-trigger.sh",
+        "guard-managed-files.sh",
+    )
+}
+try:
+    with open(settings_path) as f:
+        config = json.load(f)
+except json.JSONDecodeError:
+    print("invalid")
+    sys.exit(0)
+hooks = config.get("hooks")
+if not isinstance(hooks, dict):
+    print("removed\t0")
+    sys.exit(0)
+removed = 0
+for event in list(hooks.keys()):
+    entries = hooks.get(event)
+    if not isinstance(entries, list):
+        continue
+    kept_entries = []
+    for entry in entries:
+        entry_hooks = entry.get("hooks", []) if isinstance(entry, dict) else []
+        kept_hooks = []
+        for hook in entry_hooks:
+            command = os.path.realpath(os.path.expanduser(hook.get("command", "")))
+            if command in commands:
+                removed += 1
+            else:
+                kept_hooks.append(hook)
+        if kept_hooks:
+            entry["hooks"] = kept_hooks
+            kept_entries.append(entry)
+    if kept_entries:
+        hooks[event] = kept_entries
+    else:
+        del hooks[event]
+if not hooks:
+    config.pop("hooks", None)
+with open(settings_path, "w") as f:
+    json.dump(config, f, indent=2)
+    f.write("\n")
+print(f"removed\t{removed}")
+PYEOF
+)
+
+  local result status count
+  result=$(python3 - "$settings" "$SKILLS_ROOT" <<< "$py_script")
+  status="${result%%$'\t'*}"
+  count="${result#*$'\t'}"
+  if [ "$status" = "invalid" ]; then
+    echo "  [warn]  ~/.claude/settings.json is invalid JSON; skipped"
+  elif [ "${count:-0}" -gt 0 ]; then
+    echo "  [removed]  $count Claude hook(s)"
+  else
+    echo "  [ok]     no canon Claude hooks found"
+  fi
+}
+
+_uninstall_codex() {
+  local agents="$HOME/.codex/AGENTS.md"
+  local rtk_ref="@${HOME}/.codex/RTK.md"
+  if [ ! -f "$agents" ]; then
+    echo "  [skip]  ~/.codex/AGENTS.md not found"
+    return 0
+  fi
+  if grep -Fxq "$rtk_ref" "$agents"; then
+    grep -Fxv "$rtk_ref" "$agents" > "${agents}.tmp" && mv "${agents}.tmp" "$agents"
+    echo "  [removed]  Codex RTK import"
+  else
+    echo "  [ok]     no canon Codex import found"
+  fi
+}
+
+_uninstall_pi() {
+  local ext_dst="$HOME/.pi/agent/extensions/handoff.ts"
+  if [ ! -f "$ext_dst" ]; then
+    echo "  [skip]  Pi handoff extension not found"
+    return 0
+  fi
+  if grep -q 'install_path' "$ext_dst" && grep -q 'auto-handoff.sh' "$ext_dst"; then
+    rm -f "$ext_dst"
+    echo "  [removed]  Pi handoff extension"
+  else
+    echo "  [warn]  Pi handoff extension did not look canon-managed; skipped"
+  fi
+}
+
+_uninstall_install_path() {
+  local config="$HOME/.config/canon/install_path"
+  if [ ! -f "$config" ]; then
+    echo "  [skip]  ~/.config/canon/install_path not found"
+    return 0
+  fi
+  local installed
+  installed="$(cat "$config")"
+  if [ "$installed" = "$SKILLS_ROOT" ]; then
+    rm -f "$config"
+    rmdir "$HOME/.config/canon" 2>/dev/null || true
+    echo "  [removed]  install_path"
+  else
+    echo "  [warn]  install_path points at $installed; expected $SKILLS_ROOT"
+  fi
+}
+
 cmd_init() {
   echo "canon init — wiring agent hooks from: $SKILLS_ROOT"
   echo ""
@@ -867,6 +996,40 @@ cmd_init() {
   printf "  %s\n    %s\n" "$SKILLS_ROOT/skills.sh list"             "Browse all available skills"
   echo ""
   echo "Default project dir is cwd — or pass a path explicitly."
+  echo ""
+  echo "Before deleting this install, remove canon hooks with:"
+  echo "  $SKILLS_ROOT/skills.sh uninstall"
+}
+
+cmd_uninstall() {
+  echo "canon uninstall — removing agent hooks for: $SKILLS_ROOT"
+  echo ""
+
+  local any_fail=0
+
+  echo "Claude Code:"
+  _uninstall_claude || any_fail=1
+
+  echo ""
+  echo "Codex:"
+  _uninstall_codex || any_fail=1
+
+  echo ""
+  echo "Pi:"
+  _uninstall_pi || any_fail=1
+
+  echo ""
+  echo "Install path:"
+  _uninstall_install_path || any_fail=1
+
+  echo ""
+  if [ "$any_fail" -eq 0 ]; then
+    echo "Uninstall cleanup complete."
+  else
+    echo "Uninstall cleanup finished with errors — check items marked [fail] above."
+  fi
+  echo "You can now delete this install directory if desired:"
+  echo "  rm -rf \"$SKILLS_ROOT\""
 }
 
 cmd_addall() {
@@ -1191,8 +1354,9 @@ case "$cmd" in
   lint)    cmd_lint    "$@" ;;
   help)    cmd_help    "$@" ;;
   init)    cmd_init    "$@" ;;
+  uninstall|remove-canon) cmd_uninstall "$@" ;;
   *)
-    echo "Usage: skills.sh <list|add|addall|refresh|status|remove|delete|catalog|lint|help|init> [skill] [project-dir]"
+    echo "Usage: skills.sh <list|add|addall|refresh|status|remove|delete|catalog|lint|help|init|uninstall> [skill] [project-dir]"
     echo ""
     echo "  list                    Show all available skills"
     echo "  add <skill> [dir]       Register a skill into a project (default: cwd)"
@@ -1205,6 +1369,8 @@ case "$cmd" in
     echo "  lint                    Check skills/ against skill-setup-std conventions"
     echo "  help <skill>            Show full documentation for a skill"
     echo "  init                    Wire agent hooks for this install location"
+    echo "  uninstall               Remove canon hooks/config for this install"
+    echo "  remove-canon            Alias for uninstall"
     echo "  <skill> --h             Same as: skills.sh help <skill>"
     echo "  --scan [dir]            Show skills registered in a project (default: cwd)"
     exit 1

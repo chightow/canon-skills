@@ -9,6 +9,7 @@ tests=(
   "$ROOT/tests/sprint.sh"
   "$ROOT/tests/skills-add-sprint.sh"
   "$ROOT/tests/skills-refresh.sh"
+  "$ROOT/tests/skills-uninstall.sh"
   "$ROOT/tests/skills-std.sh"
   "$ROOT/tests/install-target.sh"
   "$ROOT/tests/install-sh.sh"

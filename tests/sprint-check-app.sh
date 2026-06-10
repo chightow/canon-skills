@@ -13,6 +13,8 @@ assert_grep 'function makePanelResizable\(panelId\)' "$APP"
 assert_grep "makePanelResizable\\('modal'\\)" "$APP"
 assert_grep 'resetPanelResize\(document.getElementById\('\''modal'\''\)\)' "$APP"
 assert_grep 'max-height: calc\(100vh - 24px\)' "$APP"
+assert_grep 'padding: 12px;' "$APP"
+assert_grep 'min-height: 0;' "$APP"
 assert_grep '<div class="kbd-hint" id="m-kbd">Esc</div>' "$APP"
 
 if grep -qE "act-prev|act-next|ArrowLeft|ArrowRight|← → Esc" "$APP"; then

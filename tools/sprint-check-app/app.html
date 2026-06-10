@@ -637,6 +637,13 @@
     }
     .modal-docs:empty { display: none; }
     .modal-docs.editing { border-bottom-color: var(--accent); }
+    .doc-check-tip {
+      margin-left: auto; font-size: 11px; color: var(--text-muted);
+      display: none; align-items: center; gap: 4px; user-select: none;
+      white-space: nowrap;
+    }
+    .doc-check-tip.visible { display: flex; }
+    .doc-check-tip-icon { font-size: 12px; opacity: .7; }
     .doc-tab {
       padding: 5px 12px; border-radius: 999px; font-size: 12px; font-weight: 600;
       border: 1px solid var(--border); background: transparent;
@@ -731,6 +738,10 @@
       background: rgba(96, 165, 250, .10);
       box-shadow: 0 0 0 2px rgba(96, 165, 250, .08);
     }
+    .doc-bullet[data-check-idx] { cursor: pointer; border-radius: 3px; transition: background .1s; }
+    .doc-bullet[data-check-idx]:hover { background: rgba(255,255,255,.04); }
+    html[data-theme="light"] .doc-bullet[data-check-idx]:hover { background: rgba(0,0,0,.04); }
+    .doc-bullet[data-check-idx].toggling { opacity: .55; pointer-events: none; }
     .editor-toolbar {
       display: none; align-items: center; gap: 4px; flex-wrap: wrap;
       margin-bottom: 10px; padding: 8px 9px;
@@ -2036,6 +2047,13 @@ function renderModalDocs(t) {
     document.getElementById('btn-new-doc')?.addEventListener('click', () => promptNewDoc(t));
     document.getElementById('btn-edit-doc')?.addEventListener('click', () => enterEditMode(t));
   }
+
+  // Re-inject the persistent check tip (innerHTML wipe removes it)
+  const tip = document.createElement('span');
+  tip.id = 'm-check-tip';
+  tip.className = 'doc-check-tip';
+  tip.innerHTML = '<span class="doc-check-tip-icon">☑</span>Click to check off';
+  bar.appendChild(tip);
 }
 
 function injectSectionJumps(container) {
@@ -2087,6 +2105,7 @@ function renderModalBody(t) {
           }
         }
         bodyEl.innerHTML = warning + md(d.content);
+        tagCheckboxes(bodyEl);
         injectSectionJumps(bodyEl);
       })
       .catch(() => { bodyEl.innerHTML = '<span class="modal-empty">Could not load doc.</span>'; });
@@ -2096,6 +2115,8 @@ function renderModalBody(t) {
     body = body.replace(/^#[ \t]+.+(\r?\n|$)/, '').trim();
     bodyEl.innerHTML = body ? md(body) : '<span class="modal-empty">No description.</span>';
     if (body) injectSectionJumps(bodyEl);
+    const tip = document.getElementById('m-check-tip');
+    if (tip) tip.classList.remove('visible');
   }
 }
 
@@ -2666,6 +2687,68 @@ function makePanelDraggable(panelId) {
 
 makePanelDraggable('modal');
 makePanelDraggable('commit-panel');
+
+// ── Inline checkbox toggle ────────────────────────────────────────────────
+
+function tagCheckboxes(el) {
+  let idx = 0;
+  el.querySelectorAll('.doc-bullet').forEach(bullet => {
+    if (bullet.querySelector('.doc-check-marker')) {
+      bullet.dataset.checkIdx = idx++;
+    }
+  });
+  // Show/hide the tip
+  const tip = document.getElementById('m-check-tip');
+  if (tip) tip.classList.toggle('visible', idx > 0 && !modalState.editMode);
+}
+
+async function toggleCheckbox(docFile, checkIdx) {
+  let r, d;
+  try {
+    r = await fetch(`/api/doc/${encodeURIComponent(docFile)}`);
+    d = await r.json();
+  } catch { return; }
+  let i = 0;
+  const updated = d.content.replace(/^(- \[)([ xX])(\] .+)$/gm, (m, pre, mark, rest) => {
+    if (i++ === checkIdx) return pre + (mark.trim() === '' ? 'x' : ' ') + rest;
+    return m;
+  });
+  try {
+    await fetch(`/api/doc/${encodeURIComponent(docFile)}`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content: updated }),
+    });
+  } catch { /* best effort */ }
+}
+
+// Delegated handler — fires once, lives on #m-body permanently
+document.getElementById('m-body').addEventListener('click', async e => {
+  if (modalState.editMode) return;
+  const bullet = e.target.closest('.doc-bullet[data-check-idx]');
+  if (!bullet || !modalState.activeDoc) return;
+  e.stopPropagation();
+
+  const idx = Number(bullet.dataset.checkIdx);
+  const marker = bullet.querySelector('.doc-check-marker');
+  const wasOpen = bullet.classList.contains('doc-check-open');
+
+  // Optimistic UI update
+  bullet.classList.add('toggling');
+  bullet.classList.toggle('doc-check-open', !wasOpen);
+  if (marker) { marker.classList.toggle('open', !wasOpen); marker.textContent = wasOpen ? '✓' : ''; }
+
+  await toggleCheckbox(modalState.activeDoc, idx);
+  bullet.classList.remove('toggling');
+
+  // Re-sync tickets so readiness indicators update on the board
+  try {
+    const tr = await fetch('/api/tickets');
+    if (tr.ok) { state.tickets = await tr.json(); renderBoard(); }
+  } catch {}
+  // Re-render the modal body to reflect the saved state
+  const t = state.tickets.find(tk => tk.id === state.selectedId);
+  if (t) renderModalBody(t);
+});
 
 // ── Create ticket ─────────────────────────────────────────────────────────
 

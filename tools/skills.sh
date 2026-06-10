@@ -150,6 +150,8 @@ cmd_list() {
 
     done < <(find "$dir" -type f -name "*.md" 2>/dev/null | sort)
   done
+  echo ""
+  printf "${dim}To uninstall: skills.sh uninstall && rm -rf ~/.canon${reset}\n"
 }
 
 upsert_at_import() {

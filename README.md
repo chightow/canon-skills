@@ -6,7 +6,6 @@
 
 Two commands and a local board. Your agent forgets — your repo shouldn't.
 
-[![npm](https://img.shields.io/npm/v/canon-skills?color=3b82f6&label=npm)](https://www.npmjs.com/package/canon-skills)
 [![license](https://img.shields.io/badge/license-MIT-2563eb)](LICENSE)
 ![local-first](https://img.shields.io/badge/state-local--first-22c55e)
 ![no-saas](https://img.shields.io/badge/SaaS-none-64748b)
@@ -18,11 +17,7 @@ Two commands and a local board. Your agent forgets — your repo shouldn't.
 One-time setup:
 
 ```bash
-# with Node.js (npx)
-npx canon-skills@latest
-CANON_HOME=/path/to/dir npx canon-skills@latest   # custom install path
-
-# without Node.js (curl|bash — installs to ~/.canon)
+# curl|bash — installs to ~/.canon
 curl -fsSL https://raw.githubusercontent.com/sunitghub/canon-skills/main/install.sh | bash
 # or to a custom path:
 # CANON_HOME=/path/to/dir bash <(curl -fsSL https://raw.githubusercontent.com/sunitghub/canon-skills/main/install.sh)
@@ -31,7 +26,7 @@ cd /path/to/your-project
 ~/.canon/skills.sh add sprint
 ```
 
-> Each method installs to `~/.canon` by default. To use a custom path with `npx`: `CANON_HOME=/path npx canon-skills@latest`. To use a custom path with `curl`: `CANON_HOME=/path bash <(curl -fsSL ...)`. (The env var must be passed to `bash`, not `curl`, which is why the pipe form doesn't support it.)
+> The curl installer installs to `~/.canon` by default. To use a custom path, pass `CANON_HOME` to `bash`: `CANON_HOME=/path bash <(curl -fsSL ...)`.
 
 To remove canon-managed agent hooks before deleting the install folder:
 
@@ -208,7 +203,7 @@ canon enforces its own standards. The test suite runs and blocks before every co
 |---|---|---|
 | Claude Code / Codex / Pi | At least one | running the agent |
 | Git | Yes | clone/update canon |
-| Node.js ≥ 16 | `npx` install only | install via `npx` (not needed for `curl\|bash` install) |
+| Bash | Yes | curl installer |
 | Python 3 | `sprint-check` + hooks | the board |
 
 **Windows 11:** canon's CLI tools are bash scripts — run them inside WSL2 (Ubuntu). See **[fresh-machine-test.md → Windows 11](guides/fresh-machine-test.md#windows-11-wsl2)** for the full setup path.

@@ -72,4 +72,4 @@ Full runbook (npm gotchas, dry-run steps, when to republish vs. just push): **[g
 5. **Tag** the commit: `git tag vX.Y.Z && git push --tags`
 6. **Dry run** to verify the package contents: `npm pack --dry-run`
 7. **Publish**: `npm publish --access public`
-8. **Verify** live: `npm info canon-skills version` and `npx canon-skills@latest`
+8. **Verify** live: `npm info canon-skills version` and `curl -fsSL https://raw.githubusercontent.com/sunitghub/canon-skills/main/install.sh | bash`

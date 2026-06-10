@@ -25,7 +25,7 @@ Install these before running anything canon-related.
 | Tool | Required for | Install |
 |---|---|---|
 | git | All steps | Pre-installed on macOS; `sudo apt install git` on Ubuntu |
-| Node.js ≥ 16 | `npx` install | `brew install node` / `nvm install --lts` |
+| Node.js ≥ 16 | CLI test suite | `brew install node` / `nvm install --lts` |
 | Python 3 | `sprint-check` board | Pre-installed on macOS; `sudo apt install python3` on Ubuntu |
 | Claude Code | Agent walkthrough only | `npm install -g @anthropic-ai/claude-code` |
 
@@ -41,14 +41,10 @@ Install these before running anything canon-related.
 ### 3a — Published path (what real users hit)
 
 ```bash
-# with Node.js
-npx canon-skills@latest
-
-# without Node.js (curl|bash)
 curl -fsSL https://raw.githubusercontent.com/sunitghub/canon-skills/main/install.sh | bash
 ```
 
-Both clone to `~/.canon` and run `skills.sh init`. The curl path validates the Node-free install; the npx path validates the npm-published artifact. Test whichever matches the user profile you're validating — or both.
+This clones to `~/.canon` and runs `skills.sh init`. Use the curl path to validate the public installer.
 
 Expected output: `Cloning canon → ~/.canon`, `Wiring agent hooks…`, then a `Done.` block with next steps.
 
@@ -198,10 +194,6 @@ Without `wslu`, sprint-check prints the URL instead of opening it automatically.
 Same as the Linux path — run these inside the WSL2 terminal:
 
 ```bash
-# with Node.js (requires nvm setup above)
-npx canon-skills@latest
-
-# without Node.js
 curl -fsSL https://raw.githubusercontent.com/sunitghub/canon-skills/main/install.sh | bash
 
 # or from a specific branch
@@ -249,7 +241,7 @@ Then follow the walkthrough exactly as on Linux/macOS — hooks, sprint flow, an
 
 | Check | Pass when |
 |---|---|
-| Install (3a) | `npx` prints `Done.`, `~/.canon/skills.sh list` works |
+| Install (3a) | `curl` prints `Done.`, `~/.canon/skills.sh list` works |
 | Test suite (4) | `npm test` ends `All tests passed.` |
 | Project wiring (5) | `skills.sh status` shows all `[ok]` |
 | Sprint gate (5) | `sprint complete` blocks on missing files and unchecked items |

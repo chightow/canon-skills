@@ -29,7 +29,7 @@ git push
 ```
 
 Users pick up changes automatically:
-- **Existing installs** — next time they run `npx canon-skills@latest`, the installer does `git pull`
+- **Existing installs** — next time they rerun the curl installer, it does `git pull`
 - **Projects** — `@`-imports in `CLAUDE.md` are live references; Claude picks up changes on the next session start
 
 ### What goes to GitHub
@@ -139,9 +139,9 @@ First launch path:
 1. **Prepare and verify the clean public source.**
 
    The installer clones over unauthenticated HTTPS. Publishing to npm while the
-   installer target is private can reserve the package name, but
-   `npx canon-skills@latest` will fail for normal users until the installer
-   target is public.
+   installer target is private can reserve the package name, but the public
+   curl installer will fail for normal users until the installer target is
+   public.
 
 2. **Authenticate npm:**
 
@@ -171,7 +171,7 @@ First launch path:
    ```bash
    npm info canon-skills
    npm info canon-skills version
-   npx canon-skills@latest
+   curl -fsSL https://raw.githubusercontent.com/sunitghub/canon-skills/main/install.sh | bash
    ```
 
 6. **Create the first GitHub Release after live npm verification:**
@@ -248,7 +248,7 @@ npm publish <path-to-canon> --access public
 7. **Verify:**
    ```bash
    npm info canon-skills version   # should show new version
-   npx canon-skills@latest         # smoke test
+   curl -fsSL https://raw.githubusercontent.com/sunitghub/canon-skills/main/install.sh | bash
    ```
 
 ### Caveats and gotchas
@@ -269,7 +269,7 @@ npm pack --dry-run <path-to-canon>
 
 **OTP required if 2FA is enabled** — npm will prompt for a one-time password from your authenticator app during publish. Enable 2FA on your npm account (recommended).
 
-**Unpublishing has a 72-hour window.** After 72 hours, a published version cannot be unpublished unless it has zero downloads. Test with `npm pack --dry-run` and `npx ./canon-skills-x.x.x.tgz` locally before publishing.
+**Unpublishing has a 72-hour window.** After 72 hours, a published version cannot be unpublished unless it has zero downloads. Test with `npm pack --dry-run` and the public curl installer before publishing.
 
 ---
 
@@ -305,7 +305,7 @@ npm publish <path-to-canon> --access public
 
 # 6. verify
 npm info canon-skills version
-npx canon-skills@latest
+curl -fsSL https://raw.githubusercontent.com/sunitghub/canon-skills/main/install.sh | bash
 ```
 
 ### Check current published state

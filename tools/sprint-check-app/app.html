@@ -2691,15 +2691,21 @@ makePanelDraggable('commit-panel');
 // ── Inline checkbox toggle ────────────────────────────────────────────────
 
 function tagCheckboxes(el) {
+  const t = state.tickets.find(tk => tk.id === state.selectedId);
+  const locked = !t || t.status === 'closed' || t.status === 'cancelled';
   let idx = 0;
   el.querySelectorAll('.doc-bullet').forEach(bullet => {
     if (bullet.querySelector('.doc-check-marker')) {
-      bullet.dataset.checkIdx = idx++;
+      if (!locked) {
+        bullet.dataset.checkIdx = idx++;
+      } else {
+        delete bullet.dataset.checkIdx;
+      }
     }
   });
-  // Show/hide the tip
+  // Show tip only for editable tickets with checkboxes
   const tip = document.getElementById('m-check-tip');
-  if (tip) tip.classList.toggle('visible', idx > 0 && !modalState.editMode);
+  if (tip) tip.classList.toggle('visible', idx > 0 && !modalState.editMode && !locked);
 }
 
 async function toggleCheckbox(docFile, checkIdx) {
@@ -2726,6 +2732,8 @@ document.getElementById('m-body').addEventListener('click', async e => {
   if (modalState.editMode) return;
   const bullet = e.target.closest('.doc-bullet[data-check-idx]');
   if (!bullet || !modalState.activeDoc) return;
+  const currentTicket = state.tickets.find(tk => tk.id === state.selectedId);
+  if (!currentTicket || currentTicket.status === 'closed' || currentTicket.status === 'cancelled') return;
   e.stopPropagation();
 
   const idx = Number(bullet.dataset.checkIdx);

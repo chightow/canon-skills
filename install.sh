@@ -57,7 +57,8 @@ printf 'Wiring agent hooks...\n'
 bash "$TARGET/skills.sh" init
 
 printf '\nDone.\n\n'
-printf '  Register skills in a project:\n\n'
-printf '    cd /path/to/your-project\n'
+printf '  Example walkthrough:\n\n'
+printf '    %s/scripts/copy-todo-walkthrough.sh /tmp/canon-todo\n' "$TARGET"
+printf '    cd /tmp/canon-todo\n'
 printf '    %s/skills.sh add sprint\n\n' "$TARGET"
 printf '  Full setup guide: %s/guides/AI-Agents-Setup.md\n\n' "$TARGET"

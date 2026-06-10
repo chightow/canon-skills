@@ -77,16 +77,11 @@ function main() {
 
   header('Done.');
   console.log(`
-  Register skills in a project:
+  Example walkthrough:
 
-    cd /path/to/your-project
-    ${TARGET}/skills.sh add sprint    # full dev workflow
-    ${TARGET}/skills.sh addall        # advanced: all standalone skills
-
-  Or add to your PATH for shorter commands:
-
-    export SKILLS=${TARGET}
-    $SKILLS/skills.sh add sprint
+    ${TARGET}/scripts/copy-todo-walkthrough.sh /tmp/canon-todo
+    cd /tmp/canon-todo
+    ${TARGET}/skills.sh add sprint
 
   Full setup guide: ${TARGET}/guides/AI-Agents-Setup.md
 `);

@@ -9,6 +9,18 @@ this file is the public-facing shortlist.
   org references point at the real public repo. Includes aligning the install-terminal
   mockup with the installer's actual output.
 
+## Near-term — operations and board scale
+
+- **Repo sync: canon → canon-skills** — make every meaningful push to the private
+  dev repo reach the public install repo. Current path is manual dual-push with
+  `public` remote; target state is a GitHub mirror after public-launch cleanup.
+  Tracked by `t-4989`.
+- **Done-column scale and archive policy** — the board collapses Done/Discarded
+  cards visually, but `/api/tickets` still loads all tickets each refresh. Decide
+  whether closed tickets need windowed loading, pagination, or an explicit
+  archived status. Archive should preserve ticket files and keep historical work
+  searchable for `Why`/code archaeology. Tracked by `t-070b`.
+
 ## Backlog — ideas from ecosystem research
 
 - **`session-learn` skill** — retrospective scan of `~/.claude/projects/<project>/*.jsonl` to

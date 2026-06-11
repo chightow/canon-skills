@@ -80,7 +80,10 @@ High-risk sprints run orient, grill, impact-analysis, required mitigation tests,
    - Record the tier and one-line reason in `plan.md`.
 
 4. **Context.** Read in order:
-   - `DECISIONS.md` at repo root — create with empty log table if absent
+   - `DECISIONS.md` at repo root — create with empty log table if absent. After reading,
+     actively scan every entry: identify any that constrain or conflict with this sprint's
+     request. A conflict is not a passive note — it must be surfaced in the brief and
+     resolved by the user before any implementation proceeds.
    - `HANDOFF.md` — create from template if absent, otherwise read current state and discoveries
    - Active sprint files
    - Closed tickets in `.tickets/` that touched files this sprint will modify — note any whose behavior must still hold
@@ -113,12 +116,15 @@ High-risk sprints run orient, grill, impact-analysis, required mitigation tests,
 9. **Sprint brief.** Produce:
    - What this sprint accomplishes (one sentence)
    - Tier: trivial skipped / normal / high-risk, with the reason
+   - **DECISIONS.md conflicts or constraints:** list every applicable entry verbatim. If
+     any entry conflicts with the requested approach, call it out explicitly here — do not
+     proceed past this point without the user acknowledging the conflict and deciding how
+     to resolve it. If none apply, state "no applicable decisions found."
    - Files expected to be created or modified
    - Impact summary: overall rating + any HIGH dimensions with their required actions called out, or "normal tier — no high-risk triggers found"
    - Human checkpoint: required/not required; if required, the decision and approved autonomy
    - Acceptance criteria (verbatim from acceptance.md)
    - Test plan (verbatim from acceptance.md ## Test Plan)
-   - Any constraints from DECISIONS.md that apply
    - Open questions or blockers still unresolved
 
 10. **Wait for explicit approval.** Do not write code until confirmed. On approval, write `plan.md` to `.tickets/<id>/` with the timestamp, ticket ID, tier, grill resolutions if any, and full approved sprint brief verbatim.

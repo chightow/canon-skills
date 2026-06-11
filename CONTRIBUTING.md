@@ -61,15 +61,16 @@ gh api --method POST repos/sunitghub/canon/rulesets \
 After that, direct pushes to `main` stop — all changes land through PRs that
 pass CI.
 
-## Release Checklist
+## Shipping a Change
 
-Full runbook (npm gotchas, dry-run steps, when to republish vs. just push): **[guides/publishing.md](guides/publishing.md)**.
+canon is a living library — there's no release step for skills, tools, or docs.
+Push to both remotes and users pick it up automatically:
 
-1. **Bump version** in `package.json` (follow semver: patch for fixes, minor for new skills, major for breaking changes)
-2. **Update** any `standards/*.md` files that changed — bump their `version:` and `updated:` frontmatter
-3. **Run tests**: `npm test`
-4. **Commit** the bump: `git commit package.json -m "chore: bump version to X.Y.Z"`
-5. **Tag** the commit: `git tag vX.Y.Z && git push --tags`
-6. **Dry run** to verify the package contents: `npm pack --dry-run`
-7. **Publish**: `npm publish --access public`
-8. **Verify** live: `npm info canon-skills version` and `curl -fsSL https://raw.githubusercontent.com/sunitghub/canon-skills/main/install.sh | bash`
+```bash
+git push          # → sunitghub/canon (dev)
+git push public   # → sunitghub/canon-skills (public install target)
+```
+
+The curl installer (`install.sh`) is the primary distribution channel. On
+re-run it does `git pull`, so every push is live for existing installs on the
+next invocation.

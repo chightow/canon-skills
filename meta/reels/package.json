@@ -4,9 +4,9 @@
   "private": true,
   "description": "Remotion composition for canon TikTok/YouTube promo reel",
   "scripts": {
-    "dev": "npx remotion studio",
-    "render:9x16": "npx remotion render --composition=CanonReel9x16 --output=out/canon-reel-9x16.mp4 --gl=angle",
-    "render:16x9": "npx remotion render --composition=CanonReel16x9 --output=out/canon-reel-16x9.mp4 --gl=angle",
+    "dev": "node node_modules/.bin/remotion studio",
+    "render:9x16": "node node_modules/.bin/remotion render src/index.ts CanonReel9x16 out/canon-reel-9x16.mp4 --gl=angle",
+    "render:16x9": "node node_modules/.bin/remotion render src/index.ts CanonReel16x9 out/canon-reel-16x9.mp4 --gl=angle",
     "render": "npm run render:9x16 && npm run render:16x9"
   },
   "dependencies": {

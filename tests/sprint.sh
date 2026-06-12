@@ -17,14 +17,17 @@ assert_file_exists "DECISIONS.md"
 assert_file_exists "HANDOFF.md"
 assert_eq "$id" "$(tr -d '[:space:]' < .tickets/ACTIVE)"
 
+# sprint start now scaffolds both docs with required headings
+assert_file_exists ".tickets/$id/acceptance.md"
+assert_file_exists ".tickets/$id/plan.md"
+assert_grep "## Approach" ".tickets/$id/plan.md"
+assert_grep "## Criteria" ".tickets/$id/acceptance.md"
+assert_grep "## Test Plan" ".tickets/$id/acceptance.md"
+
 second_start_output="$(run_fail "$SPRINT" start "Another sprint")"
 assert_contains "$second_start_output" "Active sprint already exists:"
 
-missing_output="$(run_fail "$SPRINT" complete)"
-assert_contains "$missing_output" "Missing required sprint file: $project/.tickets/$id/acceptance.md"
-assert_contains "$missing_output" "Missing required sprint file: $project/.tickets/$id/plan.md"
-
-# Acceptance exists but is missing required sections — new section-aware gate
+# Overwrite with content missing required sections — section-aware gate should block
 cat > ".tickets/$id/acceptance.md" <<'EOF'
 # Acceptance
 

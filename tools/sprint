@@ -74,6 +74,45 @@ cmd_start() {
   tdir="$(ticket_dir_for "$id")"
   mkdir -p "$tdir"
 
+  [[ -f "$tdir/acceptance.md" ]] || cat > "$tdir/acceptance.md" <<EOF
+# Acceptance
+
+<!-- Keep the Ticket line below unchanged. -->
+Ticket: \`$id\`
+
+## Criteria
+The checklist of behavior that must be true before the sprint can close.
+<!-- Add or edit checklist items below. Keep this heading unchanged. -->
+
+- [ ]
+
+## Test Plan
+The commands or checks that prove the criteria work.
+<!-- Add or edit test commands below. Keep this heading unchanged. -->
+
+- [ ]
+
+## QA
+Edge cases and sign-off.
+<!-- Add or edit QA items below. Keep this heading unchanged. -->
+
+- [ ] Tested locally
+EOF
+
+  [[ -f "$tdir/plan.md" ]] || cat > "$tdir/plan.md" <<EOF
+# Plan
+
+<!-- Keep the Ticket line below unchanged. -->
+Ticket: \`$id\`
+<!-- Keep this doc under ~500 words — it is injected at every session start. -->
+
+## Approach
+<!-- Describe how you will implement this. Keep this heading unchanged. -->
+
+## Decisions
+<!-- Record non-obvious tradeoffs and why. Keep this heading unchanged. -->
+EOF
+
   ensure_context_files "$root"
 
   cat <<EOF
@@ -82,8 +121,8 @@ Ticket: $tdir/ticket.md
 
 Agent next steps:
 1. Read DECISIONS.md, HANDOFF.md, and ticket.md.
-2. Create acceptance.md with done criteria, test plan, and QA sign-off.
-3. Create plan.md with the approach and decisions after explicit approval.
+2. Fill in acceptance.md — add criteria and test-plan checklist items.
+3. Fill in plan.md — write the approach, then wait for explicit approval before coding.
 EOF
 }
 

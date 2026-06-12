@@ -162,30 +162,19 @@ cmd_status() {
 }
 
 _acceptance_section() {
-  # Extract lines belonging to a ## Heading section of acceptance.md
   awk -v h="$1" '$0 ~ "^##[[:space:]]+"h"[[:space:]]*$" { f=1; next } /^##[[:space:]]/ { f=0 } f' "$2"
 }
 
-cmd_complete() {
-  local id tdir acceptance missing=0 unchecked=0
-  local current_out current_rc
-  set +e; current_out="$("$TKT_BIN" current 2>&1)"; current_rc=$?; set -e
-  if [[ "$current_rc" -gt 1 ]]; then echo "$current_out" >&2; exit "$current_rc"; fi
-  if [[ "$current_rc" -ne 0 ]]; then echo "No active sprint."; exit 1; fi
-  id="$(awk '{print $1}' <<< "$current_out")"
-
-  tdir="$(ticket_dir_for "$id")"
-  acceptance="$tdir/acceptance.md"
-
+_gate_sprint_files() {
+  local id="$1" tdir="$2" acceptance="$3" missing=0
   for f in "$tdir/ticket.md" "$acceptance" "$tdir/plan.md" "$tdir/summary.md"; do
-    if [[ ! -f "$f" ]]; then
-      echo "Missing required sprint file: $f"
-      missing=1
-    fi
+    [[ ! -f "$f" ]] && echo "Missing required sprint file: $f" && missing=1
   done
-  [[ "$missing" -eq 0 ]] || exit 1
+  return $missing
+}
 
-  # Require Criteria and Test Plan sections each have at least one checkbox item
+_gate_acceptance_sections() {
+  local id="$1" acceptance="$2" missing=0
   if ! _acceptance_section "Criteria" "$acceptance" | grep -qE '^[[:space:]]*[-*] \[[ xX]\]'; then
     echo "Sprint $id cannot close: acceptance.md ## Criteria has no checklist items."
     echo "Add done criteria to acceptance.md, then re-run."
@@ -196,23 +185,42 @@ cmd_complete() {
     echo "Add test commands to acceptance.md, then re-run."
     missing=1
   fi
-  [[ "$missing" -eq 0 ]] || exit 1
+  return $missing
+}
 
+_gate_wrapup_gates() {
+  local id="$1" acceptance="$2"
   if ! grep -q "^## Wrapup Gates" "$acceptance"; then
     echo "Sprint $id cannot close: acceptance.md is missing ## Wrapup Gates section."
     echo "Run wrapup before closing."
-    exit 1
+    return 1
   fi
+}
 
+_gate_no_unchecked() {
+  local id="$1" acceptance="$2"
   if grep -qE '^[[:space:]]*[-*] \[ \]' "$acceptance"; then
-    unchecked=1
-  fi
-
-  if [[ "$unchecked" -eq 1 ]]; then
     echo "Sprint $id is not complete. Unchecked acceptance/test items remain:"
     grep -E '^[[:space:]]*[-*] \[ \]' "$acceptance" || true
-    exit 1
+    return 1
   fi
+}
+
+cmd_complete() {
+  local id tdir acceptance
+  local current_out current_rc
+  set +e; current_out="$("$TKT_BIN" current 2>&1)"; current_rc=$?; set -e
+  if [[ "$current_rc" -gt 1 ]]; then echo "$current_out" >&2; exit "$current_rc"; fi
+  if [[ "$current_rc" -ne 0 ]]; then echo "No active sprint."; exit 1; fi
+  id="$(awk '{print $1}' <<< "$current_out")"
+
+  tdir="$(ticket_dir_for "$id")"
+  acceptance="$tdir/acceptance.md"
+
+  _gate_sprint_files        "$id" "$tdir" "$acceptance" || exit 1
+  _gate_acceptance_sections "$id" "$acceptance"         || exit 1
+  _gate_wrapup_gates        "$id" "$acceptance"         || exit 1
+  _gate_no_unchecked        "$id" "$acceptance"         || exit 1
 
   "$TKT_BIN" close "$id"
   echo "Sprint completed: $id"

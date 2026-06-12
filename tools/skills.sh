@@ -1276,11 +1276,10 @@ PYEOF
     local binary="${command%% *}"
     binary="${binary/#\~/$HOME}"
 
-    # Deduplicate by binary path
     [[ "$checked" == *" ${binary} "* ]] && continue
     checked="${checked}${binary} "
 
-    local stem; stem=$(basename "$binary")
+    local stem="${binary##*/}"
     [[ "$skip_bins" == *" $stem "* ]] && continue
 
     local location
@@ -1290,25 +1289,21 @@ PYEOF
       location="statusLine"
     fi
 
-    if [[ "$binary" == /* ]] || [[ "$binary" == "$HOME"* ]]; then
-      # Absolute path — check file existence
-      if [ -f "$binary" ]; then
-        printf "  ok       %s\n" "$(basename "$binary")"
-      else
-        printf "  MISSING  %s\n" "$(basename "$binary")"
-        printf "    path:     %s\n" "$binary"
-        printf "    location: %s in ~/.claude/settings.json\n" "$location"
-        (( issues++ )) || true
-      fi
+    local is_path=0 present=1
+    [[ "$binary" == /* || "$binary" == "$HOME"* ]] && is_path=1 || true
+    if (( is_path )); then
+      [ -f "$binary" ] || present=0
     else
-      # External binary — check with which
-      if command -v "$binary" &>/dev/null; then
-        printf "  ok       %s\n" "$binary"
-      else
-        printf "  MISSING  %s\n" "$binary"
-        printf "    location: %s in ~/.claude/settings.json\n" "$location"
-        (( issues++ )) || true
-      fi
+      command -v "$binary" &>/dev/null || present=0
+    fi
+
+    if (( present )); then
+      printf "  ok       %s\n" "$stem"
+    else
+      printf "  MISSING  %s\n" "$stem"
+      (( is_path )) && printf "    path:     %s\n" "$binary"
+      printf "    location: %s in ~/.claude/settings.json\n" "$location"
+      issues=$(( issues + 1 ))
     fi
   done <<< "$py_out"
 

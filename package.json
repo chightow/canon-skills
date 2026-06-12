@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "description": "Shared skill library for AI coding agents — Claude Code, Codex, Pi. One clone. Minimal setup.",
   "scripts": {
-    "test": "./scripts/test.sh"
+    "test": "./scripts/test.sh",
+    "test:ui": "playwright test tests/sprint-check-app.spec.js"
   },
   "bin": {
     "canon-skills": "./bin/install.js"
@@ -30,5 +31,8 @@
     "type": "git",
     "url": "https://github.com/sunitghub/canon-skills.git"
   },
-  "homepage": "https://github.com/sunitghub/canon-skills#readme"
+  "homepage": "https://github.com/sunitghub/canon-skills#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.60.0"
+  }
 }

@@ -1251,7 +1251,7 @@
           <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18"/><path d="M7 13h4"/></svg>
         </button>
       </div>
-      <textarea id="c-body" class="modal-edit-area create-textarea" placeholder="Description" spellcheck="false"></textarea>
+      <textarea id="c-body" class="modal-edit-area create-textarea" placeholder="Notes (optional)" spellcheck="false"></textarea>
     </div>
     <div class="modal-footer">
       <div class="modal-actions">
@@ -2038,14 +2038,15 @@ function cardHTML(t, idx) {
 
 // ── Modal ─────────────────────────────────────────────────────────────────
 
-const modalState = { editMode: false, activeDoc: null /* null = ticket body */ };
+const modalState = { editMode: false, activeDoc: null };
 
 function openModal(id) {
   const t = state.tickets.find(t => t.id === id);
   if (!t) return;
   state.selectedId = id;
   modalState.editMode = false;
-  modalState.activeDoc = null;
+  const docs = (t.docs || []).filter(d => !HIDDEN_DOC_SLUGS.has(docSlug(t, d.file)));
+  modalState.activeDoc = docs.length > 0 ? docs[0].file : null;
   modalState.pickingDoc = false;
   resetPanelDrag(document.getElementById('modal'));
   resetPanelResize(document.getElementById('modal'));
@@ -2080,14 +2081,11 @@ const HIDDEN_DOC_SLUGS = new Set(['blueprint']);
 function renderModalDocs(t) {
   const docs = (t.docs || []).filter(d => !HIDDEN_DOC_SLUGS.has(docSlug(t, d.file)));
   const bar = document.getElementById('m-docs');
-  // Only show the Description tab when there are other docs to switch between
-  const allTabs = docs.length > 0 ? [{ name: 'Description', file: null }, ...docs] : docs;
-
   const locked = t.status === 'closed' || t.status === 'cancelled';
   const pickingDoc = modalState.pickingDoc;
   const canAddDoc = availableDocTypes(t).length > 0;
 
-  bar.innerHTML = allTabs.map(d => {
+  bar.innerHTML = docs.map(d => {
     const active = d.file === modalState.activeDoc;
     return `<button class="doc-tab${active ? ' active' : ''}" data-file="${d.file ?? ''}">${esc(d.name)}</button>`;
   }).join('') +
@@ -2179,14 +2177,6 @@ function renderModalBody(t) {
         injectSectionJumps(bodyEl);
       })
       .catch(() => { bodyEl.innerHTML = '<span class="modal-empty">Could not load doc.</span>'; });
-  } else {
-    let body = (t.body || '').trim();
-    // strip leading H1 if it duplicates the title shown in the modal header
-    body = body.replace(/^#[ \t]+.+(\r?\n|$)/, '').trim();
-    bodyEl.innerHTML = body ? md(body) : '<span class="modal-empty">No description.</span>';
-    if (body) injectSectionJumps(bodyEl);
-    const tip = document.getElementById('m-check-tip');
-    if (tip) tip.classList.remove('visible');
   }
 }
 

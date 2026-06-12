@@ -17,3 +17,7 @@ tools/tailscale-check.sh
 posts/
 critique/
 .claude/settings.json
+
+node_modules/
+package-lock.json
+test-results/

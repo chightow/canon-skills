@@ -14,11 +14,6 @@ Run `/context-check` to generate new findings. Append only on explicit confirmat
 
 ---
 
-### 2026-05-23 — RTK.md installation verification block
-**File:** `~/.claude/RTK.md`
-**Issue:** "Installation Verification" section (`rtk --version`, `which rtk`) is debug tooling, irrelevant during normal work. Loaded every session.
-**Action:** Removed section.
-
 ### 2026-05-23 — CLAUDE.md Approach block duplicates AGENTS.md
 **File:** `~/.claude/CLAUDE.md` ↔ `AGENTS.md`
 **Issue:** Near-verbatim duplicate of the Approach section. CLAUDE.md imports AGENTS.md, so both loaded every session. ~8 redundant lines.
@@ -34,7 +29,3 @@ Run `/context-check` to generate new findings. Append only on explicit confirmat
 **Issue:** Identical rule in both files, both loaded every session.
 **Action:** Removed from CLAUDE.md; AGENTS.md is the canonical home.
 
-### 2026-05-23 — RTK.md circular reference
-**File:** `~/.claude/RTK.md`
-**Issue:** "Refer to CLAUDE.md for full command reference." — CLAUDE.md has no RTK command reference; it imports RTK.md. Dead and misleading.
-**Action:** Removed the line.

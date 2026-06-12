@@ -30,15 +30,12 @@ This configures all installed agents in one shot:
 
 | Agent | What gets configured |
 |---|---|
-| Claude Code | Handoff + quality hooks merged into `~/.claude/settings.json`. RTK wired automatically if installed. |
-| Codex | RTK wired into `~/.codex/AGENTS.md` (skipped if RTK absent). |
+| Claude Code | Handoff + quality hooks merged into `~/.claude/settings.json`. |
 | Pi | Copies `extensions/pi/handoff.ts` to `~/.pi/agent/extensions/` |
 
 Agents not installed are skipped. Re-run any time you move or rename the canon folder.
 
 On success, `init` prints the available commands. You're ready to register skills.
-
-> **RTK** (optional) — if already installed, `skills.sh init` wires it automatically. No separate setup needed. Without it, canon works fully.
 
 ### Step 3 — Register sprint in your project
 
@@ -69,9 +66,9 @@ skills.sh uninstall
 rm -rf ~/.canon
 ```
 
-This removes canon hook entries from `~/.claude/settings.json`, the canon RTK
-import from `~/.codex/AGENTS.md` when present, the canon Pi handoff extension
-when present, and `~/.config/canon/install_path` when it points at this install.
+This removes canon hook entries from `~/.claude/settings.json`, the canon Pi
+handoff extension when present, and `~/.config/canon/install_path` when it
+points at this install.
 It preserves unrelated user settings.
 
 If the install folder was already deleted, re-clone canon to the same path and

@@ -791,23 +791,6 @@ PYEOF
     fi
   done <<< "$hook_output"
 
-  if [ "$added" -gt 0 ] && command -v rtk &>/dev/null; then
-    rtk init -g --auto-patch > /dev/null 2>&1 && echo "  [ok]     RTK hook wired" || echo "  [ok]     RTK hook already present"
-  fi
-}
-
-_init_codex() {
-  if ! command -v codex &>/dev/null; then
-    echo "  [skip]  codex not installed"
-    return 0
-  fi
-  if command -v rtk &>/dev/null; then
-    rtk init -g --codex --auto-patch > /dev/null 2>&1 \
-      && echo "  [added]  RTK wired into ~/.codex/AGENTS.md" \
-      || echo "  [ok]     RTK already in ~/.codex/AGENTS.md"
-  else
-    echo "  [skip]  rtk not installed (optional)"
-  fi
 }
 
 _init_pi() {
@@ -973,10 +956,6 @@ cmd_init() {
 
   echo "Claude Code:"
   _init_claude || any_fail=1
-
-  echo ""
-  echo "Codex:"
-  _init_codex || any_fail=1
 
   echo ""
   echo "Pi:"

@@ -36,12 +36,6 @@ Evidence log for documentation accuracy. Run `/doc-audit` to generate new findin
 **Issue:** Claims 7, lists 5. Missing: readability, efficiency.
 **Action:** Listed all 7 dimensions explicitly.
 
-### 2026-05-23 — brew install rtk as upfront prerequisite
-**File:** `guides/AI-Agents-Setup.md`
-**Claim:** Prominent callout with `brew install rtk` / `cargo install rtk` as a setup step.
-**Issue:** RTK is optional — presenting it as a setup step implies it's required.
-**Action:** Replaced with "wired automatically if already installed."
-
 ### 2026-06-03 — Release checklist omitted core tests
 **File:** `CONTRIBUTING.md`
 **Claim:** Release checklist went from standards updates directly to committing/tagging/publishing.

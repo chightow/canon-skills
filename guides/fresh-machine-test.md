@@ -2,7 +2,7 @@
 
 Validates that canon is self-contained and works on a machine where none of your dev-box config exists. Uses a UTM virtual machine.
 
-**What this proves:** canon installs, wires hooks, runs its CLI suite, and shows the board — with no help from your global dotfiles, Homebrew setup, RTK, or pre-existing `~/.claude` config.
+**What this proves:** canon installs, wires hooks, runs its CLI suite, and shows the board — with no help from your global dotfiles, Homebrew setup, or pre-existing `~/.claude` config.
 
 ---
 
@@ -32,7 +32,6 @@ Install these before running anything canon-related.
 **Verify nothing bleeds in from your host:**
 - No `~/.claude/` directory yet (or it contains only what canon creates)
 - No `~/.canon` directory
-- `which rtk` returns nothing — RTK is absent; canon must work without it
 
 ---
 
@@ -187,7 +186,6 @@ Without `wslu`, sprint-check prints the URL instead of opening it automatically.
 **Verify nothing bleeds in:**
 - No `~/.claude/` directory yet
 - No `~/.canon` directory
-- `which rtk` returns nothing
 
 ### Install
 

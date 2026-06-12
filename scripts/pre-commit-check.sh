@@ -17,8 +17,8 @@ except Exception:
     pass
 " 2>/dev/null)
 
-# Only fire on git commit commands (handles rtk-rewritten form too)
-echo "$CMD" | grep -qE '(^| )(git|rtk git) commit' || exit 0
+# Only fire on git commit commands
+echo "$CMD" | grep -qE '(^| )git commit' || exit 0
 
 GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
 

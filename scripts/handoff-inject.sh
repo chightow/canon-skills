@@ -40,11 +40,7 @@ if [ "$should_inject" = "1" ]; then
 
   echo "[handoff] Resuming — context from last session:"
   echo "---"
-  if command -v rtk &>/dev/null; then
-    rtk read "$HANDOFF_FILE"
-  else
-    cat "$HANDOFF_FILE"
-  fi
+  cat "$HANDOFF_FILE"
   echo "---"
   echo "[handoff] Read the above before doing anything else."
 fi

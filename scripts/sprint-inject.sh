@@ -61,13 +61,11 @@ if [ "$LINE_COUNT" -gt "$MAX_LINES" ]; then
   echo "[sprint] Warning: plan.md is ${LINE_COUNT} lines (limit: ${MAX_LINES}). Consider pruning to keep session-start injection lean."
 fi
 
-HAS_RTK=0; command -v rtk &>/dev/null && HAS_RTK=1
-
-if [[ "$HAS_RTK" -eq 1 ]]; then rtk read "$PLAN_FILE"; else cat "$PLAN_FILE"; fi
+cat "$PLAN_FILE"
 
 if [ -f "$ACCEPTANCE_FILE" ]; then
   echo ""
-  if [[ "$HAS_RTK" -eq 1 ]]; then rtk read "$ACCEPTANCE_FILE"; else cat "$ACCEPTANCE_FILE"; fi
+  cat "$ACCEPTANCE_FILE"
 fi
 
 echo "---"

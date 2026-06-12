@@ -75,9 +75,10 @@ const TerminalWindow: React.FC<{children: React.ReactNode; width: number}> = ({c
     background: '#0d1117',
     border: `1px solid ${BORDER}`,
     borderRadius: 10,
-    padding: '18px 24px',
+    padding: '22px 32px',
     width,
     boxSizing: 'border-box',
+    minWidth: 0,
   }}>
     <div style={{display: 'flex', gap: 6, marginBottom: 14}}>
       {['#ff5f57','#ffbd2e','#28c840'].map((c, i) => (
@@ -110,21 +111,80 @@ const FileCard: React.FC<{name: string; frame: number; showAt: number; fs: numbe
   );
 };
 
+// ─── Scene 0: Board intro (0–60f) ────────────────────────────────────────────
+
+const SceneBoardIntro: React.FC<{width: number; height: number; capFs: number}> = ({width, height, capFs}) => {
+  const frame = useCurrentFrame();
+
+  // Board scales + fades in from slightly below
+  const sp = useSpring(frame, 0);
+  const scale = interpolate(sp, [0, 1], [0.93, 1]);
+  const boardOpacity = clamp(interpolate(frame, [0, 18], [0, 1]), 0, 1);
+
+  // Caption fades in at frame 28
+  const capOpacity = fadeIn(frame, 28, 16);
+
+  const imgW = Math.min(width * 0.9, height * 0.56 * 1.78);
+
+  return (
+    <AbsoluteFill style={{justifyContent: 'center', alignItems: 'center', flexDirection: 'column', gap: 28}}>
+      {/* Board screenshot */}
+      <div style={{
+        opacity: boardOpacity,
+        transform: `scale(${scale})`,
+        borderRadius: 12,
+        overflow: 'hidden',
+        border: `1px solid ${BORDER}`,
+        boxShadow: `0 20px 60px rgba(0,0,0,0.55)`,
+      }}>
+        <Img src={staticFile('board.png')} style={{width: imgW, display: 'block'}} />
+      </div>
+
+      {/* Tagline caption */}
+      <div style={{
+        opacity: capOpacity,
+        fontFamily: SANS,
+        fontSize: capFs,
+        fontWeight: 600,
+        color: TEXT,
+        textAlign: 'center',
+        letterSpacing: 0.3,
+        padding: '0 32px',
+      }}>
+        Plan. Build. See it.
+      </div>
+    </AbsoluteFill>
+  );
+};
+
 // ─── Scene 1: Hook (0–90f) ───────────────────────────────────────────────────
 
-const SceneHook: React.FC<{fs: number; termW: number}> = ({fs, termW}) => {
+const SceneHook: React.FC<{fs: number; termW: number; capFs: number}> = ({fs, termW, capFs}) => {
   const frame = useCurrentFrame();
+  const capOpacity = fadeIn(frame, 50, 18);
   return (
-    <AbsoluteFill style={{justifyContent: 'center', alignItems: 'center'}}>
+    <AbsoluteFill style={{justifyContent: 'center', alignItems: 'center', flexDirection: 'column', gap: 28}}>
       <TerminalWindow width={termW}>
         <Typewriter
-          text="$ sprint start &quot;add todo list&quot;"
+          text='$ sprint start "add todo list"'
           frame={frame}
           start={8}
           cps={12}
           fs={fs}
         />
       </TerminalWindow>
+      <div style={{
+        opacity: capOpacity,
+        fontFamily: SANS,
+        fontSize: capFs,
+        fontWeight: 600,
+        color: TEXT,
+        textAlign: 'center',
+        letterSpacing: 0.3,
+        padding: '0 32px',
+      }}>
+        One command. Ticket, plan, acceptance — created locally.
+      </div>
     </AbsoluteFill>
   );
 };
@@ -227,11 +287,11 @@ function colorize(line: string, baseFs: number) {
   ));
 }
 
-const SceneBuild: React.FC<{fs: number}> = ({fs}) => {
+const SceneBuild: React.FC<{fs: number; termW: number}> = ({fs, termW}) => {
   const frame = useCurrentFrame();
   return (
     <AbsoluteFill style={{justifyContent: 'center', alignItems: 'center'}}>
-      <TerminalWindow width={Math.min(700, fs * 22)}>
+      <TerminalWindow width={termW}>
         {CODE_LINES.map((line, i) => {
           const showAt = i * 22 + 5;
           const opacity = fadeIn(frame, showAt, 12);
@@ -359,11 +419,11 @@ function lerp(a: number, b: number, t: number) {
 
 // ─── Scene 6: Close (690–810f, local 0–120) ───────────────────────────────────
 
-const SceneClose: React.FC<{fs: number; capFs: number}> = ({fs, capFs}) => {
+const SceneClose: React.FC<{fs: number; capFs: number; termW: number}> = ({fs, capFs, termW}) => {
   const frame = useCurrentFrame();
   return (
     <AbsoluteFill style={{justifyContent: 'center', alignItems: 'center'}}>
-      <TerminalWindow width={Math.min(560, fs * 18)}>
+      <TerminalWindow width={termW}>
         <div style={{display: 'flex', flexDirection: 'column', gap: 8}}>
           <Typewriter text="$ sprint complete" frame={frame} start={5} cps={14} fs={fs} />
           <div style={{opacity: fadeIn(frame, 35, 20), fontFamily: MONO, fontSize: fs, color: GREEN}}>
@@ -444,10 +504,12 @@ export const CanonReel: React.FC<CanonReelProps> = ({aspectRatio}) => {
   const {width, height} = useVideoConfig();
   const is916 = aspectRatio === '9:16';
 
-  // Scale fonts relative to width
-  const fs   = Math.round(width * 0.033);   // ~36px @ 1080
-  const capFs = Math.round(width * 0.028);  // ~30px @ 1080
-  const termW = Math.min(width * 0.82, 860);
+  // Scale fonts by shorter dimension so 9:16 and 16:9 stay consistent (~36px base)
+  const base  = Math.min(width, height);
+  const fs    = Math.round(base * 0.033);   // ~36px
+  const capFs = Math.round(base * 0.028);   // ~30px
+  // Terminal stretches to fit full command on one line
+  const termW = Math.min(width * 0.9, Math.max(width * 0.88, 900));
   const barH  = is916 ? 158 : 130;
   const barFs = Math.round(width * 0.012);  // pipeline labels
 
@@ -457,8 +519,11 @@ export const CanonReel: React.FC<CanonReelProps> = ({aspectRatio}) => {
     <AbsoluteFill style={{background: BG, fontFamily: MONO}}>
       {/* Content area */}
       <div style={{position: 'absolute', top: 0, left: 0, right: 0, height: contentH, overflow: 'hidden'}}>
+        <Sequence from={SCENES.INTRO.start} durationInFrames={SCENES.INTRO.dur}>
+          <SceneBoardIntro width={width} height={contentH} capFs={capFs} />
+        </Sequence>
         <Sequence from={SCENES.HOOK.start}  durationInFrames={SCENES.HOOK.dur}>
-          <SceneHook fs={fs} termW={termW} />
+          <SceneHook fs={fs} termW={termW} capFs={capFs} />
         </Sequence>
         <Sequence from={SCENES.PLAN.start}  durationInFrames={SCENES.PLAN.dur}>
           <ScenePlan fs={fs} capFs={capFs} />
@@ -467,13 +532,13 @@ export const CanonReel: React.FC<CanonReelProps> = ({aspectRatio}) => {
           <SceneGateApproved fs={fs} capFs={capFs} />
         </Sequence>
         <Sequence from={SCENES.BUILD.start} durationInFrames={SCENES.BUILD.dur}>
-          <SceneBuild fs={fs} />
+          <SceneBuild fs={fs} termW={termW} />
         </Sequence>
         <Sequence from={SCENES.GATE2.start} durationInFrames={SCENES.GATE2.dur}>
           <SceneGateBlocked fs={fs} capFs={capFs} />
         </Sequence>
         <Sequence from={SCENES.CLOSE.start} durationInFrames={SCENES.CLOSE.dur}>
-          <SceneClose fs={fs} capFs={capFs} />
+          <SceneClose fs={fs} capFs={capFs} termW={termW} />
         </Sequence>
         <Sequence from={SCENES.BOARD.start} durationInFrames={SCENES.BOARD.dur}>
           <SceneBoard fs={fs} capFs={capFs} width={width} height={contentH} />

@@ -202,10 +202,7 @@ Wait for explicit confirmation. Do not proceed if the trigger came from a broad 
 
 7. **HANDOFF.md.** Refresh the narrative per the handoff protocol (`../tools/handoff.md`): update `## Current Focus`, `## In Progress`, and `## Next Steps` to reflect this sprint. `## Discoveries` is handled by capture mid-build — leave it. Decisions belong in `DECISIONS.md`, not here.
 
-8. **Close.** Run `sprint complete`. If it refuses because checklist items
-   remain unchecked, report the blockers and stop.
-
-9. **Report.** Write `.tickets/<id>/summary.md` with the plan-vs-actual table and
+8. **Summary.** Write `.tickets/<id>/summary.md` with the plan-vs-actual table and
    a one-paragraph summary. Also output both in chat.
 
    File format:
@@ -222,6 +219,9 @@ Wait for explicit confirmation. Do not proceed if the trigger came from a broad 
    One row per acceptance criterion from `acceptance.md`. Deviations must appear
    in the table — do not bury them in prose. The file appears as a **Summary** tab
    on the ticket board alongside Acceptance and Plan.
+
+9. **Close.** Run `sprint complete`. If it refuses because a required file is
+   missing or checklist items remain unchecked, report the blockers and stop.
 
 ---
 

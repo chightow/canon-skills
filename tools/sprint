@@ -173,7 +173,7 @@ cmd_complete() {
   tdir="$(ticket_dir_for "$id")"
   acceptance="$tdir/acceptance.md"
 
-  for f in "$tdir/ticket.md" "$acceptance" "$tdir/plan.md"; do
+  for f in "$tdir/ticket.md" "$acceptance" "$tdir/plan.md" "$tdir/summary.md"; do
     if [[ ! -f "$f" ]]; then
       echo "Missing required sprint file: $f"
       missing=1

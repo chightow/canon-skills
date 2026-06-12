@@ -16,3 +16,4 @@ guides/*.pdf
 tools/tailscale-check.sh
 posts/
 critique/
+.claude/settings.json

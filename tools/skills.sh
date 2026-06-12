@@ -306,6 +306,7 @@ cmd_add() {
   upsert_at_import "$claude_file" "$import_line" "$skill_basename" "CLAUDE.md"
   skills_table_upsert "$agents_file" "$name" "$skill_row"
   upsert_at_import "$agents_file" "$import_line" "$skill_basename" "AGENTS.md"
+  _init_claude "$project_dir/.claude/settings.json" 2>/dev/null | grep -E '^\s+\[added\]' || true
 
   echo ""
   echo "Done. $desc"
@@ -417,7 +418,7 @@ cmd_status() {
   # ── Claude Code hook check ───────────────────────────────────────────────
   local hook_issues=0
   if [ ${#skill_names[@]} -gt 0 ] && command -v claude &>/dev/null; then
-    local settings="$HOME/.claude/settings.json"
+    local settings="$project_dir/.claude/settings.json"
     if [ ! -f "$settings" ]; then
       hook_issues=3
     else
@@ -430,7 +431,7 @@ cmd_status() {
       echo "Claude hooks: [ok]"
     else
       echo "Claude hooks: [not configured] ($hook_issues missing)"
-      echo "  Run: skills.sh init"
+      echo "  Run: skills.sh add <skill> $project_dir"
     fi
   fi
 
@@ -724,8 +725,8 @@ cmd_help() {
 }
 
 _init_claude() {
+  local settings="$1"
   local scripts="$SKILLS_ROOT/scripts"
-  local settings="$HOME/.claude/settings.json"
 
   if ! command -v claude &>/dev/null; then
     echo "  [skip]  claude not installed"
@@ -823,10 +824,10 @@ _init_pi() {
 }
 
 _uninstall_claude() {
-  local settings="$HOME/.claude/settings.json"
+  local settings="$1"
 
   if [ ! -f "$settings" ]; then
-    echo "  [skip]  ~/.claude/settings.json not found"
+    echo "  [skip]  $settings not found"
     return 0
   fi
   if ! command -v python3 &>/dev/null; then
@@ -897,7 +898,7 @@ PYEOF
   status="${result%%$'\t'*}"
   count="${result#*$'\t'}"
   if [ "$status" = "invalid" ]; then
-    echo "  [warn]  ~/.claude/settings.json is invalid JSON; skipped"
+    echo "  [warn]  $settings is invalid JSON; skipped"
   elif [ "${count:-0}" -gt 0 ]; then
     echo "  [removed]  $count Claude hook(s)"
   else
@@ -962,8 +963,12 @@ cmd_init() {
 
   local any_fail=0
 
-  echo "Claude Code:"
-  _init_claude || any_fail=1
+  echo "Claude Code (canon project hooks):"
+  _init_claude "$SKILLS_ROOT/.claude/settings.json" || any_fail=1
+
+  echo ""
+  echo "Claude Code (migrate stale global hooks):"
+  _uninstall_claude "$HOME/.claude/settings.json" || any_fail=1
 
   echo ""
   echo "Pi:"
@@ -997,8 +1002,12 @@ cmd_uninstall() {
 
   local any_fail=0
 
-  echo "Claude Code:"
-  _uninstall_claude || any_fail=1
+  echo "Claude Code (canon project hooks):"
+  _uninstall_claude "$SKILLS_ROOT/.claude/settings.json" || any_fail=1
+
+  echo ""
+  echo "Claude Code (stale global hooks):"
+  _uninstall_claude "$HOME/.claude/settings.json" || any_fail=1
 
   echo ""
   echo "Codex:"
@@ -1093,13 +1102,15 @@ cmd_addall() {
 # ── check ───────────────────────────────────────────────────────────────────
 
 cmd_check() {
-  local settings="$HOME/.claude/settings.json"
+  local project_dir="${1:-$(pwd)}"
+  local settings="$project_dir/.claude/settings.json"
 
   echo "canon check — probing external tool dependencies"
+  echo "settings: $settings"
   echo ""
 
   if [ ! -f "$settings" ]; then
-    echo "~/.claude/settings.json not found — no hooks to check"
+    echo "$settings not found — no hooks to check"
     return 0
   fi
 
@@ -1127,7 +1138,7 @@ sl_cmd = config.get("statusLine", {}).get("command", "")
 if sl_cmd:
     print(f"statusLine|||{sl_cmd}")
 PYEOF
-) || { echo "Failed to parse ~/.claude/settings.json"; return 1; }
+) || { echo "Failed to parse $settings"; return 1; }
 
   # Builtins always present — skip them
   local skip_bins=" bash sh zsh python3 node echo true false cat grep awk sed find ls pwd "
@@ -1164,7 +1175,7 @@ PYEOF
     else
       printf "  MISSING  %s\n" "$stem"
       (( is_path )) && printf "    path:     %s\n" "$binary"
-      printf "    location: %s in ~/.claude/settings.json\n" "$location"
+      printf "    location: %s in %s\n" "$location" "$settings"
       issues=$(( issues + 1 ))
     fi
   done <<< "$py_out"
@@ -1174,7 +1185,7 @@ PYEOF
     echo "All dependencies present."
     return 0
   else
-    echo "$issues missing. Remove the referencing hook(s) from ~/.claude/settings.json"
+    echo "$issues missing. Remove the referencing hook(s) from $settings"
     return 1
   fi
 }

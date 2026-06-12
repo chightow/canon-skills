@@ -1265,17 +1265,20 @@ case "$cmd" in
     exit 1
     ;;
   *)
-    echo "Usage: skills.sh <list|add|addall|refresh|status|check [dir]|remove|help|init|uninstall> [skill] [project-dir]"
+    echo "Usage: skills.sh <command> [skill] [project-dir]"
     echo ""
     echo "  list                    Show all available skills"
     echo "  add <skill> [dir]       Register a skill into a project (default: cwd)"
     echo "  addall [dir]            Register all available skills into a project (default: cwd)"
     echo "  refresh [dir]           Re-register all skills and update standards (default: cwd)"
     echo "  status [dir]            Show registered skills and detect issues (default: cwd)"
-    echo "  check [dir]             Probe dependencies in project .claude/settings.json (default: cwd)"
+    echo "  check [dir]             Probe dependencies in project .claude/settings.json"
+    echo "                          (default: cwd)"
     echo "  remove <skill> [dir]    Unregister a skill from a project (default: cwd)"
     echo "  help <skill>            Show full documentation for a skill"
-    echo "  init                    Set up this canon install: wire project hooks, migrate stale global hooks, install Pi extension, record install path"
+    echo "  init                    Set up this canon install: wire project hooks,"
+    echo "                          migrate stale global hooks, install Pi extension,"
+    echo "                          record install path"
     echo "  uninstall               Remove canon hooks/config for this install"
     echo "  <skill> --h             Same as: skills.sh help <skill>"
     echo "  --scan [dir]            Show skills registered in a project (default: cwd)"

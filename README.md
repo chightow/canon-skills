@@ -37,6 +37,8 @@ rm -rf ~/.canon
 
 Daily workflow:
 
+> `sprint start` and `sprint-check` require `~/.canon/tools` on your PATH. The curl installer wires this automatically; `skills.sh add` will offer to add it if it's missing.
+
 ```bash
 sprint start "add OAuth login"   # plan the work, create a local ticket
 sprint-check                     # open the board in your browser
@@ -134,6 +136,11 @@ Every acceptance criterion, its outcome, and any deviations — permanently on t
 </details>
 
 Phase-based frameworks give you a multi-command methodology to learn. canon gives you two commands and a board you can see.
+
+Compared to common alternatives:
+- **CLAUDE.md alone** — injects context but has no lifecycle gate; the agent can skip planning or close without review.
+- **Linear + Cursor Rules** — external tracker plus editor conventions; state lives outside the repo and drifts as the project evolves.
+- **Plandex** — LLM-native planning and execution, but cloud-dependent and no per-project repo-local audit trail.
 
 **[Full feature tour →](docs/sprint-check.md)** — dark mode, ticket detail, in-place doc editing, commit intelligence, drag-to-update, completeness checks.
 

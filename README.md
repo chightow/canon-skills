@@ -58,33 +58,28 @@ canon end to end without adding local sprint state to the canon checkout.
 
 ## What Makes canon Different
 
-Most teams adopting agentic workflows hit the same problems: unclear autonomy,
-lost context, invisible decisions, weak review gates, and hard-to-debug agent
-actions. canon keeps the surface small by turning those concerns into repo-local
-mechanics:
+Most agent tools tell you what the agent did. canon records what it promised — and whether it delivered.
 
-1. **Session continuity.** `HANDOFF.md`, the active ticket, open tickets, and a
-   small set of recent or file-related closed tickets give a returning agent
-   enough context to resume without replaying the whole project history.
-2. **Knowledge capture.** When the agent finds a non-obvious constraint mid-build,
-   capture records it in `HANDOFF.md ## Discoveries` immediately, before context
+1. **Delivery receipt.** When a sprint closes, the agent writes a plan-vs-actual
+   table: one row per acceptance criterion, showing whether it was delivered,
+   waived, deferred, or partial. Deviations can't be buried in prose. The
+   **Summary** tab on the board makes this permanent and queryable.
+2. **Mechanical close gate.** The CLI refuses to close while Acceptance or Test
+   Plan items are unchecked, `summary.md` is missing, or the Wrapup Gates record
+   is absent. Gates don't make agents smarter — they make certain failures
+   impossible.
+3. **Session continuity.** `HANDOFF.md`, the active ticket, and a small set of
+   related closed tickets give a returning agent enough context to resume without
+   replaying the whole project history.
+4. **Knowledge capture.** When the agent finds a non-obvious constraint mid-build,
+   capture records it in `HANDOFF.md ## Discoveries` immediately — before context
    compaction or a session break can lose it.
-3. **Risk-aware planning.** Simple work stays light. High-impact work runs impact
+5. **Risk-aware planning.** Simple work stays light. High-impact work runs impact
    analysis before code, and every HIGH risk becomes a required Acceptance test.
-4. **Queryable intent.** Every sprint records decisions, acceptance criteria, and
-   rejected alternatives in `.tickets/<id>/` as plain markdown. The board's search
-   and Why mode make that record queryable without touching `git log` — ask why a
-   file was built the way it was and get the plan and decisions behind it directly.
-5. **Mechanical close gate.** The CLI refuses to close while Acceptance or Test
-   Plan items are unchecked. The agent still owns judgment; canon owns the gate.
-6. **Delivery receipt.** When a sprint closes, the agent writes a Summary tab on
-   the ticket: one row per acceptance criterion showing whether it was delivered,
-   waived, deferred, or partial. Deviations can't be buried in prose. Most tools
-   show you what the agent *did* — canon records what it *promised* and whether
-   it delivered.
-
-These map to common agentic-coding guidance: guardrails, human review,
-observability, right context, feedback loops, and accountability.
+6. **Queryable intent.** Every sprint records decisions, acceptance criteria, and
+   rejected alternatives as plain markdown. Ask why a file was built the way it
+   was — the board surfaces the plan and decisions behind it without touching
+   `git log`.
 
 ## The Board
 
@@ -132,8 +127,6 @@ A full, README-linked tour with refreshed dark-mode clips lives in [`docs/index.
 Every acceptance criterion, its outcome, and any deviations — permanently on the ticket.
 
 </details>
-
-Phase-based frameworks give you a multi-command methodology to learn. canon gives you two commands and a board you can see.
 
 Compared to common alternatives:
 - **CLAUDE.md alone** — injects context but has no lifecycle gate; the agent can skip planning or close without review.
@@ -209,6 +202,8 @@ Define your standards once; every project inherits them via `@`-import — Claud
 Every non-trivial change starts with a ticket. Three docs — `acceptance.md` (done criteria + test plan), `plan.md` (approach + decisions), and `summary.md` (plan-vs-actual at close) — live in `.tickets/<id>/` as plain markdown. A future agent reading that folder knows *why* something was built, what trade-offs were ruled out, and whether the spec was fully met.
 
 canon enforces its own standards. The test suite runs and blocks before every commit — no advisory reminders, no honor system. What ships is what passed.
+
+Gates don't make agents smarter. They make certain failures impossible — and turn the ones that remain into data.
 
 ## Setup
 

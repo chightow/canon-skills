@@ -19,6 +19,7 @@ Auto-injected / contributor reference — not registered directly.
 |---|---|---|
 | `efficiency` | agent-ops | Coding standards, git conventions, and token-efficiency rules for AI agents |
 | `skill-setup-std` | agent-ops | Conventions for writing, naming, and composing skills in canon |
+| `ticket-layout` | dev | Canonical ticket structure contract — folder layout, frontmatter fields, sprint doc lifecycle, board rendering, and migration rules |
 
 ## Sub-skills
 

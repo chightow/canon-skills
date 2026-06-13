@@ -11,7 +11,7 @@ depends: [wrapup, capture, ticket, handoff, impact-analysis, orient, ticket-layo
 @./capture.md
 @./impact-analysis.md
 @./orient.md
-@./ticket-layout.md
+@../standards/ticket-layout.md
 
 # Sprint
 

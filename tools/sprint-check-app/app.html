@@ -2152,6 +2152,17 @@ function renderModalBody(t) {
   bodyEl.style.display = '';
   bodyEl.parentNode.querySelectorAll('.section-jumps').forEach(el => el.remove());
 
+  if (!modalState.activeDoc) {
+    const content = (t.body || '').trim();
+    if (!content) {
+      bodyEl.innerHTML = '<span class="modal-empty">Empty ticket.</span>';
+      return;
+    }
+    bodyEl.innerHTML = md(content);
+    injectSectionJumps(bodyEl);
+    return;
+  }
+
   if (modalState.activeDoc) {
     bodyEl.innerHTML = '<span class="modal-empty">Loading…</span>';
     fetch(`/api/doc/${encodeURIComponent(modalState.activeDoc)}`)

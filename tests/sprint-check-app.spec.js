@@ -1,5 +1,7 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
+const fs = require('fs');
+const path = require('path');
 
 const BASE = 'http://localhost:8423';
 
@@ -39,6 +41,36 @@ test.describe('board modal', () => {
     await page.waitForSelector('#m-body', { timeout: 5000 });
 
     await expect(page.locator('#m-body')).not.toContainText('No description.');
+  });
+
+  test('doc-less tickets render ticket body in read-only modal', async ({ page }) => {
+    const title = `Doc-less modal body check ${Date.now()}`;
+    let createdId = '';
+
+    try {
+      await page.goto(BASE);
+      await page.waitForLoadState('networkidle');
+
+      await page.locator('#btn-create').click();
+      await page.waitForSelector('#create-modal', { timeout: 3000 });
+      await page.locator('#c-title').fill(title);
+      await page.locator('#c-body').fill('## Context\nTicket body should render without sprint docs.\n\n## Notes\n- Uses existing markdown renderer');
+      await page.locator('#c-submit').click();
+
+      const card = page.locator('.card', { hasText: title });
+      await expect(card).toBeVisible();
+      createdId = await card.getAttribute('data-id') || '';
+      await card.click();
+
+      await expect(page.locator('#m-docs .doc-tab')).toHaveCount(0);
+      await expect(page.locator('#m-body')).toContainText('Ticket body should render without sprint docs.');
+      await expect(page.locator('#m-body')).toContainText('Uses existing markdown renderer');
+      await expect(page.locator('.section-jump-link', { hasText: 'Context' })).toBeVisible();
+    } finally {
+      if (createdId) {
+        fs.rmSync(path.join(process.cwd(), '.tickets', createdId), { recursive: true, force: true });
+      }
+    }
   });
 
   test('create-ticket textarea has updated placeholder', async ({ page }) => {

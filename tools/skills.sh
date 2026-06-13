@@ -270,6 +270,39 @@ ensure_sprint_project_marker() {
   echo "  [sprint]  ensured project-local .tickets/"
 }
 
+is_canon_project_import_line() {
+  local line="$1" import_path base
+  [[ "$line" == @* ]] || return 1
+  import_path="${line#@}"
+
+  [[ "$import_path" == "$SKILLS_ROOT"/* ]] && return 0
+
+  base="$(basename "$import_path")"
+  case "$import_path" in
+    */standards/efficiency.md)
+      return 0
+      ;;
+    */skills/*.md)
+      [ -f "$SKILLS_ROOT/skills/$base" ] && return 0
+      ;;
+    */tools/*.md)
+      [ -f "$SKILLS_ROOT/tools/$base" ] && return 0
+      ;;
+  esac
+
+  return 1
+}
+
+strip_canon_project_imports() {
+  local file="$1" tmp
+  [ -f "$file" ] || return 0
+  tmp=$(mktemp)
+  while IFS= read -r line; do
+    is_canon_project_import_line "$line" && continue
+    printf '%s\n' "$line"
+  done < "$file" > "$tmp" && mv "$tmp" "$file"
+}
+
 cmd_add() {
   local skill="${1:-}"
   local project_dir="${2:-$(pwd)}"
@@ -847,9 +880,7 @@ cmd_uninstall() {
         continue
       fi
       for f in "$proj/CLAUDE.md" "$proj/AGENTS.md"; do
-        [ -f "$f" ] || continue
-        grep -qF "@$SKILLS_ROOT/" "$f" 2>/dev/null || continue
-        grep -vF "@$SKILLS_ROOT/" "$f" > "$f.tmp" && mv "$f.tmp" "$f"
+        strip_canon_project_imports "$f"
       done
       if [ -f "$proj/AGENTS.md" ] && grep -qF "AI-SKILLS:BEGIN" "$proj/AGENTS.md" 2>/dev/null; then
         awk '

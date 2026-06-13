@@ -101,7 +101,8 @@ printf '%s\n' "$ROOT" > "$home/.config/canon/install_path"
 # ── Project registry setup ────────────────────────────────────────────────
 # One valid project with canon @-imports and AI-SKILLS block
 canon_project="$(mktemp -d)"
-trap 'rm -rf "$home" "$ROOT/.claude/settings.json" "$canon_project"' EXIT
+stale_import_project="$(mktemp -d)"
+trap 'rm -rf "$home" "$ROOT/.claude/settings.json" "$canon_project" "$stale_import_project"' EXIT
 
 cat > "$canon_project/CLAUDE.md" <<EOF
 @$ROOT/standards/efficiency.md
@@ -124,11 +125,35 @@ cat > "$canon_project/AGENTS.md" <<EOF
 User AGENTS content preserved.
 EOF
 
+cat > "$stale_import_project/CLAUDE.md" <<'EOF'
+@/old/canon/standards/efficiency.md
+@/old/canon/skills/sprint.md
+@/user/notes/project.md
+Stale CLAUDE content preserved.
+EOF
+
+cat > "$stale_import_project/AGENTS.md" <<EOF
+@/old/canon/standards/efficiency.md
+@/old/canon/skills/sprint.md
+@/user/notes/project.md
+
+<!-- AI-SKILLS:BEGIN -->
+## Active canon skills
+> Managed by \`skills.sh\` — use \`add\`/\`remove\` to change. Source: /old/canon
+
+| Skill | Category | Source |
+|-------|----------|--------|
+| sprint | dev | /old/canon/skills/sprint.md |
+<!-- AI-SKILLS:END -->
+Stale AGENTS content preserved.
+EOF
+
 # One stale entry pointing to a non-existent path
 stale_path="/tmp/canon-uninstall-test-nonexistent-$$"
 
 {
   printf '%s\n' "$canon_project"
+  printf '%s\n' "$stale_import_project"
   printf '%s\n' "$stale_path"
 } > "$home/.config/canon/projects"
 
@@ -141,6 +166,7 @@ assert_contains "$output" "[removed]  install_path"
 assert_contains "$output" "[removed]  projects"
 assert_contains "$output" "[skip]  not found: $stale_path"
 assert_contains "$output" "[cleaned]  $canon_project"
+assert_contains "$output" "[cleaned]  $stale_import_project"
 
 # Project-local settings: all canon hooks gone
 assert_count 0 "$ROOT/scripts/auto-handoff.sh"    "$ROOT/.claude/settings.json"
@@ -166,6 +192,17 @@ assert_count 0 "@$ROOT/" "$canon_project/AGENTS.md"
 assert_count 0 "AI-SKILLS:BEGIN" "$canon_project/AGENTS.md"
 assert_count 0 "sprint | dev" "$canon_project/AGENTS.md"
 assert_count 1 "User AGENTS content preserved." "$canon_project/AGENTS.md"
+
+# Registered project with stale canon import paths: canon imports stripped, unrelated imports preserved
+assert_count 0 "@/old/canon/standards/efficiency.md" "$stale_import_project/CLAUDE.md"
+assert_count 0 "@/old/canon/skills/sprint.md" "$stale_import_project/CLAUDE.md"
+assert_count 1 "@/user/notes/project.md" "$stale_import_project/CLAUDE.md"
+assert_count 1 "Stale CLAUDE content preserved." "$stale_import_project/CLAUDE.md"
+assert_count 0 "@/old/canon/standards/efficiency.md" "$stale_import_project/AGENTS.md"
+assert_count 0 "@/old/canon/skills/sprint.md" "$stale_import_project/AGENTS.md"
+assert_count 0 "AI-SKILLS:BEGIN" "$stale_import_project/AGENTS.md"
+assert_count 1 "@/user/notes/project.md" "$stale_import_project/AGENTS.md"
+assert_count 1 "Stale AGENTS content preserved." "$stale_import_project/AGENTS.md"
 
 again="$(HOME="$home" "$SKILLS" uninstall)"
 assert_contains "$again" "[skip]  no registered projects"

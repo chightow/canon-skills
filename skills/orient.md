@@ -74,3 +74,12 @@ If plan.md already covers the subsystem, write:
 - Read only. No edits.
 - Stay in the relevant subsystem.
 - Fill gaps; do not repeat the user's explanation.
+- Research is compression of truth. Do not decide how to implement here.
+  Record only what the system does, which files matter, what constraints exist,
+  and what remains unknown. Opinions and approach belong in the Plan step.
+- Every important claim must reference a file path or line number.
+- List excluded near-miss files and why they were ruled out — this prevents
+  future re-reading of the same candidates.
+- If the agent supports subagents, delegate file location and dependency tracing
+  to subagents. The only durable output is the Subsystem Map in `plan.md`;
+  subagent transcripts are disposable.

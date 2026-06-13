@@ -101,5 +101,5 @@ jobs:
       - name: tkt smoke test
         run: |
           cd /tmp/canon-test
-          tkt create "fresh install smoke test" --status=open
+          tkt create "fresh install smoke test"
           tkt ls

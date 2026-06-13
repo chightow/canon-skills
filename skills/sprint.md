@@ -141,6 +141,8 @@ High-risk sprints run orient, grill, impact-analysis, required mitigation tests,
 
    Re-read `plan.md` after compaction or context reset.
 
+   **During implementation, `plan.md` and `acceptance.md` are the source of truth.** If chat history or new discoveries conflict with the approved plan, stop and surface the conflict before changing scope. The agent resolves ambiguity inside the approved scope; scope changes require user confirmation.
+
 ---
 
 ## sprint complete

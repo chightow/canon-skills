@@ -65,3 +65,9 @@ Evidence log for documentation accuracy. Run `/doc-audit` to generate new findin
 **Claim:** "`skills.sh lint` runs in CI via `npm test`, so non-conforming skills are caught before merge."
 **Issue:** No CI is configured yet (tracked as a future step); the claim overstates automation.
 **Action:** Reworded to "runs as part of `npm test`, so running the suite catches non-conforming skills before they merge." Caught during the wrapup that added the linter.
+
+### 2026-06-14 — "Three docs" understates sprint artifact count
+**File:** `README.md`, `docs/how-it-works.md`
+**Claim:** "Three required docs — acceptance.md … plan.md … and summary.md"; "three docs: acceptance.md … plan.md … summary.md"
+**Issue:** eval-report.md is now mandatory for normal+ tier sprints. Both files omitted it.
+**Action:** Updated both files to "up to five docs" naming all five: acceptance.md, plan.md, eval-report.md, summary.md, plus optional research.md for high-risk.

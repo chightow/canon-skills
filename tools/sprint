@@ -223,6 +223,25 @@ _gate_plan_content() {
   fi
 }
 
+_gate_eval_report() {
+  local id="$1" tdir="$2"
+  local plan="$tdir/plan.md" report="$tdir/eval-report.md"
+  # Trivial-tier sprints skip the evaluator — check plan.md tier marker
+  if grep -qiE 'tier[[:space:]]*:?[[:space:]]*\*{0,2}trivial' "$plan" 2>/dev/null; then
+    return 0
+  fi
+  if [[ ! -f "$report" ]]; then
+    echo "Sprint $id cannot close: eval-report.md is missing."
+    echo "Run the evaluator (eval skill) before closing, or confirm trivial tier in plan.md."
+    return 1
+  fi
+  if ! grep -qE '^pass:' "$report"; then
+    echo "Sprint $id cannot close: eval-report.md verdict is not pass."
+    grep -E '^(pass|fail):' "$report" | head -1 || echo "(no verdict line found)"
+    return 1
+  fi
+}
+
 cmd_complete() {
   local id tdir acceptance
   local current_out current_rc
@@ -239,6 +258,7 @@ cmd_complete() {
   _gate_wrapup_gates        "$id" "$acceptance"          || exit 1
   _gate_no_unchecked        "$id" "$acceptance"          || exit 1
   _gate_plan_content        "$id" "$tdir/plan.md"        || exit 1
+  _gate_eval_report         "$id" "$tdir"                || exit 1
 
   "$TKT_BIN" close "$id"
   echo "Sprint completed: $id"

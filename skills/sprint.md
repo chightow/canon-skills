@@ -189,8 +189,9 @@ Wait for explicit confirmation. Do not proceed if the trigger came from a broad 
    adversarially against `acceptance.md`.
 
    Invoke the eval skill as a subagent:
-   - Pass the ticket ID and the list of files modified since sprint start
-     (run `git diff --name-only HEAD~1` or track files modified during the sprint)
+   - Pass the ticket ID and the list of files modified since sprint start:
+     `git diff --name-only $(git merge-base HEAD origin/main) HEAD`
+     (captures the full sprint range across multiple commits; assumes `origin/main` as base)
    - The subagent reads `acceptance.md`, `plan.md`, and each changed file fresh
    - It writes its report to `.tickets/<id>/eval-report.md` and returns the verdict line
 

@@ -141,6 +141,30 @@ cat > ".tickets/$id/acceptance.md" <<'EOF'
 | simplifier | skipped | test-only change |
 EOF
 
+# eval-report.md gate — missing report should block
+missing_eval_output="$(run_fail "$SPRINT" complete)"
+assert_contains "$missing_eval_output" "eval-report.md is missing"
+
+# eval-report.md with non-pass verdict should block
+cat > ".tickets/$id/eval-report.md" <<'EOF'
+# Eval Report
+## Verdict
+fail: criterion 1 not met
+EOF
+fail_eval_output="$(run_fail "$SPRINT" complete)"
+assert_contains "$fail_eval_output" "eval-report.md verdict is not pass"
+
+# eval-report.md with pass: verdict — gate should pass
+cat > ".tickets/$id/eval-report.md" <<'EOF'
+# Eval Report
+## Criteria
+| Criterion | Status | Evidence |
+|---|---|---|
+| Required item remains | pass | acceptance.md:4 |
+## Verdict
+pass: all criteria met
+EOF
+
 complete_output="$("$SPRINT" complete)"
 assert_contains "$complete_output" "Sprint completed: $id"
 assert_grep "^status: closed$" ".tickets/$id/ticket.md"

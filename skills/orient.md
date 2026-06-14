@@ -90,13 +90,15 @@ Each subagent writes its findings to `.tickets/<id>/research-<subsystem>.md`.
 
 **Valid completion — content, not existence:**
 
-A partial file is valid only if it contains at least one `file:line` citation under `## Relevant Files`, OR the exact line:
+A partial file is valid only if it contains at least one `file:line` citation under `## Relevant Files`, OR a sentinel line in this exact form:
 
 ```
-no relevant files found for <subsystem>
+no relevant files found for <subsystem> — searched: <comma-separated paths or globs examined>
 ```
 
-File existence alone is not a completion signal — a subagent can create an empty or stub file without doing any work. The sentinel line must be written explicitly; it cannot appear by accident.
+Example: `no relevant files found for job-queue — searched: jobs/, workers/, lib/queue*, tests/jobs*`
+
+File existence alone is not a completion signal — a subagent can create an empty or stub file without doing any work. A bare sentinel without the `searched:` clause is treated as invalid (same as missing). The paths listed must reflect actual search locations; this is what distinguishes "looked and found nothing" from "never looked".
 
 **After all subagents complete:**
 
@@ -111,7 +113,8 @@ File existence alone is not a completion signal — a subagent can create an emp
 |---|---|
 | Partial file missing (timeout / error) | Log in `## Unknowns`; proceed with remaining subsystems |
 | Partial file invalid (no file:line, no sentinel) | Treat same as missing |
-| Sentinel present ("no relevant files found") | Accept as valid; note in `## System Model` |
+| Sentinel present with `searched:` clause | Accept as valid; note in `## System Model` |
+| Sentinel present but missing `searched:` clause | Treat as invalid — same as missing |
 | All partials missing or invalid | Fall back to single-threaded Steps 1–4; note fallback in `## Unknowns` |
 | Some valid, some not | Synthesize valid; surface gaps at the research review checkpoint |
 

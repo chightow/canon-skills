@@ -10,7 +10,7 @@ hidden: true
 
 Runs in `sprint start`. Writes to `plan.md` and `acceptance.md`.
 
-**Surface to user only when at least one dimension is MEDIUM or HIGH.** For all-LOW changes, write the assessment silently and proceed.
+Always present the rating table and required actions before proceeding — even when all dimensions are LOW. For all-LOW: "Impact assessment: all dimensions LOW — no required mitigations." User sees every assessment; there is no silent path.
 
 ## Step 1 — Interrogate the request
 

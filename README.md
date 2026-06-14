@@ -6,7 +6,7 @@
 
 Two commands and a local board. Your agent forgets — your repo shouldn't.
 
-*An agent workflow harness.*
+*Don't let your agent self-review.*
 
 [![license](https://img.shields.io/badge/license-MIT-2563eb)](LICENSE)
 ![local-first](https://img.shields.io/badge/state-local--first-22c55e)
@@ -15,6 +15,8 @@ Two commands and a local board. Your agent forgets — your repo shouldn't.
 </div>
 
 [![sprint-check board — searchable local kanban with status-aware cards and repo context](meta/screenshots/sprint-check-board-dark.png)](docs/index.html)
+
+*An agent workflow harness.*
 
 One-time setup:
 

@@ -1,7 +1,6 @@
 ---
 name: sprint
 description: Start, plan, and ship a focused change — invoke when asked to add, fix, update, implement, debug, or build anything
-summary: Invoke when asked to add, fix, update, implement, debug, or build anything. Creates the ticket, runs planning (acceptance, impact analysis), builds and tests, then closes with full wrapup.
 category: dev
 tags: [workflow, planning, quality, tickets, orchestration]
 depends: [wrapup, capture, ticket, handoff, impact-analysis, orient, ticket-layout, eval]
@@ -223,9 +222,7 @@ Wait for explicit confirmation. Do not proceed if the trigger came from a broad 
    - If yes: propose the addition (one or two lines) and the target file (`AGENTS.md`, `CLAUDE.md`, or a subdirectory `CLAUDE.md` if one exists). Ask the user to confirm before writing.
    - If no new conventions emerged: skip silently.
 
-7. **HANDOFF.md.** Refresh the narrative per the handoff protocol (`../tools/handoff.md`): update `## Current Focus`, `## In Progress`, and `## Next Steps` to reflect this sprint. `## Discoveries` is handled by capture mid-build — leave it. Decisions belong in `DECISIONS.md`, not here.
-
-8. **Summary.** Write `.tickets/<id>/summary.md` with the plan-vs-actual table and
+7. **Summary.** Write `.tickets/<id>/summary.md` with the plan-vs-actual table and
    a one-paragraph summary. Also output both in chat.
 
    File format:
@@ -243,7 +240,7 @@ Wait for explicit confirmation. Do not proceed if the trigger came from a broad 
    in the table — do not bury them in prose. The file appears as a **Summary** tab
    on the ticket board alongside Acceptance and Plan.
 
-9. **Close.** Run `sprint complete`. If it refuses because a required file is
+8. **Close.** Run `sprint complete`. If it refuses because a required file is
    missing or checklist items remain unchecked, report the blockers and stop.
 
 ---
@@ -262,14 +259,4 @@ Canonical layout:
 
 ## DECISIONS.md
 
-Repo root. Records durable choices future sprints must respect. Not a session log.
-
-```markdown
-# Decisions
-
-| Date | Decision | Reason |
-|---|---|---|
-| 2026-05-17 | Amounts stored as integer cents | Avoid float precision bugs |
-```
-
-Write non-obvious choices only. Skip decisions obvious from code.
+Repo root. Records durable choices future sprints must respect. Not a session log. Write non-obvious choices only. Skip decisions obvious from code.

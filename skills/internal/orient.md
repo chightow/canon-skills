@@ -1,7 +1,6 @@
 ---
 name: orient
 description: Map the sprint target subsystem before editing
-summary: Read entry points, interfaces, adjacent modules, and dependencies. Write a Subsystem Map to plan.md. Called by sprint start.
 category: dev
 tags: [planning, exploration, context, codebase]
 hidden: true
@@ -27,13 +26,9 @@ For each file marked for modification in `plan.md`:
 - What imports it? (grep for the filename or exported symbols)
 - Any shared types, constants, or schemas it exposes?
 
----
-
 ## Step 3 — Flag non-obvious relationships
 
 Flag likely affected files missing from the plan. Note generated files, monorepo layout, or other navigation gotchas.
-
----
 
 ## Step 4 — Write findings
 
@@ -70,8 +65,6 @@ One sentence: what system behavior was researched.
 If the subsystem is already fully described in `plan.md` and no new files or
 relationships were discovered, note this in `research.md ## System Model` and
 keep the entry brief.
-
----
 
 ## Parallel Research
 
@@ -119,8 +112,6 @@ File existence alone is not a completion signal — a subagent can create an emp
 | Some valid, some not | Synthesize valid; surface gaps at the research review checkpoint |
 
 Gaps in `## Unknowns` surface naturally at the `sprint start` research review checkpoint — no new gate needed.
-
----
 
 ## Scope rules
 

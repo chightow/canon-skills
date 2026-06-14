@@ -77,17 +77,22 @@ Most agent tools tell you what the agent did. canon records what it promised —
    implementation choices it never saw. Each acceptance criterion gets a pass,
    fail, or partial verdict with a file:line cite. A fail blocks close.
 
-   *The three above enforce that what ships matches what was promised. The four below keep context sharp and decisions auditable across sessions.*
+   *The three above enforce that what ships matches what was promised. The five below keep context sharp and decisions auditable across sessions.*
 
-4. **Session continuity.** `HANDOFF.md`, the active ticket, and a small set of
+4. **Parallel subsystem research.** When a high-risk sprint touches two or more
+   independent subsystems, orient spawns one Explore subagent per subsystem
+   concurrently — each traces entry points, callers, and constraints in its
+   own context window — then synthesizes results into a single `research.md`.
+   Wall-clock research time scales with the largest subsystem, not the total.
+5. **Session continuity.** `HANDOFF.md`, the active ticket, and a small set of
    related closed tickets give a returning agent enough context to resume without
    replaying the whole project history.
-5. **Knowledge capture.** When the agent finds a non-obvious constraint mid-build,
+6. **Knowledge capture.** When the agent finds a non-obvious constraint mid-build,
    capture records it in `HANDOFF.md ## Discoveries` immediately — before context
    compaction or a session break can lose it.
-6. **Risk-aware planning.** Simple work stays light. High-impact work runs impact
+7. **Risk-aware planning.** Simple work stays light. High-impact work runs impact
    analysis before code, and every HIGH risk becomes a required Acceptance test.
-7. **Queryable intent.** Every sprint records decisions, acceptance criteria, and
+8. **Queryable intent.** Every sprint records decisions, acceptance criteria, and
    rejected alternatives as plain markdown. Ask why a file was built the way it
    was — the board surfaces the plan and decisions behind it without touching
    `git log`.
@@ -150,7 +155,7 @@ Compared to common alternatives:
 
 **`sprint start "<what>"`** — Make your agent plan before it codes.
 
-Creates a ticket, defines acceptance criteria, and writes the plan before touching source. Normal changes stay light; high-risk changes add subsystem mapping, gray-area resolution, five-dimension impact analysis, any required human checkpoint, and adversarial review. The plan lives in `.tickets/<id>/` and survives context resets.
+Creates a ticket, defines acceptance criteria, and writes the plan before touching source. Normal changes stay light; high-risk changes add parallel subsystem mapping (one agent per independent subsystem, run concurrently), gray-area resolution, five-dimension impact analysis, any required human checkpoint, and adversarial review. The plan lives in `.tickets/<id>/` and survives context resets.
 
 **`sprint complete`** — Block the merge until every box is checked.
 
@@ -158,7 +163,7 @@ Runs the close path: simplify → review → security → repo/doc audit → **e
 
 When the sprint closes, the agent writes `summary.md` — a plan-vs-actual table, one row per acceptance criterion, showing whether each was delivered, waived, deferred, or partial. Deviations must appear in the table; the agent can't bury them in prose. The **Summary** tab on the ticket board makes this permanent and queryable: find out whether the spec was fully met without scrolling through chat history.
 
-Each sprint produces up to four docs:
+Each sprint produces up to five docs:
 
 | Doc | Written | Contains |
 |---|---|---|
@@ -208,7 +213,7 @@ flowchart LR
     C --> D
 ```
 
-High-risk sprints add orient, grill, and impact analysis between Plan and Build. Double-bordered nodes are sub-skills the agent runs — you don't invoke them. **[Full lifecycle →](docs/sprint-check.md#how-sprint-works)**
+High-risk sprints add orient (with parallel subagents when multiple subsystems are in scope), grill, and impact analysis between Plan and Build. Double-bordered nodes are sub-skills the agent runs — you don't invoke them. **[Full lifecycle →](docs/sprint-check.md#how-sprint-works)**
 
 ## Why canon
 

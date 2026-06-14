@@ -83,6 +83,7 @@ cat > ".tickets/$id/acceptance.md" <<'EOF'
 ## Wrapup Gates
 | Gate | Status | Reason |
 |------|--------|--------|
+| reviewer | ran | reviewed gate logic |
 | simplifier | skipped | test-only change |
 EOF
 
@@ -106,6 +107,82 @@ EOF
 missing_wrapup_output="$(run_fail "$SPRINT" complete)"
 assert_contains "$missing_wrapup_output" "missing ## Wrapup Gates section"
 
+# Wrapup Gates section exists but table has no data rows (header/separator only)
+cat > ".tickets/$id/acceptance.md" <<'EOF'
+# Acceptance
+
+## Criteria
+- [x] Required item remains.
+
+## Test Plan
+- [x] npm test
+
+## Wrapup Gates
+| Gate | Status | Reason |
+|------|--------|--------|
+EOF
+
+empty_table_output="$(run_fail "$SPRINT" complete)"
+assert_contains "$empty_table_output" "no data rows"
+
+# Wrapup Gates table has a row with empty reason
+cat > ".tickets/$id/acceptance.md" <<'EOF'
+# Acceptance
+
+## Criteria
+- [x] Required item remains.
+
+## Test Plan
+- [x] npm test
+
+## Wrapup Gates
+| Gate | Status | Reason |
+|------|--------|--------|
+| reviewer | ran |  |
+EOF
+
+empty_reason_output="$(run_fail "$SPRINT" complete)"
+assert_contains "$empty_reason_output" "empty or placeholder reason"
+
+# Wrapup Gates table has em-dash placeholder reason
+cat > ".tickets/$id/acceptance.md" <<'EOF'
+# Acceptance
+
+## Criteria
+- [x] Required item remains.
+
+## Test Plan
+- [x] npm test
+
+## Wrapup Gates
+| Gate | Status | Reason |
+|------|--------|--------|
+| reviewer | ran | — |
+EOF
+
+emdash_reason_output="$(run_fail "$SPRINT" complete)"
+assert_contains "$emdash_reason_output" "empty or placeholder reason"
+
+# Wrapup Gates table has all-skipped rows (no ran) — t-7a9a
+cat > ".tickets/$id/acceptance.md" <<'EOF'
+# Acceptance
+
+## Criteria
+- [x] Required item remains.
+
+## Test Plan
+- [x] npm test
+
+## Wrapup Gates
+| Gate | Status | Reason |
+|------|--------|--------|
+| simplifier | skipped | docs-only change |
+| security | skipped | no auth patterns |
+EOF
+
+all_skipped_output="$(run_fail "$SPRINT" complete)"
+assert_contains "$all_skipped_output" "no 'ran' rows"
+
 # Plan content gate — placeholder Approach should block even when acceptance is satisfied
 cat > ".tickets/$id/acceptance.md" <<'EOF'
 # Acceptance
@@ -119,7 +196,8 @@ cat > ".tickets/$id/acceptance.md" <<'EOF'
 ## Wrapup Gates
 | Gate | Status | Reason |
 |------|--------|--------|
-| simplifier | skipped | test-only change |
+| reviewer | ran | reviewed tools/sprint gate logic |
+| simplifier | skipped | no code touched |
 EOF
 
 # plan.md still has no Approach content from earlier override
@@ -153,6 +231,7 @@ cat > ".tickets/$id/acceptance.md" <<'EOF'
 ## Wrapup Gates
 | Gate | Status | Reason |
 |------|--------|--------|
+| reviewer | ran | reviewed tools/sprint gate logic |
 | simplifier | skipped | test-only change |
 EOF
 

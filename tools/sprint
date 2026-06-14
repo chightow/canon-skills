@@ -198,6 +198,30 @@ _gate_wrapup_gates() {
     echo "Run wrapup before closing."
     return 1
   fi
+
+  local section data_rows
+  section="$(_acceptance_section "Wrapup Gates" "$acceptance")"
+  data_rows="$(printf '%s\n' "$section" | grep -E '^\|[[:space:]]*[a-zA-Z]' | grep -ivE '^\|[[:space:]]*gate[[:space:]]*\|')"
+
+  if [[ -z "$data_rows" ]]; then
+    echo "Sprint $id cannot close: ## Wrapup Gates table has no data rows."
+    echo "Fill in the wrapup gates table before closing."
+    return 1
+  fi
+
+  if ! printf '%s\n' "$data_rows" | awk -F'|' '
+    { r=$4; gsub(/^[[:space:]]+|[[:space:]]+$/, "", r)
+      if (r == "" || r == "-" || r == "—") { exit 1 } }
+  '; then
+    echo "Sprint $id cannot close: ## Wrapup Gates has a row with empty or placeholder reason."
+    echo "Add a reason for each gate before closing."
+    return 1
+  fi
+
+  if ! printf '%s\n' "$data_rows" | grep -qE '^\|[^|]+\|[[:space:]]*ran[[:space:]]*\|'; then
+    echo "Sprint $id cannot close: ## Wrapup Gates has no 'ran' rows — at least one gate must run."
+    return 1
+  fi
 }
 
 _gate_no_unchecked() {

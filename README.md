@@ -6,6 +6,8 @@
 
 Two commands and a local board. Your agent forgets — your repo shouldn't.
 
+*An agent workflow harness.*
+
 [![license](https://img.shields.io/badge/license-MIT-2563eb)](LICENSE)
 ![local-first](https://img.shields.io/badge/state-local--first-22c55e)
 ![no-saas](https://img.shields.io/badge/SaaS-none-64748b)

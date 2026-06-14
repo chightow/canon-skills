@@ -136,7 +136,7 @@ A full, README-linked tour with refreshed dark-mode clips lives in [`docs/index.
 
 <a href="docs/sprint-check.md#ticket-completeness"><img src="meta/screenshots/plan-incomplete.png" alt="Plan incomplete warning screenshot" width="680"></a>
 
-#### Eval Report
+#### Eval Report — run by a fresh agent with no implementation history
 
 <img src="meta/screenshots/Eval.jpg" alt="Eval Report tab — criterion-by-criterion pass/fail with file:line evidence from a fresh evaluator agent" width="680">
 

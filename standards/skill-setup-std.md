@@ -3,7 +3,7 @@ name: skill-setup-std
 description: Validates skill files against canon standards. Use when adding a new skill or auditing existing ones.
 category: agent-ops
 tags: [skills, contributors, conventions]
-version: 1.4.0
+version: 1.5.0
 updated: 2026-06-15
 ---
 
@@ -45,10 +45,17 @@ tags: [tag1, tag2]
 ---
 ```
 
-**Write descriptions for models, not just humans.** The `description` field is the primary signal Claude uses to decide when to invoke a skill. Include the action verbs and user intents that should trigger it. Compare:
+**Write descriptions for models, not just humans.** The `description` field is the primary signal Claude uses to decide when to invoke a skill. Include the action verbs and user intents that should trigger it.
 
-- Weak: "Handles code quality tasks" — no trigger signal
-- Better: "Review, simplify, and audit code after completing a fix or feature — invoke when work is done and ready to commit"
+**Always use third person.** The description is injected into the system prompt — first or second person causes discovery problems.
+
+- Good: `"Manages the sprint workflow for focused changes. Use when asked to add, fix, or build anything."`
+- Avoid: `"I can help you manage sprints"` or `"Use this to manage sprints"`
+
+**Include what it does AND when to use it.** Both halves are required for accurate skill selection when many skills are loaded.
+
+- Weak: `"Handles code quality tasks"` — no trigger signal, no scope
+- Better: `"Runs quality checks and code review after completing a fix or feature. Use when work is done and ready to commit."`
 
 Standalone skills need this most. Hidden skills (only called by parents) can use a simpler description since a human never selects them directly.
 
@@ -59,6 +66,16 @@ Optional fields:
 | `summary:` | Longer description for CATALOG.md when `description:` is too short to convey scope |
 | `depends: [skill-a, skill-b]` | Informational dependency list — queryable by `skills.sh lint`; not an injection mechanism |
 | `hidden: true` | Skill is only invoked by other skills, never registered directly by a user |
+
+## Degrees of freedom
+
+Match the specificity of your instructions to how fragile the task is.
+
+- **High freedom** (prose steps): use when multiple approaches are valid and context drives the decision. Example: code review, research synthesis.
+- **Medium freedom** (pseudocode or parameterized scripts): use when a preferred pattern exists but some variation is fine.
+- **Low freedom** (exact commands, no parameters): use when the operation is fragile, irreversible, or must follow a precise sequence. Example: database migrations, release steps.
+
+A useful mental model: if failure on this step corrupts state or blocks others, give low freedom. If many paths lead to the same good outcome, give high freedom.
 
 ## Loading dependencies
 
@@ -71,6 +88,20 @@ Read `skills/sprint/reference/orient.md`, then run the orient protocol: ...
 This keeps the always-on context budget proportional — a trivial sprint doesn't pay for wrapup, orient, or impact-analysis.
 
 `@` imports (formerly declared after frontmatter) are retired. Do not add new `@` lines to skill files.
+
+## Progressive disclosure
+
+SKILL.md is a table of contents, not an encyclopedia. Keep it under **500 lines**. Split content into reference files when approaching that limit.
+
+**Patterns:**
+- **Pattern 1 — Guide with references**: SKILL.md contains quick-start content and links to deeper files (`See [REFERENCE.md](REFERENCE.md) for full API`). Claude loads reference files only when needed.
+- **Pattern 2 — Domain-specific**: organize sub-skill content by domain in a subdirectory (`reference/`, `gates/`). When a task touches one domain, only that file loads. Canon uses this for `skills/sprint/reference/` and `skills/wrapup/gates/`.
+- **Pattern 3 — Conditional details**: show basic content inline; link to advanced content only when the user needs it.
+
+**Rules:**
+- Keep references **one level deep** from SKILL.md. Nested references (`SKILL.md → A.md → B.md`) cause Claude to partially read files and miss content.
+- For reference files longer than **100 lines**, add a table of contents at the top so Claude can see the full scope even when previewing.
+- Name reference files descriptively (`form-validation-rules.md`, not `doc2.md`).
 
 ## Standalone vs. hidden
 
@@ -94,8 +125,22 @@ A skill is instructions for an agent, not a manual. Write the smallest body that
 - No restating canon-wide standards — `@`-import them instead of copying.
 - No motivational preamble, no "why this matters" essays, no duplicated examples.
 - If a section does not change what the agent does, delete it.
+- **Hard limit: 500 lines** for SKILL.md body. Beyond this, split into reference files (see Progressive disclosure).
 
 Length is a smell, not a limit: a leaf skill that runs long is usually doing more than one job (see above) or repeating context it should import.
+
+## Content guidelines
+
+**No time-sensitive information.** Don't write "before August 2025, use the old API." Put legacy behavior in a collapsible "Old patterns" section instead — it provides context without cluttering the main flow.
+
+**Consistent terminology.** Pick one term per concept and use it throughout. Mixing "endpoint" / "URL" / "route" / "path" forces the agent to infer equivalence instead of following instructions. Inconsistency is a common source of agent errors.
+
+**Offer one default, not a menu.** Don't list three valid libraries and let the agent pick. Choose one and note the escape hatch:
+
+- Good: "Use pdfplumber for text extraction. For scanned PDFs requiring OCR, use pdf2image with pytesseract instead."
+- Avoid: "You can use pypdf, pdfplumber, PyMuPDF, or pdf2image depending on your needs."
+
+A menu forces a decision at runtime; a default with an escape hatch is a decision made once.
 
 ## Gotchas
 

@@ -149,7 +149,7 @@ High-risk sprints run orient, grill, impact-analysis, required mitigation tests,
 
 Wait for explicit confirmation. Do not proceed if the trigger came from a broad instruction like "resume", "continue", or "finish" without the user specifically approving closeout. The cost of an unwanted close is high; the cost of asking is zero.
 
-1. **Wrapup.** Read `skills/wrapup/SKILL.md` and the sub-skill files listed in its `@` imports, then run the wrapup pipeline on files modified since sprint start.
+1. **Wrapup.** Read `skills/wrapup/SKILL.md`, then run the wrapup pipeline on files modified since sprint start.
    After assessing each gate, append a
    `## Wrapup Gates` section to `acceptance.md` recording every gate's outcome:
 

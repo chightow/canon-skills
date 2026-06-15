@@ -3,6 +3,7 @@ name: context-check
 description: Audit always-on context load for bloat, redundancy, and quality — invoke periodically or when context feels heavy
 category: agent-ops
 tags: [context, tokens, efficiency, audit]
+hidden: true
 ---
 
 # Context Check

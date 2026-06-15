@@ -225,7 +225,8 @@ Wait for explicit confirmation. Do not proceed if the trigger came from a broad 
 
    One row per acceptance criterion from `acceptance.md`. Deviations must appear
    in the table — do not bury them in prose. The file appears as a **Summary** tab
-   on the ticket board alongside Acceptance and Plan.
+   on the ticket board alongside Acceptance and Plan. If a criterion contains a `|`,
+   write it as `\|` — bare pipes break the board's table renderer.
 
 8. **Close.** Run `sprint complete`. If it refuses because a required file is
    missing or checklist items remain unchecked, report the blockers and stop.

@@ -27,8 +27,6 @@ ticket tracking, context file creation, and close validation. The agent owns
 sprint doc creation, orientation, gray-area resolution, impact analysis,
 implementation, review, and test judgment.
 
----
-
 ## Workflow tiers
 
 Choose the lightest tier that still protects the work.
@@ -61,8 +59,6 @@ Use the full planning pipeline when any condition applies:
 - The implementation has genuine gray areas that would materially change the design
 
 High-risk sprints run orient, grill, impact-analysis, required mitigation tests, and full wrapup.
-
----
 
 ## sprint start
 
@@ -149,8 +145,6 @@ High-risk sprints run orient, grill, impact-analysis, required mitigation tests,
    Re-read `plan.md` after compaction or context reset.
 
    **During implementation, `plan.md` and `acceptance.md` are the source of truth.** If chat history or new discoveries conflict with the approved plan, stop and surface the conflict before changing scope. The agent resolves ambiguity inside the approved scope; scope changes require user confirmation.
-
----
 
 ## sprint complete
 
@@ -242,8 +236,6 @@ Wait for explicit confirmation. Do not proceed if the trigger came from a broad 
 
 8. **Close.** Run `sprint complete`. If it refuses because a required file is
    missing or checklist items remain unchecked, report the blockers and stop.
-
----
 
 ## Planning files
 

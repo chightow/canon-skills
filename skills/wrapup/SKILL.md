@@ -48,7 +48,6 @@ Before running each step, assess the change and skip if the criteria apply. When
 - No repo workflow, setup, docs, skills, standards, scripts, or tools changed
 
 
----
 
 ## Steps
 
@@ -70,8 +69,6 @@ Scope (check each that exists):
 
 Patch stale lines only. Skip files where nothing changed.
 
----
-
 ## Final Output
 
 Report only what matters:
@@ -84,8 +81,6 @@ Report only what matters:
 Address criticals before committing. Improvements are discretionary.
 
 If a ticket is in progress, close it with `sprint complete`, not `tkt close`.
-
----
 
 ## Commit & Push
 

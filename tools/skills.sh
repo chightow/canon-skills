@@ -178,7 +178,7 @@ cmd_list() {
     [ -d "$dir" ] || continue
     # tools/ items that are deps of other skills are filtered below — no blanket skip
     while IFS= read -r f; do
-      local name desc category summary
+      local name desc category
       name=$(fm_field "$f" name)
       [ -z "$name" ] && continue
       [ "$(fm_field "$f" hidden)" = "true" ] && continue

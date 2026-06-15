@@ -3,8 +3,8 @@ name: skill-setup-std
 description: Conventions for writing, naming, and composing skills in canon
 category: agent-ops
 tags: [skills, contributors, conventions]
-version: 1.3.0
-updated: 2026-06-05
+version: 1.4.0
+updated: 2026-06-14
 ---
 
 # Skill Setup Standard
@@ -13,14 +13,20 @@ Rules for adding or modifying skills in canon. Follow these so every skill behav
 
 ## File Location
 
-All skills live flat under `skills/`. No subdirectories. The dependency hierarchy is encoded in frontmatter and `@` imports — not in the folder structure. (Note: the Anthropic skills blog recommends folder-based progressive disclosure with `assets/` and sub-files; canon deliberately trades that flexibility for a simpler, grep-friendly flat structure.)
+Skills follow a two-tier layout under `skills/`:
+
+- **Standalone skills**: `skills/<name>/SKILL.md` — one directory per skill.
+- **Internal/hidden skills**: `skills/internal/<name>.md` — flat files inside `skills/internal/`.
+
+Standards, tools, and other non-skill files remain flat in their own top-level directories (`standards/`, `tools/`). The dependency hierarchy is encoded in frontmatter and `@` imports, not in deeper folder nesting.
 
 ## Naming
 
-- Lowercase, hyphenated: `code-reviewer.md`, `impact-analysis.md`
-- Use a prefix to signal a skill family: `sprint.md`, `sprint-check.md`
-- Max ~20 characters — the name appears in `skills.sh list` output
-- The `name:` frontmatter field must match the filename without `.md`
+- Lowercase, hyphenated directory name: `skills/sprint/`, `skills/context-check/`
+- Use a prefix to signal a skill family: `sprint/`, `sprint-check/`
+- Max ~20 characters — the directory name appears in `skills.sh list` output
+- The `name:` frontmatter field must match the directory name (for `SKILL.md`) or the filename without `.md` (for internal flat files)
+- The skill file is always named `SKILL.md` for standalone skills
 
 ## Frontmatter
 
@@ -52,12 +58,13 @@ Optional fields:
 
 ## Imports
 
-Declare `@` imports at the top of the file, immediately after the frontmatter block. One per line. Use relative paths.
+Declare `@` imports at the top of the file, immediately after the frontmatter block. One per line. Use relative paths that reflect the actual directory structure.
 
 ```
-@./wrapup.md
-@./capture.md
-@../tools/handoff.md
+@../wrapup/SKILL.md
+@../capture/SKILL.md
+@../internal/impact-analysis.md
+@../../standards/ticket-layout.md
 ```
 
 The import order matters — Claude reads them top to bottom. Put broader context (standards, tools) before narrow behavior.
@@ -125,7 +132,7 @@ When in doubt, prefer editing — a new skill earns its place only when it has a
 
 ## Adding a new skill
 
-1. Write the skill file in `skills/` following the conventions above
+1. Create a directory `skills/<name>/` and write the skill as `skills/<name>/SKILL.md`; for internal skills, write directly to `skills/internal/<name>.md`
 2. Run `skills.sh list` to confirm it appears with the right name and description
 3. Update `CATALOG.md` by running `skills.sh catalog` (or manually if the script doesn't support it)
 4. If the skill is imported by an existing skill, add it to that skill's `depends:` list

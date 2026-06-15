@@ -179,9 +179,11 @@ SKILL.md is a table of contents, not an encyclopedia. Keep it under **500 lines*
 
 ## Standalone vs. hidden
 
-A skill is **standalone** if a user can register and invoke it directly. It should work without knowing what imports it.
+A skill is **standalone** if a user registers it via `skills.sh add` and invokes it directly. It should work without knowing what imports it.
 
-A skill is **hidden** (`hidden: true`) if it is only ever called by another skill and has no meaningful standalone invocation. Document this clearly at the top of the file body: `Called automatically by X — do not invoke directly.`
+A skill is **hidden** (`hidden: true`) if it is never registered by the user — either because it is only called by another skill, or because it is only ever auto-invoked by Claude based on context (never via `/name`). Document this clearly at the top of the file body: `Called automatically by X — do not invoke directly.`
+
+The registration test is the reliable signal: if `skills.sh add <name>` is a meaningful user action, it's standalone. If no user would register it directly — because it's a sub-skill or a context-triggered specialist — mark it hidden.
 
 If a skill is useful both ways, make it standalone and let the parent import it.
 

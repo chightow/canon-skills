@@ -3,6 +3,7 @@ name: ticket
 description: Bundled minimal ticket system (tkt) for creating, tracking, and closing tasks. Used by sprint and sprint-check.
 category: tools
 tags: [project-management, tasks, cli, git]
+hidden: true
 ---
 
 # Ticket — Task Tracking

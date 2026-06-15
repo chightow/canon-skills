@@ -3,6 +3,7 @@ name: handoff
 description: Session context handoff protocol using repo-local HANDOFF.md
 category: tools
 tags: [handoff, context, memory, agents]
+hidden: true
 ---
 
 # Handoff

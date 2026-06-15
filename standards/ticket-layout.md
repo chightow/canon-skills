@@ -3,6 +3,7 @@ name: ticket-layout
 description: Canonical ticket structure contract — folder layout, frontmatter fields, sprint doc lifecycle, board rendering, and migration rules
 category: dev
 tags: [tickets, schema, contract, internal]
+hidden: true
 version: 1.0.0
 updated: 2026-06-13
 ---

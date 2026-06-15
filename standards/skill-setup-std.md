@@ -3,6 +3,7 @@ name: skill-setup-std
 description: Conventions for writing, naming, and composing skills in canon
 category: agent-ops
 tags: [skills, contributors, conventions]
+hidden: true
 version: 1.4.0
 updated: 2026-06-14
 ---

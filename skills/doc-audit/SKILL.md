@@ -8,6 +8,8 @@ hidden: true
 
 # Doc Audit
 
+Called automatically by wrapup — do not invoke directly.
+
 Audit user-facing documentation for accuracy. Append to `doc-findings.md` (project root) only after explicit confirmation.
 
 ## Scope

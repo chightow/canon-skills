@@ -3,7 +3,7 @@ name: skill-setup-std
 description: Validates skill files against canon standards. Use when adding a new skill or auditing existing ones.
 category: agent-ops
 tags: [skills, contributors, conventions]
-version: 1.5.0
+version: 1.6.0
 updated: 2026-06-15
 ---
 
@@ -29,7 +29,8 @@ Standards, tools, and other non-skill files remain flat in their own top-level d
 - Lowercase, hyphenated directory name: `skills/sprint/`, `skills/context-check/`
 - Use a prefix to signal a skill family: `sprint/`, `sprint-check/`
 - Max ~20 characters — the directory name appears in `skills.sh list` output
-- The `name:` frontmatter field must match the directory name
+- The **command name** (what you type after `/`) comes from the directory name, not frontmatter
+- The `name:` frontmatter field is a **display label** shown in skill listings — it does not change the command name; by convention keep it matching the directory name for clarity
 - The skill file is always named `SKILL.md`
 
 ## Frontmatter
@@ -59,13 +60,33 @@ tags: [tag1, tag2]
 
 Standalone skills need this most. Hidden skills (only called by parents) can use a simpler description since a human never selects them directly.
 
+**Description length cap.** The combined `description` + `when_to_use` text is truncated at **1,536 characters** in the skill listing. Put the key use case first. Use `when_to_use` to offload additional trigger phrases rather than cramming them into `description`:
+
+```yaml
+when_to_use: "Also triggers on: 'summarize my diff', 'what did I change', 'write a commit message'."
+```
+
 Optional fields:
 
 | Field | When to use |
 |---|---|
+| `when_to_use` | Additional trigger phrases or example requests appended to `description` in the listing; counts toward the 1,536-char cap |
+| `argument-hint` | Autocomplete hint shown after the skill name, e.g. `[issue-number]` or `[filename] [format]` |
+| `arguments` | Named positional args for `$name` substitution in skill content; space-separated string or YAML list |
+| `disable-model-invocation: true` | Prevent Claude from auto-loading this skill; description is removed from context; only you can invoke it with `/name`. Use for side-effecting workflows (`/deploy`, `/commit`) |
+| `user-invocable: false` | Hide from the `/` menu; Claude can still load it automatically. Use for background knowledge that isn't a meaningful user action |
+| `allowed-tools` | Tools Claude can use without per-use approval while this skill is active; space- or comma-separated |
+| `disallowed-tools` | Tools removed from Claude's pool during this skill's execution; clears on your next message |
+| `model` | Model override for this skill's turn; reverts to session model on your next prompt |
+| `effort` | Effort level override (`low`, `medium`, `high`, `xhigh`, `max`) while skill is active |
+| `context: fork` | Run the skill in an isolated subagent; skill content becomes the subagent's prompt |
+| `agent` | Subagent type to use when `context: fork` is set (e.g. `Explore`, `general-purpose`, or a custom agent name) |
+| `hooks` | Hooks scoped to this skill's lifecycle (see On-demand hooks below) |
+| `paths` | Glob patterns; skill only auto-activates when Claude is working with matching files. Useful for monorepo domain skills |
+| `shell` | Shell for `` !`command` `` blocks: `bash` (default) or `powershell` |
 | `summary:` | Longer description for CATALOG.md when `description:` is too short to convey scope |
 | `depends: [skill-a, skill-b]` | Informational dependency list — queryable by `skills.sh lint`; not an injection mechanism |
-| `hidden: true` | Skill is only invoked by other skills, never registered directly by a user |
+| `hidden: true` | **Canon-linter-only convention** — see Standalone vs. hidden below |
 
 ## Degrees of freedom
 
@@ -76,6 +97,59 @@ Match the specificity of your instructions to how fragile the task is.
 - **Low freedom** (exact commands, no parameters): use when the operation is fragile, irreversible, or must follow a precise sequence. Example: database migrations, release steps.
 
 A useful mental model: if failure on this step corrupts state or blocks others, give low freedom. If many paths lead to the same good outcome, give high freedom.
+
+## Dynamic context injection
+
+Use `` !`<command>` `` to run a shell command before Claude sees the skill — the output replaces the placeholder inline:
+
+```markdown
+## Current diff
+!`git diff HEAD`
+
+Summarize the changes above and flag any risks.
+```
+
+This is preprocessing, not something Claude executes. Claude only sees the final rendered output. Use this to inject live data (diffs, file lists, environment state) without requiring Claude to run a tool call first.
+
+For multi-line commands, use a fenced block opened with ` ```! `:
+
+````markdown
+```!
+node --version
+git status --short
+```
+````
+
+Use `${CLAUDE_SKILL_DIR}` to reference scripts bundled with the skill regardless of working directory:
+
+```bash
+!`python3 ${CLAUDE_SKILL_DIR}/scripts/analyze.py`
+```
+
+Other available substitutions: `$ARGUMENTS` (all arguments passed at invocation), `$ARGUMENTS[N]` / `$N` (positional by 0-based index), `${CLAUDE_SESSION_ID}`, `${CLAUDE_EFFORT}`.
+
+## Arguments
+
+Skills receive arguments via `$ARGUMENTS`. If a skill doesn't contain `$ARGUMENTS`, Claude Code appends `ARGUMENTS: <value>` to the end automatically.
+
+```yaml
+---
+name: fix-issue
+disable-model-invocation: true
+---
+
+Fix GitHub issue $ARGUMENTS following our coding standards.
+```
+
+Invoked as `/fix-issue 123` → Claude sees "Fix GitHub issue 123 following our coding standards."
+
+For named positional args, declare them in frontmatter:
+
+```yaml
+arguments: [issue, branch]
+```
+
+Then use `$issue` and `$branch` in the body. The `argument-hint` field drives autocomplete: `argument-hint: "[issue-number]"`.
 
 ## Loading dependencies
 
@@ -107,9 +181,19 @@ SKILL.md is a table of contents, not an encyclopedia. Keep it under **500 lines*
 
 A skill is **standalone** if a user can register and invoke it directly. It should work without knowing what imports it.
 
-A skill is **hidden** (`hidden: true`) if it is only ever called by another skill and has no meaningful standalone invocation. Document this clearly at the top of the file: `Called automatically by X — do not invoke directly.`
+A skill is **hidden** (`hidden: true`) if it is only ever called by another skill and has no meaningful standalone invocation. Document this clearly at the top of the file body: `Called automatically by X — do not invoke directly.`
 
 If a skill is useful both ways, make it standalone and let the parent import it.
+
+**`hidden: true` is a canon-linter convention**, not a platform field. The Claude Code platform uses two separate fields with distinct behavior:
+
+| Intent | Platform field | Effect |
+|---|---|---|
+| Block user invocation, Claude can still load | `user-invocable: false` | Hidden from `/` menu; description stays in context |
+| Block Claude auto-load, user can still invoke | `disable-model-invocation: true` | Description removed from context; user invokes with `/name` |
+| Block both (internal sub-skill) | both fields | Hidden everywhere |
+
+`hidden: true` in canon frontmatter signals intent to `skills.sh lint` — the linter checks consistency but the platform ignores the field. For new skills, prefer the explicit platform fields when you need runtime enforcement.
 
 ## One job
 
@@ -157,17 +241,33 @@ Format: one bullet per gotcha, led by the condition and followed by what to do i
 
 Start with zero entries and add as problems surface. A skill without gotchas isn't wrong — it just hasn't been used enough yet.
 
+Seed gotchas to consider for new skills:
+
+- If the skill seems to stop influencing behavior mid-session, the content is still present but compaction may have trimmed it — after compaction each skill gets at most 5,000 tokens carried forward (shared 25,000-token budget across all invoked skills). Re-invoke the skill to restore full content.
+- Skill content enters context as a single message on invocation and stays for the rest of the session. Write standing instructions, not one-time steps, for guidance that should apply throughout a task.
+
 ## On-demand hooks
 
-For skills that need to restrict agent behavior (block dangerous commands, lock edits to specific paths), implement the restriction as a hook that is only active while the skill is running — not always-on.
+For skills that need to restrict agent behavior (block dangerous commands, lock edits to specific paths), prefer the `disallowed-tools` frontmatter field — it removes named tools from Claude's pool for the duration of the skill without any hook registration or cleanup:
 
-Pattern: the skill registers a `PreToolUse` hook on entry and removes it on exit, or the user invokes the skill explicitly and the hook fires only within that scope.
+```yaml
+disallowed-tools: Bash(rm *) Bash(git push --force *)
+```
 
-Examples:
-- A "careful mode" skill that blocks `rm -rf`, `DROP TABLE`, and destructive git commands while active.
-- A "lock" skill that restricts file edits to a specific directory during a sensitive operation.
+The restriction clears automatically when the user sends their next message.
 
-Document the hook behavior clearly at the top of the skill so users know what is being restricted and for how long.
+For more complex runtime enforcement (path-scoped locks, conditional blocking, cross-turn restrictions), implement the restriction as a `hooks` entry in the skill frontmatter:
+
+```yaml
+hooks:
+  - type: PreToolUse
+    matcher: "Bash"
+    command: "echo 'Blocked in careful mode'"
+```
+
+This keeps the hook scoped to the skill's lifecycle rather than always-on.
+
+Document any restrictions clearly at the top of the skill so users know what is being restricted and for how long.
 
 ## Update vs. new skill
 

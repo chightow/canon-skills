@@ -4,10 +4,11 @@ description: Runs quality checks, code review, and cleanup after a feature or se
 category: dev
 tags: [code-quality, workflow, orchestration, refactoring, security]
 hidden: true
-depends: []
 ---
 
 # Wrapup
+
+Called automatically by sprint complete — do not invoke directly.
 
 Run after a session, feature, bug fix, or ticket. Skip steps that do not apply.
 

@@ -1,9 +1,8 @@
 ---
 name: context-check
-description: Audit always-on context load for bloat, redundancy, and quality — invoke periodically or when context feels heavy
+description: Audits always-on context load for bloat, redundancy, and quality. Use when context feels heavy or periodically to keep the always-on budget lean.
 category: agent-ops
 tags: [context, tokens, efficiency, audit]
-hidden: true
 ---
 
 # Context Check

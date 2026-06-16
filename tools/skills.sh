@@ -173,44 +173,49 @@ cmd_list() {
     done < <({ find "$dir" -mindepth 2 -name "SKILL.md" -type f; find "$dir" -maxdepth 1 -name "*.md" -type f; } 2>/dev/null)
   done
 
-  local prev_cat=""
+  # Collect all valid entries across all dirs, then sort by category then name
+  local entries=()
   for dir in "${SEARCH_DIRS[@]}"; do
     [ -d "$dir" ] || continue
-    # tools/ items that are deps of other skills are filtered below — no blanket skip
     while IFS= read -r f; do
-      local name desc category
+      local name category
       name=$(fm_field "$f" name)
       [ -z "$name" ] && continue
       [ "$(fm_field "$f" hidden)" = "true" ] && continue
-      # Skills that are deps of other skills are not standalone catalog entries
       local is_dep=0
       for dep in "${all_dep_names[@]+"${all_dep_names[@]}"}"; do
         [ "$dep" = "$name" ] && is_dep=1 && break
       done
       [ "$is_dep" -eq 1 ] && continue
-      desc=$(fm_field "$f" description)
       category=$(fm_field "$f" category)
-
-      [ "$category" != "$prev_cat" ] && [ -n "$prev_cat" ] && echo ""
-      prev_cat="$category"
-
-      # Word-wrap description; indent continuation lines to align under DESCRIPTION
-      local first rest
-      if (( ${#desc} > desc_w )); then
-        first=$(printf '%s' "$desc" | fold -s -w "$desc_w" | head -1)
-        rest=$(printf '%s' "$desc" | fold -s -w "$desc_w" | tail -n +2)
-      else
-        first="$desc"; rest=""
-      fi
-
-      printf "${cyan}%-${skill_w}s${reset}  ${dim}%-${cat_w}s${reset}  %s\n" \
-        "$name" "$category" "$first"
-      [ -n "$rest" ] && while IFS= read -r line; do
-        printf "%s%s\n" "$indent_str" "$line"
-      done <<< "$rest"
-
-    done < <({ find "$dir" -mindepth 2 -name "SKILL.md" -type f; find "$dir" -maxdepth 1 -name "*.md" -type f; } 2>/dev/null | sort)
+      entries+=("${category}"$'\t'"${name}"$'\t'"${f}")
+    done < <({ find "$dir" -mindepth 2 -name "SKILL.md" -type f; find "$dir" -maxdepth 1 -name "*.md" -type f; } 2>/dev/null)
   done
+
+  local prev_cat=""
+  while IFS=$'\t' read -r category name f; do
+    local desc
+    desc=$(fm_field "$f" description)
+
+    [ "$category" != "$prev_cat" ] && [ -n "$prev_cat" ] && echo ""
+    prev_cat="$category"
+
+    # Word-wrap description; indent continuation lines to align under DESCRIPTION
+    local first rest
+    if (( ${#desc} > desc_w )); then
+      first=$(printf '%s' "$desc" | fold -s -w "$desc_w" | head -1)
+      rest=$(printf '%s' "$desc" | fold -s -w "$desc_w" | tail -n +2)
+    else
+      first="$desc"; rest=""
+    fi
+
+    printf "${cyan}%-${skill_w}s${reset}  ${dim}%-${cat_w}s${reset}  %s\n" \
+      "$name" "$category" "$first"
+    [ -n "$rest" ] && while IFS= read -r line; do
+      printf "%s%s\n" "$indent_str" "$line"
+    done <<< "$rest"
+
+  done < <(printf '%s\n' "${entries[@]+"${entries[@]}"}" | sort -t$'\t' -k1,1 -k2,2)
   echo ""
   printf "${dim}To uninstall: skills.sh uninstall && rm -rf ~/.canon${reset}\n"
 }

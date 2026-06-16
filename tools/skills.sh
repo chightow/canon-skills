@@ -170,7 +170,7 @@ cmd_list() {
       while IFS= read -r dep; do
         [ -n "$dep" ] && all_dep_names+=("$dep")
       done < <(resolve_deps "$f")
-    done < <({ find "$dir" -mindepth 2 -name "SKILL.md" -type f; find "$dir" -maxdepth 1 -name "*.md" -type f; } 2>/dev/null)
+    done < <(skill_files_in_dir "$dir")
   done
 
   # Collect all valid entries across all dirs, then sort by category then name
@@ -189,7 +189,7 @@ cmd_list() {
       [ "$is_dep" -eq 1 ] && continue
       category=$(fm_field "$f" category)
       entries+=("${category}"$'\t'"${name}"$'\t'"${f}")
-    done < <({ find "$dir" -mindepth 2 -name "SKILL.md" -type f; find "$dir" -maxdepth 1 -name "*.md" -type f; } 2>/dev/null)
+    done < <(skill_files_in_dir "$dir")
   done
 
   local prev_cat=""
@@ -917,7 +917,7 @@ cmd_addall() {
       [ "$(fm_field "$f" hidden)" = "true" ] && continue
       for s in "${seen[@]+"${seen[@]}"}"; do [ "$s" = "$name" ] && already=1 && break; done
       [ "$already" -eq 0 ] && names+=("$name") && seen+=("$name")
-    done < <({ find "$dir" -mindepth 2 -name "SKILL.md" -type f; find "$dir" -maxdepth 1 -name "*.md" -type f; } 2>/dev/null | sort)
+    done < <(skill_files_in_dir "$dir" | sort)
   done
 
   [ ${#names[@]} -eq 0 ] && { echo "No skills found."; exit 1; }

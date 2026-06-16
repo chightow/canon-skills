@@ -19,10 +19,7 @@ find_skill() {
     [ -d "$dir" ] || continue
     while IFS= read -r f; do
       [ "$(fm_field "$f" name)" = "$name" ] && echo "$f" && return 0
-    done < <(
-      find "$dir" -mindepth 2 -name "SKILL.md" -type f 2>/dev/null
-      find "$dir" -maxdepth 1 -name "*.md" -type f 2>/dev/null
-    )
+    done < <(skill_files_in_dir "$dir")
   done
   return 1
 }
@@ -42,4 +39,11 @@ resolve_deps() {
   dep_str=$(fm_field "$file" depends)
   [ -z "$dep_str" ] && return 0
   echo "$dep_str" | tr -d '[]' | tr ',' '\n' | tr -d ' ' | grep -v '^$' || true
+}
+
+skill_files_in_dir() {
+  local dir="$1"
+  { find "$dir" -mindepth 2 -name "SKILL.md" -type f
+    find "$dir" -maxdepth 1 -name "*.md" -type f
+  } 2>/dev/null
 }

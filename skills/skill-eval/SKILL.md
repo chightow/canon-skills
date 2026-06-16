@@ -9,6 +9,8 @@ tags: [quality, testing, skills, eval]
 
 Runs execution evals for the skill at `skills/$ARGUMENTS/`.
 
+See [example.md](example.md) for a step-by-step walkthrough using the `capture` skill.
+
 ## What this is not
 
 Trigger eval (whether the skill fires for the right queries) and benchmark/improve/compare modes are **out of scope**. For those, see [skill-creator](https://github.com/anthropics/skills/blob/main/skills/skill-creator/SKILL.md).

@@ -54,6 +54,17 @@ if [ -n "$TKT_BIN" ]; then
   )
 fi
 
+# ── Starters sync ────────────────────────────────────────────────────────────
+# If standards/efficiency.md is staged, auto-sync starters/ and re-stage.
+if git diff --cached --name-only 2>/dev/null | grep -q "^standards/efficiency\.md$"; then
+  GEN="$GIT_ROOT/scripts/gen-starters.sh"
+  if [[ -x "$GEN" ]]; then
+    (cd "$GIT_ROOT" && bash "$GEN" >/dev/null)
+    git add "$GIT_ROOT/starters/standards/efficiency.md"
+    echo "[pre-commit] starters/standards/efficiency.md synced from standards/efficiency.md"
+  fi
+fi
+
 # ── Test suite ───────────────────────────────────────────────────────────────
 TEST_RUNNER="$GIT_ROOT/scripts/test.sh"
 if [[ -x "$TEST_RUNNER" ]]; then

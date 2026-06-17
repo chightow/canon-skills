@@ -34,7 +34,8 @@ decision: a nuance that changes *how* a skill does its one job is an edit; a
 1. **Lint**: `./tools/skills.sh lint` — deterministic conformance check; must pass.
 2. **Test**: `npm test` — runs the lint plus the core CLI workflow suite.
 3. **Catalog**: `./tools/canon-dev.sh catalog` if you added or renamed a skill; commit `CATALOG.md`.
-4. **Starters sync**: `./scripts/gen-starters.sh` if you edited `standards/efficiency.md`; commit the updated `starters/standards/efficiency.md`.
+
+`starters/standards/efficiency.md` is synced automatically at commit time by the pre-commit hook — no manual step needed.
 
 `skills.sh lint` runs as part of `npm test`, so running the suite catches
 non-conforming skills before they merge.

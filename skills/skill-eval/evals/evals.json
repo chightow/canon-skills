@@ -1,0 +1,50 @@
+{
+  "skill_name": "skill-eval",
+  "evals": [
+    {
+      "id": 1,
+      "case_type": "control",
+      "prompt": "Run skill-eval for the 'capture' skill. The skill's SKILL.md and evals/evals.json are both present. evals.json has 2 cases. Run the eval and produce the formatted report.",
+      "expected_output": "The skill spawns an executor and grader subagent for each of the 2 cases, then produces a report using the exact format: '## Skill Eval: capture', case headers '### Case N: ...', per-expectation verdicts with evidence, and a Summary block with pass count and overall verdict.",
+      "expectations": [
+        "Report header is '## Skill Eval: capture'",
+        "Each case has a '### Case N: <prompt truncated to 60 chars>' heading",
+        "Each expectation is graded pass, fail, or partial with a one-line evidence citation",
+        "Summary block shows '<n>/<total> expectations passed' and a 'Verdict: pass | fail' line"
+      ]
+    },
+    {
+      "id": 2,
+      "case_type": "boundary",
+      "prompt": "Run skill-eval for the 'my-skill' skill. SKILL.md exists but skills/my-skill/evals/evals.json does not exist.",
+      "expected_output": "The skill reports that evals.json is missing as a finding and stops. It does not attempt to fabricate or skip past the missing file.",
+      "expectations": [
+        "Reports that evals/evals.json is missing",
+        "Treats the missing file as a finding",
+        "Stops without running any eval cases"
+      ]
+    },
+    {
+      "id": 3,
+      "case_type": "edge",
+      "prompt": "Run skill-eval for a skill whose evals.json has the correct structure but zero eval cases in the 'evals' array.",
+      "expected_output": "The skill reports that no test cases were found as a finding and stops, rather than reporting 0/0 passed.",
+      "expectations": [
+        "Reports that evals.json has no test cases",
+        "Treats empty evals array as a finding",
+        "Does not produce a passing verdict for zero cases"
+      ]
+    },
+    {
+      "id": 4,
+      "case_type": "compliance",
+      "prompt": "Run skill-eval for the 'context-check' skill. One eval case has an expectation: 'Writes to context-findings.md'. The executor's response describes checking imports and flagging issues but never mentions writing the file. Grade conservatively.",
+      "expected_output": "The skill grades the file-write expectation as 'fail' or 'partial' (not 'pass') because the executor did not explicitly describe writing the file. The grader cites the absence of evidence.",
+      "expectations": [
+        "Grades the file-write expectation as fail or partial",
+        "Does not grade it pass without explicit executor evidence",
+        "Cites absence of evidence in the evidence line"
+      ]
+    }
+  ]
+}

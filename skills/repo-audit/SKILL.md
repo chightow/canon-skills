@@ -41,11 +41,12 @@ Questions to answer:
 **Goal**: Verify the implementation honors the philosophy — not just in words, but in every command, tool, and convention.
 
 Questions to answer:
-- What is the repo's stated philosophy? Extract it explicitly from the docs. (If it's not stated, that's a finding.)
+- What is the repo's stated philosophy? Extract it explicitly from the docs. If no dedicated philosophy doc exists (no `DESIGN.md`, `ARCHITECTURE.md`, `docs/how-it-works.md`, or ADRs), extract from `README.md` instead — and note the absence as a finding. The missing doc is a finding, not a stop condition; proceed with best-effort ratings for all four dimensions.
 - Does the implementation honor it? Check: command surface size, complexity vs. claimed simplicity, patterns in core code
 - Does the usage pattern (workflows, commands, default behaviors) reflect the philosophy?
 - Where does the implementation contradict or silently undermine the stated philosophy?
 - Are there features that have crept in and violated it?
+- If the README's stated feature count or command surface contradicts the actual implementation, flag it here as a coherence failure (and also in Dimension 1 as a positioning gap).
 
 Look for: philosophy stated but not implemented, implementation that outgrew its stated scope, or a tool that claims minimalism but adds flags for every edge case.
 

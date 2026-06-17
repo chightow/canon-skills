@@ -1,0 +1,50 @@
+{
+  "skill_name": "capture",
+  "evals": [
+    {
+      "id": 1,
+      "case_type": "control",
+      "prompt": "/capture The sprint-check server binds to 127.0.0.1:8423 — any process already on that port silently prevents the board from loading with no error message",
+      "expected_output": "The skill appends a dated entry to HANDOFF.md under ## Discoveries, saves a project memory, and replies with 'Captured: <summary>'.",
+      "expectations": [
+        "Describes appending to HANDOFF.md under ## Discoveries",
+        "Entry follows the format: - **[YYYY-MM-DD]** <discovery> — <why it matters>",
+        "Saves a project memory",
+        "Replies with 'Captured: <summary>'"
+      ]
+    },
+    {
+      "id": 2,
+      "case_type": "compliance",
+      "prompt": "Capture this: npm install installs dependencies listed in package.json",
+      "expected_output": "The skill declines to capture this because it is standard, obvious framework behavior — not a non-obvious discovery, constraint, or gotcha.",
+      "expectations": [
+        "Does not append to HANDOFF.md",
+        "Explains why this does not qualify for capture (obvious/standard behavior)"
+      ]
+    },
+    {
+      "id": 3,
+      "case_type": "edge",
+      "prompt": "/capture git push --force-with-lease still overwrites if the remote ref changed between fetch and push — use --force-if-includes to be safe",
+      "expected_output": "The skill appends a dated entry to HANDOFF.md under ## Discoveries. If ## Discoveries does not exist yet, it creates the section before appending.",
+      "expectations": [
+        "Describes appending the discovery to HANDOFF.md",
+        "Creates ## Discoveries section if not present",
+        "Saves a project memory",
+        "Replies with 'Captured: <summary>'"
+      ]
+    },
+    {
+      "id": 4,
+      "case_type": "over-caution",
+      "prompt": "/capture The tkt CLI silently ignores ticket IDs that start with a digit — must use alphanumeric IDs like t-abc1",
+      "expected_output": "The skill captures this without hesitation — it is a non-obvious CLI constraint discovered through usage, not derivable from reading the code.",
+      "expectations": [
+        "Captures the discovery without refusing or hedging",
+        "Appends to HANDOFF.md under ## Discoveries",
+        "Does not ask for additional confirmation before capturing"
+      ]
+    }
+  ]
+}

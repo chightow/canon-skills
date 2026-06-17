@@ -25,7 +25,7 @@ tags: [knowledge-management, handoff, memory]
 
 1. Append to `HANDOFF.md` under `## Discoveries`. Create the section if absent.
 2. Save a `project` memory.
-3. Reply: `Captured: <summary>`
+3. Reply: `Captured: <summary>` followed by the entry as it was written to HANDOFF.md, so the user can verify the format.
 
 Entry format for HANDOFF.md:
 ```

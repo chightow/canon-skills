@@ -34,7 +34,7 @@ Audit what Claude loads every session. Append to `context-findings.md` (project 
 
    Report content findings separately from size findings.
 
-8. Report the size table, then content findings. If none: say so and stop.
+8. Report the size table, then content findings. For each file assessed in Step 6, explicitly state either the issue found or "no relevance concern" — do not silently skip files that passed. If no content findings exist: say so and stop.
 
 9. If findings exist, ask: `Append these to context-findings.md? (y to confirm)`. Do not write without `y`. Write to `context-findings.md` at the project root.
 

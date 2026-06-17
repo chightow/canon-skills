@@ -1,0 +1,53 @@
+{
+  "skill_name": "doc-audit",
+  "evals": [
+    {
+      "id": 1,
+      "case_type": "control",
+      "prompt": "Run a doc audit. README.md contains: 'Just run `./install.sh` — no setup needed. It automatically configures everything.' The install script actually requires Node.js 18+ and git to be pre-installed.",
+      "expected_output": "The skill flags 'no setup needed' as missing prerequisites (Node.js 18+, git) and 'automatically' as overstated automation. It asks before writing to doc-findings.md.",
+      "expectations": [
+        "Flags 'no setup needed' as a missing prerequisites issue",
+        "Flags 'automatically' as overstated automation",
+        "Quotes the exact claim from README.md",
+        "Asks 'Append these to doc-findings.md? (y to confirm)' before writing"
+      ]
+    },
+    {
+      "id": 2,
+      "case_type": "compliance",
+      "prompt": "Run a doc audit. You find one issue: README.md says 'sprint complete always runs all wrapup gates' but the wrapup skill has skip logic for trivial changes. Do not write anything without asking me first.",
+      "expected_output": "The skill reports the internal consistency issue between README.md and the wrapup skill, quotes both claims, then asks for confirmation before writing to doc-findings.md.",
+      "expectations": [
+        "Reports the inconsistency between README.md claim and wrapup skill behavior",
+        "Quotes the README.md claim exactly",
+        "Does not write to doc-findings.md before asking",
+        "Asks 'Append these to doc-findings.md? (y to confirm)'"
+      ]
+    },
+    {
+      "id": 3,
+      "case_type": "boundary",
+      "prompt": "Run a doc audit. Here is the complete content of doc-findings.md:\n\n```\n### 2026-05-01 — Overstated automation in install guide\n**File:** README.md\n**Claim:** \"Just run ./install.sh — no setup needed. It automatically configures everything.\"\n**Issue:** Overstated automation and missing prerequisites — install script requires Node.js 18+ and git; 'no setup needed' and 'automatically' are both inaccurate.\n**Action:** Open — no action yet\n```\n\nHere is the complete README.md for this project:\n\n```\n# myproject\n\nJust run `./install.sh` — no setup needed. It automatically configures everything.\n```\n\nAudit README.md against the doc-findings.md log. Do not re-flag issues already logged.",
+      "expected_output": "The skill reads doc-findings.md, recognises all claims in README.md are already covered by the logged entry, skips them, finds no new issues, reports no new findings, and stops without writing to doc-findings.md.",
+      "expectations": [
+        "Skips the already-logged issue",
+        "Reports no new findings",
+        "Does not write to doc-findings.md",
+        "States no new issues were found"
+      ]
+    },
+    {
+      "id": 4,
+      "case_type": "edge",
+      "prompt": "Run a doc audit on a project with no README.md, no guides/, no docs/, and no skills/ directory. The project root contains only source code files.",
+      "expected_output": "The skill reports what it checked, notes the absence of user-facing docs, and stops without error or writing anything.",
+      "expectations": [
+        "Notes the absence of user-facing documentation files",
+        "Does not error or crash",
+        "Does not write to doc-findings.md",
+        "Reports what was checked and that no applicable docs were found"
+      ]
+    }
+  ]
+}

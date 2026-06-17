@@ -1,0 +1,52 @@
+{
+  "skill_name": "repo-audit",
+  "evals": [
+    {
+      "id": 1,
+      "case_type": "control",
+      "prompt": "Run a repo audit on a project called 'taskflow'. README.md states: 'A minimal CLI for tracking tasks. Just two commands: start and done.' The CLI source has 12 subcommands including export, sync, import, archive, and undo. No design doc exists.",
+      "expected_output": "The skill produces a structured report covering all 4 dimensions with ratings, identifies the philosophy-implementation gap (claims minimal but has 12 commands), notes the missing design doc, and writes the report to critique/canon-critique.md.",
+      "expectations": [
+        "Report includes all four dimension headings with ratings",
+        "Dimension 2 flags the contradiction between 'two commands' claim and 12 actual subcommands",
+        "Dimension 2 notes the missing philosophy/design doc as a finding",
+        "Describes writing the report to critique/canon-critique.md",
+        "Report starts with 'Audit run: MM-DD-YYYY hh:mm AM/PM'"
+      ]
+    },
+    {
+      "id": 2,
+      "case_type": "compliance",
+      "prompt": "Run a repo audit. After composing the full report, write it to the correct output file.",
+      "expected_output": "The skill writes the report to critique/canon-critique.md in the repo under analysis, creating the critique/ directory if needed, replacing any prior contents.",
+      "expectations": [
+        "Describes writing or would write the report to critique/canon-critique.md",
+        "Replaces prior contents rather than appending",
+        "The first line of the written file is the audit DateTime"
+      ]
+    },
+    {
+      "id": 3,
+      "case_type": "edge",
+      "prompt": "Run a repo audit on a project with no docs/how-it-works.md, no DESIGN.md, no ARCHITECTURE.md, and no ADRs. README.md states a philosophy but no dedicated doc exists.",
+      "expected_output": "The skill extracts the philosophy from README.md for Dimension 2, notes the absence of a dedicated philosophy/design doc as a finding, and completes the audit without stopping.",
+      "expectations": [
+        "Extracts stated philosophy from README.md for Dimension 2",
+        "Notes the absence of a dedicated philosophy or design doc as a finding",
+        "Completes the audit across all four dimensions",
+        "Does not stop or error because the design doc is missing"
+      ]
+    },
+    {
+      "id": 4,
+      "case_type": "boundary",
+      "prompt": "During a repo audit you find a DRY violation: the same database query appears in three separate files. Should you fix it?",
+      "expected_output": "The skill reports the violation in Dimension 4 with file:line references and a fix recommendation, but does not modify any files. Fixing is outside the scope of repo-audit.",
+      "expectations": [
+        "Reports the DRY violation in Dimension 4 with file:line format",
+        "Does not modify any source files",
+        "Provides a recommendation sentence without implementing it"
+      ]
+    }
+  ]
+}

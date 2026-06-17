@@ -3,8 +3,8 @@ name: skill-setup-std
 description: Validates skill files against canon standards. Use when adding a new skill or auditing existing ones.
 category: agent-ops
 tags: [skills, contributors, conventions]
-version: 1.7.0
-updated: 2026-06-16
+version: 1.8.0
+updated: 2026-06-17
 ---
 
 # Skill Setup Standard
@@ -27,6 +27,7 @@ Standards, tools, and other non-skill files remain flat in their own top-level d
 ## Naming
 
 - Lowercase, hyphenated directory name: `skills/sprint/`, `skills/context-check/`
+- **Prefer gerund form** (verb + -ing): `processing-pdfs`, `analyzing-spreadsheets`. This signals what the skill does vs. what it is. Noun phrases (`pdf-processing`) and action forms (`process-pdfs`) are acceptable alternatives.
 - Use a prefix to signal a skill family: `sprint/`, `sprint-check/`
 - Max ~20 characters — the directory name appears in `skills.sh list` output
 - The **command name** (what you type after `/`) comes from the directory name, not frontmatter
@@ -228,6 +229,32 @@ Length is a smell, not a limit: a leaf skill that runs long is usually doing mor
 
 A menu forces a decision at runtime; a default with an escape hatch is a decision made once.
 
+## Feedback loops
+
+For skills covering multi-step tasks, include an explicit validate-fix-repeat loop. Don't assume the agent will retry on failure without being told to.
+
+```markdown
+## Edit workflow
+
+1. Make your edits to `word/document.xml`
+2. Validate: `python scripts/validate.py unpacked_dir/`
+3. If validation fails: fix the errors in the XML and run validation again
+4. Only proceed when validation passes
+5. Rebuild: `python scripts/pack.py unpacked_dir/ output.docx`
+```
+
+For long workflows, provide a checklist Claude can copy and check off:
+
+```markdown
+- [ ] Step 1: Analyze input
+- [ ] Step 2: Create mapping file
+- [ ] Step 3: Validate mapping
+- [ ] Step 4: Apply changes
+- [ ] Step 5: Verify output
+```
+
+The checklist doubles as a progress tracker and makes failure points visible.
+
 ## Gotchas
 
 Add a `## Gotchas` section to any skill where real usage has revealed failure patterns — edge cases, footguns, or non-obvious constraints that caused problems. This is the highest-signal section a skill can have; keep it growing.
@@ -271,6 +298,15 @@ This keeps the hook scoped to the skill's lifecycle rather than always-on.
 
 Document any restrictions clearly at the top of the skill so users know what is being restricted and for how long.
 
+## MCP tool references
+
+If a skill invokes MCP tools, always use fully qualified names (`ServerName:tool_name`) to avoid "tool not found" errors when multiple MCP servers are loaded:
+
+```markdown
+Use BigQuery:bigquery_schema to retrieve table schemas.
+Use GitHub:create_issue to file new issues.
+```
+
 ## Update vs. new skill
 
 A nuance to address is first a decision: does it edit an existing skill or become a new one? Apply the one-job test.
@@ -281,6 +317,10 @@ A nuance to address is first a decision: does it edit an existing skill or becom
 When in doubt, prefer editing — a new skill earns its place only when it has a coherent standalone job (see "Standalone vs. hidden"). If the file carries `version:` / `updated:` frontmatter (standards do; skills usually do not), bump them in the same edit.
 
 ## Testing
+
+**Build evals before extensive documentation.** Write three scenarios that reproduce the gaps you're trying to close, establish a baseline without the skill, then write the minimum content that passes them. This prevents documenting imagined requirements. Iterate: run evals → observe where the agent struggles → refine the skill → rerun.
+
+**Test with the models you plan to use.** Skills tuned for Opus may be too sparse for Haiku. If you need cross-model compatibility, verify with each model. Haiku needs more explicit guidance; Opus benefits from leaner content that doesn't over-explain.
 
 Every skill should ship with at least two execution eval test cases. These live in `skills/<name>/evals/evals.json` and are run via the `skill-eval` skill.
 
@@ -367,3 +407,29 @@ Add an optional `case_type` field to each eval to document coverage:
 4. If the skill is imported by an existing skill, add it to that skill's `depends:` list
 5. If it's standalone, document it in README.md if it warrants a mention
 6. Write at least 2 eval test cases in `skills/<name>/evals/evals.json` and run `/skill-eval <name>` to verify
+
+## Pre-ship checklist
+
+Before registering or sharing a skill:
+
+**Discovery**
+- [ ] Description is specific, includes key terms, and names both what it does and when to use it
+- [ ] Description is written in third person
+
+**Content**
+- [ ] SKILL.md body is under 500 lines
+- [ ] No time-sensitive information (or isolated in an "Old patterns" section)
+- [ ] Consistent terminology throughout — one term per concept
+- [ ] Defaults provided, not menus
+- [ ] File references are one level deep from SKILL.md
+- [ ] Reference files longer than 100 lines have a table of contents
+
+**Behavior**
+- [ ] Complex workflows have a validate-fix-repeat loop
+- [ ] MCP tool references use `ServerName:tool_name` format (if applicable)
+- [ ] Any `disallowed-tools` or hooks restrictions are documented at the top
+
+**Testing**
+- [ ] At least 2 eval cases covering ≥3 case types
+- [ ] Evals pass via `/skill-eval <name>`
+- [ ] Tested with actual usage, not just the happy path

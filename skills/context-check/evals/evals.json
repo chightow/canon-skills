@@ -1,0 +1,63 @@
+{
+  "skill_name": "context-check",
+  "evals": [
+    {
+      "id": 1,
+      "case_type": "control",
+      "prompt": "Run a context check. Assume ~/.claude/CLAUDE.md has two @-imports: AGENTS.md (80 lines) and standards/efficiency.md (120 lines). skills.sh status shows two registered skills: sprint (450 lines) and wrapup (90 lines). No context-findings.md exists yet.",
+      "expected_output": "The skill produces a size table listing each import file and its line count, lists the registered skills and sizes, then flags any files where more than half the content is rarely relevant. It does not write to context-findings.md without asking.",
+      "expectations": [
+        "Produces a size table with file names and line counts",
+        "Lists registered skills and their sizes",
+        "Flags high-line-count files where less than half is usually relevant",
+        "Asks for confirmation before writing to context-findings.md"
+      ]
+    },
+    {
+      "id": 2,
+      "case_type": "compliance",
+      "prompt": "Run a context check. No context-findings.md exists. ~/.claude/CLAUDE.md imports two files. Here is the relevant content of each:\n\nAGENTS.md (excerpt):\n```\n## Output Style\n- No sycophantic openers or closing fluff.\n- Short responses by default.\n```\n\nstandards/efficiency.md (excerpt):\n```\n## Output Style\n- No sycophantic openers or closing fluff.\n- Short responses by default.\n```\n\nThese two excerpts are the complete always-on content for this scenario. Audit them for cross-file redundancy and report your findings.",
+      "expected_output": "The skill identifies that 'No sycophantic openers or closing fluff' and 'Short responses by default' appear verbatim in both AGENTS.md and standards/efficiency.md, quotes both occurrences, then asks 'Append these to context-findings.md? (y to confirm)' without writing first.",
+      "expectations": [
+        "Identifies and reports the cross-file redundancy with quotes from both files",
+        "Asks 'Append these to context-findings.md? (y to confirm)' before writing",
+        "Does not write to context-findings.md without confirmation"
+      ]
+    },
+    {
+      "id": 3,
+      "case_type": "boundary",
+      "prompt": "Run a context check. context-findings.md already contains an entry dated 2026-06-10 flagging standards/efficiency.md as redundant with AGENTS.md. You find no new issues.",
+      "expected_output": "The skill skips the already-logged issue, finds no new issues, and stops without writing to context-findings.md.",
+      "expectations": [
+        "Skips the already-logged issue from context-findings.md",
+        "Reports no new findings",
+        "Does not write to context-findings.md",
+        "Stops after reporting no new issues"
+      ]
+    },
+    {
+      "id": 4,
+      "case_type": "edge",
+      "prompt": "Run a context check. skills.sh is not on PATH and ./tools/skills.sh does not exist. No context-findings.md exists.",
+      "expected_output": "The skill skips the skills.sh step with an explicit note, continues with the remaining steps (CLAUDE.md imports, settings.json, memory files), and completes normally.",
+      "expectations": [
+        "Skips skills.sh check and explicitly notes it is unavailable",
+        "Continues with remaining audit steps",
+        "Does not error or stop because skills.sh is missing"
+      ]
+    },
+    {
+      "id": 5,
+      "case_type": "over-caution",
+      "prompt": "Run a context check. No context-findings.md exists. ~/.claude/CLAUDE.md imports two files. Here is their complete content:\n\nAGENTS.md (18 lines):\n```\n# Agent Instructions\n\n## Workflow\n- Non-trivial work requires an open ticket before sprint start.\n- Trivial fixes (typo, single-line config) are exempt.\n- Surface tradeoffs; don't hide confusion.\n- If multiple interpretations exist, present them — don't pick silently.\n\n## Code Quality\n- No error handling for scenarios that can't happen.\n- Only validate at system boundaries (user input, external APIs).\n- No speculative abstractions.\n- No half-finished implementations.\n```\n\nstandards/git.md (14 lines):\n```\n# Git Standards\n\n## Commits\n- Imperative mood, 50-char target, 72-char hard limit, no trailing period.\n- Type prefix: feat, fix, refactor, perf, docs, test, chore.\n- Body required for breaking changes or non-obvious reasoning.\n\n## Branches\n- Pattern: feat/short-description or fix/short-description.\n- Never force-push main or master.\n- PRs: one concern per PR, title under 70 chars.\n```\n\nNo skills registered. No hooks in settings.json. Audit these two files and report your findings.",
+      "expected_output": "The skill assesses both files in Step 6 and finds no size or relevance issues. In Step 8 it explicitly states 'no relevance concern' (or equivalent) for each file individually rather than silently skipping them. It reports no content findings and stops without asking to write to context-findings.md.",
+      "expectations": [
+        "Explicitly states no relevance concern (or equivalent) for AGENTS.md",
+        "Explicitly states no relevance concern (or equivalent) for standards/git.md",
+        "Does not silently omit the per-file verdict for clean files",
+        "Does not write to or prompt about context-findings.md"
+      ]
+    }
+  ]
+}

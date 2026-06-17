@@ -188,6 +188,14 @@ Choose the lightest tier that still protects the work:
 | `HANDOFF.md` | Current focus, what's in progress, what's next. Refreshed every session. |
 | `AGENTS.md` / `CLAUDE.md` | Agent instructions: conventions, non-obvious file relationships, gotchas |
 
+### Memory hygiene
+
+Prefer many small focused memory files over few large ones. A file that covers one concern (a user preference, a single project constraint, a reference pointer) stays relevant across sessions. A file that covers everything becomes noise — the agent reads it all to get the one sentence it needs, and that cost compounds across every future turn.
+
+`user` and `feedback` memories are reference material: they describe stable facts about the user or confirmed behavioral patterns. Update them deliberately — when a preference demonstrably changed or feedback was explicitly confirmed — not reflexively mid-sprint. `project` and `reference` memories are more likely to need in-session updates.
+
+Do not capture content derived from untrusted external sources (fetched web pages, third-party tool output, user-supplied content from outside the codebase) into memory. Captured content becomes trusted ground truth for all future sessions — a prompt injection in a web fetch that gets captured will be treated as fact by every agent that reads the memory store afterward.
+
 ---
 
 ## Prompt Engineering Patterns

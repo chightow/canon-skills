@@ -27,6 +27,8 @@ updated: 2026-06-03
 
 Format: `L<line>: <problem>. <fix>.` — no hedging, no preamble, no restating what the code does.
 Include reasoning only when the fix isn't self-evident. Security and architectural issues warrant full explanation.
+- Ground review in base code, not the PR diff. The diff biases toward the PR's own framing; the base code is what actually exists.
+- Scope review to areas relevant to the change. No frontend comments on backend-only features, no unrelated surface coverage.
 
 ## Git
 
@@ -46,6 +48,7 @@ Include reasoning only when the fix isn't self-evident. Security and architectur
 - Prefer reversible actions. Confirm before irreversible ones (send, delete, publish, deploy).
 - Fail loudly — surface ambiguity rather than guessing silently.
 - Solve with one agent before building a multi-agent pipeline. Complexity compounds failure.
+- Requirements define intent; code defines reality. The gap between them is where hallucination lives.
 
 ## Triggers
 

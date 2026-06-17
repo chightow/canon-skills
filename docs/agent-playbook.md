@@ -1,0 +1,275 @@
+---
+title: Agent Development Playbook
+description: Portable distillation of canon's agent design knowledge — language-agnostic, self-contained
+updated: 2026-06-16
+---
+
+# Agent Development Playbook
+
+Distilled from building and iterating on canon. Language-agnostic — applies whether you're writing agents in Python, TypeScript, shell, or anything else.
+
+---
+
+## The One Idea
+
+> Requirements define intent. Code defines reality. The gap between them is where hallucination lives.
+
+Everything below follows from that. An agent that reviews the PR diff instead of the actual code, or validates requirements against a spec instead of the running system, will confidently report success while the system is broken.
+
+---
+
+## Agent Design Principles
+
+**One agent, one job.** An agent that does two things is two agents waiting to be separated. Composing two focused agents is easier to debug, test, and replace than one agent doing both.
+
+**Compose from tools + context + prompts — not inheritance.** An agent is a combination of: what it can do (tools), what it knows (context injected at session start), and what it's told to do (its prompt). Resist abstracting a base-agent class; the composition is the design.
+
+**Request only the tools the current task needs.** Bloated tool schemas degrade reasoning. An agent with 40 available tools makes worse decisions than one with 6 relevant ones.
+
+**Prefer reversible actions. Confirm before irreversible ones.** Read before write. Dry-run before delete. Confirm before send, publish, deploy, migrate. The cost of one extra confirmation is low; the cost of an unwanted action is high.
+
+**Fail loudly.** Surface ambiguity rather than guessing silently. An agent that picks one interpretation of an ambiguous instruction and doesn't say so is worse than one that stops and asks.
+
+**Solve with one agent before building a multi-agent pipeline.** Multi-agent complexity compounds failure modes. Every additional agent is another surface that can misinterpret, hallucinate, or silently drop information. Only reach for orchestration when a single agent genuinely can't do the job.
+
+---
+
+## Skill Anatomy
+
+A skill is a markdown document that tells an agent what to do when triggered. It is not code — it is structured context.
+
+### Minimal SKILL.md structure
+
+```markdown
+---
+name: skill-name
+description: One sentence — what this skill does and when to invoke it.
+category: dev | ops | research | ...
+tags: [keyword, keyword]
+depends: []       # other skills this one reads
+inject: false     # true = always loaded into context
+---
+
+# Skill Name
+
+Brief one-line summary.
+
+## Trigger
+
+When to use this skill: what user input or condition activates it.
+
+## Steps
+
+1. Step one. Be specific about what to read, what to check, what to do.
+2. Step two.
+
+## Output Format
+
+What the agent should produce: file writes, console output, structured data.
+
+## Gotchas
+
+Non-obvious constraints, failure modes, or edge cases.
+```
+
+### What makes a skill good
+
+- **One job.** If the description requires "and", split it.
+- **Explicit triggers.** The agent must know without ambiguity when to invoke this skill vs. a different one.
+- **Steps that reference the actual files.** "Read `tools/handoff.md`, then..." beats "review the handoff state."
+- **Concrete output format.** A skill that produces unstructured prose is hard to grade and hard to compose.
+- **Gotchas section.** This is where hard-won knowledge lives. If something surprised you during development, it belongs here.
+
+---
+
+## Eval Methodology
+
+Evals verify that a skill produces correct output for known inputs. They catch regressions and validate new skills before deployment.
+
+### evals.json schema
+
+```json
+{
+  "skill_name": "my-skill",
+  "evals": [
+    {
+      "id": 1,
+      "case_type": "control | compliance | boundary | over-caution",
+      "prompt": "The exact input that triggers the skill",
+      "expected_output": "Human-readable description of correct output",
+      "expectations": [
+        "Specific, binary-graded assertion about the output",
+        "Another assertion"
+      ]
+    }
+  ]
+}
+```
+
+### Case types
+
+| Type | Purpose |
+|---|---|
+| `control` | Happy path — skill should succeed cleanly |
+| `compliance` | Tests that the skill follows a specific rule |
+| `boundary` | Edge case — input near the boundary of what the skill handles |
+| `over-caution` | Tests that the skill doesn't flag false positives |
+
+Every skill needs at least one `control` and one `compliance` case. Add `boundary` and `over-caution` cases as you discover failure modes.
+
+### Executor + Grader pattern
+
+Run evals with two subagents in clean contexts:
+
+1. **Executor** — gets only the skill's SKILL.md and the eval prompt. No implementation history. Reports what steps it took and what output it produced.
+
+2. **Grader** — gets the executor's output, the `expected_output`, and the `expectations` list. Grades each expectation `pass`, `fail`, or `partial` with a one-line evidence citation.
+
+The key is **clean context on both sides**. An evaluator that saw the implementation will be biased toward the implementation's framing — it will find ways to call things passing that aren't. A fresh context grades what actually happened.
+
+### G-Eval criteria (for LLM-as-judge)
+
+When writing grading criteria for LLM judges, make each criterion:
+- **Binary or near-binary** — "flags the CDN URL" is gradable; "provides good advice" is not
+- **Evidence-anchored** — the grader must cite which part of the output justifies the grade
+- **Failure-closed** — if the evidence is absent or ambiguous, grade `fail`, not `pass`
+
+---
+
+## Verification Principles
+
+These apply when an agent checks whether work is done, whether a requirement is met, or whether a change is correct.
+
+**Read base code, not the diff.** The PR diff shows what changed, but it biases the agent toward the PR's own framing. The base code shows what actually exists. When validating that a requirement is implemented, read the current file — not the change set.
+
+**Scope review to relevant areas.** Reviewing across unrelated surfaces introduces noise and dilutes signal. A backend-only feature change doesn't need frontend review. Explicit scoping produces sharper findings.
+
+**Adversarial evaluator at close.** The agent that wrote the code has ~170k tokens of "I built this, so it must work" bias. A fresh agent with no implementation history — given only the acceptance criteria and the changed files — grades from an independent perspective. This is the most reliable way to catch what the author missed.
+
+---
+
+## Sprint Workflow
+
+A sprint is a focused unit of work with a defined start state, done criteria, and close gate.
+
+### Tiers
+
+Choose the lightest tier that still protects the work:
+
+| Tier | When | Overhead |
+|---|---|---|
+| **Trivial** | Single-line fix, rename, typo | No sprint — work directly |
+| **Normal** | Focused reversible change | Ticket + `acceptance.md` + `plan.md` |
+| **High-risk** | Auth, payments, migrations, broad blast radius | Full: orient, impact analysis, research, human checkpoint |
+
+### Sprint files
+
+```
+.tickets/<id>/
+  ticket.md        ← created by CLI
+  acceptance.md    ← done criteria (binary, checkable) + test plan
+  plan.md          ← files to touch, approach, decisions, tier reason
+  eval-report.md   ← adversarial grader output at close
+  summary.md       ← plan-vs-actual table at close
+```
+
+### Acceptance criteria rules
+
+- Each criterion must be binary: either it's met or it isn't
+- No "the code looks good" or "it seems to work" — specific, verifiable conditions only
+- Include a test plan with concrete commands and expected outcomes
+- The close gate should refuse to proceed while any box is unchecked
+
+### Durable state files
+
+| File | Purpose |
+|---|---|
+| `DECISIONS.md` | Non-obvious architectural choices, explicit tradeoffs. The WHY, not the what. |
+| `HANDOFF.md` | Current focus, what's in progress, what's next. Refreshed every session. |
+| `AGENTS.md` / `CLAUDE.md` | Agent instructions: conventions, non-obvious file relationships, gotchas |
+
+---
+
+## Prompt Engineering Patterns
+
+### Ground agents in the code, not the spec
+
+When asking an agent to validate a feature, point it at the code that implements the feature — not the ticket that described it. Requirements drift; code is the truth of what the system does.
+
+### Give subagents clean context
+
+Subagents inherit the biases of whoever briefed them. When you need independent judgment — evaluation, adversarial review, verification — spawn the subagent with only what it needs to do the job: the acceptance criteria, the relevant files, and the task. No implementation history.
+
+```
+# Good subagent brief
+Read acceptance.md and the files listed in plan.md.
+Grade each acceptance criterion: met / not met / uncertain.
+Cite evidence for each.
+
+# Bad subagent brief
+Based on what we just built, verify it's working.
+```
+
+### State the output format explicitly
+
+Agents produce better output when the format is specified upfront. A grader given a rubric produces structured findings; a grader asked to "assess quality" produces prose. Structured output is easier to parse, grade, and act on.
+
+### Scope tool access to the task
+
+An agent asked to review code doesn't need write access. An agent asked to generate a report doesn't need deployment tools. Narrow tool schemas produce more focused reasoning.
+
+---
+
+## Common Failure Modes
+
+**Hallucinating implementation details.** The agent validates that a feature *should* work based on the spec, not that it *does* work based on the code. Fix: ground validation in the actual files.
+
+**Biased evaluation.** The agent that wrote the code reviews its own work and finds it satisfactory. Fix: adversarial subagent with clean context.
+
+**Premature abstraction.** Three similar cases get merged into a helper before the pattern is clear. The abstraction breaks on the fourth case. Fix: three similar lines beats a premature helper.
+
+**Scope creep in review.** The agent flags issues across unrelated surfaces. Findings multiply; signal is buried in noise. Fix: explicit scope restriction at the start of review.
+
+**One agent, too many jobs.** The agent is asked to plan, implement, test, review, and document in one shot. Context collapses; later steps lose fidelity. Fix: split into focused agents with explicit handoffs.
+
+**Silent failure.** The agent encounters ambiguity and picks one interpretation without disclosing it. The user discovers the wrong choice was made after it's been built. Fix: fail loudly — surface the ambiguity and ask.
+
+---
+
+## Starting a New Project
+
+Minimum viable setup for a new agent project:
+
+```
+project/
+  CLAUDE.md          ← agent instructions (conventions, gotchas, non-obvious rules)
+  AGENTS.md          ← active skills table + workflow notes
+  standards/
+    efficiency.md    ← code quality, git conventions, agent design rules
+  skills/
+    my-skill/
+      SKILL.md
+      evals/
+        evals.json
+  .tickets/          ← sprint tickets (optionally gitignored)
+  DECISIONS.md       ← durable architectural choices
+  HANDOFF.md         ← current session state
+```
+
+See `canon/starters/` for copy-paste templates for each file.
+
+The `standards/efficiency.md` file should be marked `inject: true` (or equivalent in your harness) so it's always in context without being explicitly invoked.
+
+---
+
+## What to Put Where
+
+| Information type | Home |
+|---|---|
+| How to do a specific task | Skill SKILL.md |
+| Project-wide conventions | CLAUDE.md / AGENTS.md |
+| Code quality rules | standards/efficiency.md |
+| Why a design decision was made | DECISIONS.md |
+| What's in progress right now | HANDOFF.md |
+| Done criteria for current work | .tickets/<id>/acceptance.md |
+| Approach for current work | .tickets/<id>/plan.md |

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # gen-starters.sh — sync starters/standards/efficiency.md from standards/efficiency.md
 # Run after editing standards/efficiency.md to keep the starters copy in sync.
+# To add more synced files: add a cp line below and a matching grep in pre-commit-check.sh.
 
 set -euo pipefail
 

@@ -13,6 +13,7 @@ the steps and understand what each tool does and why.
 - A high-impact "delete all" variant caught before code, where risk ratings become required tests and a human checkpoint before close.
 - Ticket search, readiness indicators, inline doc editing, status changes, git state, and commit context in `sprint-check`.
 - Closing the sprint is gated: the CLI checks the board's criteria and test plan are both filled and ticked.
+- An evaluator subagent with a clean context reviews the code before close — it finds a criterion that was checked without a test, the agent adds the test, and the sprint closes clean.
 - A plan-vs-actual table at close makes deviations explicit — every criterion shows `delivered`, `waived`, `deferred`, or `partial` with a reason.
 
 A developer runs the terminal commands. A product manager reads the board and

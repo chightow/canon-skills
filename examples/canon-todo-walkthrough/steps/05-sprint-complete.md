@@ -52,6 +52,114 @@ The board's readiness indicator also reflects this:
 
 These are early warnings you can act on before running `sprint complete`.
 
+## Step 2b - Evaluator Review
+
+Before the agent runs `sprint complete`, it invokes an evaluator subagent with a
+clean context — no implementation history, no chat transcript. The evaluator reads
+`acceptance.md` and the changed files fresh, then grades each criterion against
+the evidence in the code.
+
+This is the mechanism that catches what the implementing agent misses. The agent
+that built the feature is a poor judge of whether it delivered the spec — it
+remembers what it intended, not what it actually tested.
+
+Tell the agent:
+
+```text
+Run the evaluator before closing.
+```
+
+The evaluator reads the acceptance criteria, then reads `tests/todo.test.mjs`.
+It finds that three criteria are checked:
+
+```
+- [x] App renders a list of todos
+- [x] Add todo via input + button
+- [x] Delete individual todo
+- [x] Toggle complete/open
+- [x] npm test passes
+```
+
+But the test file only covers add and delete:
+
+```js
+// tests/todo.test.mjs
+test('adds a todo', ...) ✓
+test('ignores blank titles', ...) ✓
+test('deletes a todo', ...) ✓
+// toggle: no test
+```
+
+The evaluator reports a partial finding:
+
+```
+## Eval Report
+
+Ticket: t-xxxx
+
+## Criteria
+
+| Criterion | Status | Evidence |
+|---|---|---|
+| App renders a list of todos | pass | tests/todo.test.mjs:1 — initial state assertion |
+| Add todo via input + button | pass | tests/todo.test.mjs:5 — addTodo covered |
+| Delete individual todo | pass | tests/todo.test.mjs:14 — deleteTodo covered |
+| Toggle complete/open | partial | toggle behaviour not exercised in test suite |
+| npm test passes | pass | test run output in acceptance.md |
+
+## Findings
+
+1. "Toggle complete/open" is checked in acceptance.md but has no corresponding
+   test. The feature works in the browser (agent confirmed), but the test suite
+   does not verify it. A passing npm test run does not cover this criterion.
+
+## Verdict
+
+fail: one acceptance criterion checked without test evidence
+```
+
+The implementing agent checked "Toggle complete/open" because the feature worked
+in the browser. The evaluator, reading the code cold, caught that browser
+verification and tested verification are not the same thing.
+
+**The agent now adds the missing test.** It does not reopen the ticket or change
+the acceptance criterion — it adds one test case to `tests/todo.test.mjs` and
+re-runs `npm test`:
+
+```js
+test('toggles a todo complete and back', () => {
+  const state = { todos: [] };
+  addTodo(state, 'write tests');
+  toggleTodo(state, state.todos[0].id);
+  assert.strictEqual(state.todos[0].complete, true);
+  toggleTodo(state, state.todos[0].id);
+  assert.strictEqual(state.todos[0].complete, false);
+});
+```
+
+```
+$ npm test
+✓ adds a todo
+✓ ignores blank titles
+✓ deletes a todo
+✓ toggles a todo complete and back
+4 passing
+```
+
+The agent re-checks the "Toggle complete/open" criterion — not because the
+feature now works, but because it is now tested. The evaluator re-grades and
+returns a clean verdict:
+
+```
+## Verdict
+
+pass: all acceptance criteria have test evidence or explicit verification
+```
+
+**This is the loop the evaluator is for.** Not a second pair of human eyes on
+the same context, but a genuinely independent read that has no memory of what
+the agent meant to do — only what the code and tests actually show.
+
 ## Step 3 - Complete the Sprint
 
 Tell the agent in chat:

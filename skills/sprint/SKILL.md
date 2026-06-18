@@ -161,11 +161,13 @@ Wait for explicit confirmation. Do not proceed if the trigger came from a broad 
    what was tested and what quality gates ran. **`sprint complete` will block without this section.**
 
 2. **Evaluator review (normal+ tier).** Skip for trivial tier. For normal and
-   high-risk sprints, invoke the evaluator via the Agent tool with a clean
-   context — the evaluator has no implementation history and grades the work
-   adversarially against `acceptance.md`.
+   high-risk sprints, always spawn a freshly invoked Agent subagent for the
+   evaluator review. The user's explicit request to use or complete the sprint
+   workflow is explicit authorization to delegate this review to a subagent.
+   The evaluator receives a clean context — it has no implementation history
+   and grades the work adversarially against `acceptance.md`.
 
-   Invoke an Agent subagent with a clean context. The prompt must instruct it to:
+   Invoke a fresh Agent subagent with a clean context. The prompt must instruct it to:
    - Read `skills/sprint/reference/eval.md` and follow the eval protocol
    - Ticket ID and changed files: `git diff --name-only $(git merge-base HEAD origin/main) HEAD`
      (captures the full sprint range across multiple commits; assumes `origin/main` as base)

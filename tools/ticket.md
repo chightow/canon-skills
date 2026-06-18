@@ -21,6 +21,7 @@ tkt ls --status=in_progress   # filter by status
 tkt start <id>                # mark in_progress
 tkt current                   # show active ticket
 tkt close <id>                # mark closed
+tkt archive <id>              # mark archived (hidden from board, searchable)
 tkt reopen <id>               # reopen
 tkt show <id>                 # show full ticket
 ```

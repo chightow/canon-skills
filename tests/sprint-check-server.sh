@@ -17,7 +17,7 @@ PID=""
 cleanup() { [[ -n "$PID" ]] && kill "$PID" 2>/dev/null || true; rm -rf "$WORK"; }
 trap cleanup EXIT
 mkdir -p "$WORK/.tickets"
-mkdir -p "$WORK/.tickets/t-placeholder" "$WORK/.tickets/t-ready"
+mkdir -p "$WORK/.tickets/t-placeholder" "$WORK/.tickets/t-ready" "$WORK/.tickets/t-archived"
 cat > "$WORK/.tickets/t-placeholder/ticket.md" <<'EOF'
 ---
 id: t-placeholder
@@ -73,6 +73,17 @@ Use the smallest board-side check that catches untouched templates.
 ## Decisions
 EOF
 
+cat > "$WORK/.tickets/t-archived/ticket.md" <<'EOF'
+---
+id: t-archived
+status: archived
+type: task
+priority: 2
+created: 2026-01-01T00:00:00Z
+---
+# Old closed work
+EOF
+
 PORT="$(python3 -c 'import socket; s=socket.socket(); s.bind(("127.0.0.1",0)); print(s.getsockname()[1]); s.close()')"
 
 SPRINT_CHECK_ROOT="$WORK" python3 "$SERVER" "$PORT" >/dev/null 2>&1 &
@@ -112,6 +123,19 @@ assert tickets["t-placeholder"]["acceptance_has_items"] is True
 assert tickets["t-placeholder"]["plan_has_approach"] is False
 assert tickets["t-ready"]["acceptance_has_items"] is True
 assert tickets["t-ready"]["plan_has_approach"] is True
+# archived ticket excluded from default response
+assert "t-archived" not in tickets, "archived ticket must not appear in default /api/tickets"
+PY
+
+# archived ticket included with ?all=1
+tickets_all_json="$(curl -s "http://127.0.0.1:$PORT/api/tickets?all=1")"
+python3 - "$tickets_all_json" <<'PY'
+import json
+import sys
+
+tickets = {t["id"]: t for t in json.loads(sys.argv[1])}
+assert "t-archived" in tickets, "archived ticket must appear in /api/tickets?all=1"
+assert tickets["t-archived"]["status"] == "archived"
 PY
 
 printf 'sprint-check-server: ok\n'

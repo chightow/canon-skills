@@ -177,4 +177,59 @@ test.describe('board modal', () => {
       }
     }
   });
+
+  test('archive button: Done card can be archived; archived ticket appears in search but not board columns', async ({ page }) => {
+    const title = `Archive test ${Date.now()}`;
+    let createdId = '';
+
+    try {
+      await page.goto(BASE);
+      await page.waitForLoadState('networkidle');
+
+      // Create a ticket and move it to Done (closed)
+      await page.locator('#btn-create').click();
+      await page.waitForSelector('#create-modal', { timeout: 3000 });
+      await page.locator('#c-title').fill(title);
+      await page.locator('#c-submit').click();
+
+      const card = page.locator('.card', { hasText: title });
+      await expect(card).toBeVisible();
+      createdId = await card.getAttribute('data-id') || '';
+
+      // Drag or directly set status to closed via API
+      await page.evaluate(async (id) => {
+        await fetch(`/api/ticket/${id}/status`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: 'closed' }),
+        });
+      }, createdId);
+      await page.reload();
+      await page.waitForLoadState('networkidle');
+
+      // Archive button should appear on hover in the Done column
+      const doneCard = page.locator('.col-done .card', { hasText: title });
+      await expect(doneCard).toBeVisible();
+      await doneCard.hover();
+      const archiveBtn = doneCard.locator('.card-archive');
+      await expect(archiveBtn).toBeVisible();
+      await archiveBtn.click();
+      await page.waitForLoadState('networkidle');
+
+      // Card should no longer appear in Done column
+      await expect(page.locator('.col-done .card', { hasText: title })).not.toBeVisible();
+
+      // Header archived count should appear
+      await expect(page.locator('#h-archived-stat')).toBeVisible();
+
+      // Search should find the archived ticket
+      await page.locator('#board-search').fill(createdId);
+      await page.waitForTimeout(300);
+      await expect(page.locator('#board-search-count')).toContainText('1');
+    } finally {
+      if (createdId) {
+        fs.rmSync(path.join(process.cwd(), '.tickets', createdId), { recursive: true, force: true });
+      }
+    }
+  });
 });

@@ -528,6 +528,17 @@
     }
     .ready-popover.visible { opacity: 1; }
 
+    /* Archive button on Done cards */
+    .card-archive {
+      display: none; position: absolute; top: 50%; right: 8px; transform: translateY(-50%);
+      font-size: 9px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase;
+      color: var(--text-muted); background: var(--surface-raised); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 2px 6px; cursor: pointer; z-index: 2;
+      transition: color .1s, background .1s, border-color .1s;
+    }
+    .card:hover .card-archive { display: block; }
+    .card-archive:hover { color: var(--text); border-color: var(--border-hover); background: var(--surface-hover); }
+
     /* Type badges */
     .type-badge { font-size: 10px; padding: 1px 6px; border-radius: 4px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; position: relative; z-index: 1; }
     .type-bug     { background: rgba(248,113,113,.15); color: #f87171; }
@@ -1055,8 +1066,11 @@
           <span class="dot" style="color:var(--col-progress)"></span>
           <span id="h-active">—</span> active
         </div>
+        <div class="stat" id="h-archived-stat" style="display:none;color:var(--text-muted)">
+          <span id="h-archived">0</span> archived
+        </div>
       </div>
-      <button class="create-btn" id="btn-create">+ New ticket</button>
+      <button class="create-btn" id="btn-create" title="Create new ticket">+ New</button>
       <button class="theme-toggle tour-toggle" id="tour-btn" title="Feature tour" aria-label="Feature tour" style="font-size:13px;font-weight:700;letter-spacing:-.5px">?</button>
       <button class="theme-toggle" id="theme-toggle" title="Toggle light/dark mode">🌙</button>
     </div>
@@ -1369,7 +1383,7 @@
         <div class="tour-demo-body">
           <img class="tour-screenshot" src="/meta/screenshots/drag-drop.png" alt="Drag and drop" loading="lazy">
           <img class="tour-screenshot" src="/meta/screenshots/new-ticket.png" alt="New ticket modal" loading="lazy">
-          <p class="tour-caption">Drag any card to a new column to update status. Click <strong>+ New ticket</strong> to create from the board — the title suggests a type automatically.</p>
+          <p class="tour-caption">Drag any card to a new column to update status. Click <strong>+ New</strong> to create from the board — the title suggests a type automatically.</p>
         </div>
       </details>
 
@@ -1589,7 +1603,7 @@ async function loadData() {
   setDot('loading');
   try {
     const [tr, hr, gr] = await Promise.all([
-      fetch('/api/tickets'),
+      fetch('/api/tickets?all=1'),
       fetch('/api/handoff'),
       fetch('/api/git'),
     ]);
@@ -1765,6 +1779,9 @@ function renderHeader() {
   setText('s-branch',   git?.branch  || '—');
   setText('h-open',     tickets.filter(t => t.status === 'open').length);
   setText('h-active',   tickets.filter(t => t.status === 'in_progress').length);
+  const archivedCount = tickets.filter(t => t.status === 'archived').length;
+  setText('h-archived', archivedCount);
+  document.getElementById('h-archived-stat').style.display = archivedCount > 0 ? '' : 'none';
   const mod = document.getElementById('s-modified');
   if ((git?.modified ?? 0) > 0) { mod.textContent = `${git.modified} modified`; mod.style.display=''; }
   else mod.style.display = 'none';
@@ -1923,7 +1940,7 @@ function renderBoard() {
             ? visible.map((t, i) => cardHTML(t, state.boardFirstRender ? i : undefined)).join('')
             : '<div class="column-empty">empty</div>'}
           ${hidden > 0
-            ? `<button class="col-show-more" data-status="${esc(col.status)}">+${hidden} more</button>`
+            ? `<button class="col-show-more" data-status="${esc(col.status)}">${hidden} older</button>`
             : ''}
           ${state.expandedCols.has(col.status) && cards.length > COL_LIMIT
             ? `<button class="col-show-more col-show-less" data-status="${esc(col.status)}">Show less ↑</button>`
@@ -1982,6 +1999,14 @@ function renderBoard() {
       e.stopPropagation();
       const t = state.tickets.find(x => x.id === el.dataset.id);
       if (t) showReadyPopover(el, t);
+    });
+  });
+
+  board.querySelectorAll('.card-archive').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const t = state.tickets.find(x => x.id === btn.dataset.id);
+      if (t) moveCard(t, 'archived');
     });
   });
 
@@ -2047,6 +2072,7 @@ function cardHTML(t, idx) {
       <div class="card-head">
         <span class="card-id">${esc(t.id)}</span>
         ${typeBadge(t.type)}
+        ${t.status === 'closed' ? `<button class="card-archive" data-id="${esc(t.id)}" title="Archive this ticket">archive</button>` : ''}
       </div>
       <div class="card-body">
         <p class="card-title">${esc(t.title)}</p>

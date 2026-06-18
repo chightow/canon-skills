@@ -490,7 +490,10 @@ class Handler(BaseHTTPRequestHandler):
             img = PROJECT_ROOT / path.lstrip('/')
             self.send_image(img); return
         elif path == '/api/tickets':
-            self.send_json(load_tickets())
+            tickets = load_tickets()
+            if 'all=1' not in parsed.query:
+                tickets = [t for t in tickets if t.get('status') != 'archived']
+            self.send_json(tickets)
         elif path == '/api/handoff':
             self.send_json(load_handoff())
         elif path == '/api/git':

@@ -114,7 +114,7 @@ Ticket: \`$id\`
 <!-- Keep this doc under ~500 words — it is injected at every session start. -->
 
 ## Sign-off
-<!-- Check this box before implementation begins. Add notes on any conditions. -->
+<!-- Fill in: Tier: <tier> | Risk: <blast radius / key risks, one line> -->
 
 - [ ] Plan approved — proceed to implementation
 

@@ -17,6 +17,15 @@ Trigger eval (whether the skill fires for the right queries) and benchmark/impro
 
 ## Steps
 
+0. **Structural check.** Analyse the SKILL.md body (all lines after the closing `---` of the frontmatter):
+
+   - Count total body lines. If ≤ 100 → output `pass — body within threshold (N lines)` and continue.
+   - If > 100: identify every `##` section and its line span. If 2+ sections each exceed 30 lines → output `candidate for ref/split — body N lines; sections <name> (X lines), <name> (Y lines) exceed 30-line threshold`.
+
+   Output this under `### Structural check` in the eval report, before any case results. This check is advisory — it does not block execution evals.
+
+   *Thresholds: 100-line body, 30-line section. Calibrated so a small skill like `capture` (41 lines) passes clean and a large monolithic skill like a pre-split sprint SKILL.md (240 lines, two large sections) is flagged.*
+
 1. **Read the skill.** Read `skills/$ARGUMENTS/SKILL.md` and `skills/$ARGUMENTS/evals/evals.json`. If either is missing, report the gap and stop — a missing `evals.json` is itself a finding.
 
 2. **For each eval case**, run two subagents in sequence:
@@ -42,6 +51,11 @@ Trigger eval (whether the skill fires for the right queries) and benchmark/impro
 ```
 ## Skill Eval: <skill-name>
 Run: <ISO date>
+
+### Structural check
+pass — body within threshold (N lines)
+-or-
+candidate for ref/split — body N lines; sections <name> (X lines), <name> (Y lines) exceed 30-line threshold
 
 ### Case <id>: <prompt, truncated to 60 chars>
 - "<expectation>" → pass | fail | partial

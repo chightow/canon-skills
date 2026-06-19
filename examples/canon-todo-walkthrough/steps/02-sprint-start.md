@@ -160,14 +160,38 @@ After drafting, the agent asks the questions that change what gets built. These
 are the things that have no right answer without your input — for example:
 *"Should completed Todos be toggleable back to open?"*
 
-Answer in chat:
+Answer the grill question in chat:
 
 ```text
-Yes, allow toggling completed Todos back open. Keep it framework-free. Approved.
+Yes, allow toggling completed Todos back open. Keep it framework-free.
 ```
 
-On approval the agent writes `plan.md` — the approved brief it implements
-against. The ticket stays In Progress, now with Acceptance and Plan present and
+Then approve:
+
+```text
+Go ahead.
+```
+
+On approval the agent writes `plan.md`. For normal-tier work, the agent fills in
+the `## Sign-off` risk summary and checks the approval box itself:
+
+```markdown
+## Sign-off
+Tier: normal | Risk: low — greenfield local Todo app, no shared state or irreversible ops
+
+- [x] Plan approved — proceed to implementation
+```
+
+`## Sign-off` is always the first section of `plan.md`. On the board, it appears
+as the first jump link in the Plan tab's sticky nav — so the approval state is
+visible at a glance before reading the approach.
+
+For high-risk work (such as the delete-all variant from Step 4), the agent leaves
+Sign-off **unchecked**. The pre-commit hook blocks commits until you open
+`plan.md` in the board's Plan tab and check the box yourself. The risk summary
+line tells you what you're signing off on.
+
+The ticket stays In Progress, now with Acceptance and Plan present and
 ready to build.
 
 Reload `sprint-check`. The card status should now show **READY** — all artifacts (Acceptance + Plan) are in place:

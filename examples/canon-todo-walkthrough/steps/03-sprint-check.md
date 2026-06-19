@@ -56,6 +56,10 @@ Click the Todo ticket. The detail modal shows:
 - The two sprint docs: `Acceptance` and `Plan`.
 - An `Edit` button for changing the active doc in place.
 
+The **Plan** tab generates jump links from `##` headings in document order.
+`## Sign-off` is always the first heading, so it appears as the first link in
+the sticky nav — the approval state is visible before you scroll to `## Approach`.
+
 Use inline editing for small corrections, such as tightening a criterion or
 checking off a verified test. The editor keeps required headings and the ticket
 line intact. If both sprint docs already exist, `+ New doc` is hidden because

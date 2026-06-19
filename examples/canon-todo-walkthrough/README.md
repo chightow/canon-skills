@@ -46,7 +46,7 @@ as a separate process:
 | Concern | Where it shows up |
 |---|---|
 | Guardrails | `sprint start` classifies risk before code; `sprint complete` refuses unchecked criteria or tests. |
-| Human-in-the-loop | Step 2's delete-all variant requires approval scope before implementation. |
+| Human-in-the-loop | `plan.md ## Sign-off` is checked by the agent (normal) or by you (high-risk); the pre-commit hook blocks commits until the box is ticked for high-risk sprints. Step 2's delete-all variant shows this gate in action. |
 | Observability | `sprint-check` exposes ticket state, docs, git status, commits, and readiness. |
 | Right context | `HANDOFF.md`, `DECISIONS.md`, and the active ticket survive fresh sessions. |
 | Feedback | The reviewer corrects criteria, answers grill questions, and rejects risky scope in chat. |

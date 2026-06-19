@@ -11,8 +11,9 @@ Before closing, `.tickets/<id>/acceptance.md` must have:
 - At least one checked item under `## Test Plan`
 - No unchecked items under `## Criteria` or `## Test Plan`
 
-`.tickets/<id>/plan.md` should also have real notes under `## Approach`, not the
-template placeholder.
+`.tickets/<id>/plan.md` must also have:
+- `## Sign-off` with a checked `- [x] Plan approved` box
+- Real notes under `## Approach`, not the template placeholder
 
 Open the ticket on the board and check every item as it passes tests.
 

@@ -19,16 +19,21 @@ Trigger eval (whether the skill fires for the right queries) and benchmark/impro
 
 0. **Structural check.** Analyse the SKILL.md body (all lines after the closing `---` of the frontmatter) and the eval case count:
 
+   **Registration check (determines body threshold):**
+   Run `./tools/skills.sh list 2>/dev/null` and check whether `$ARGUMENTS` appears in the SKILL column.
+   - Found → skill is registered and always-on → body threshold is **300 lines**
+   - Not found → skill is standalone, a sub-skill, or external → body threshold is **500 lines**
+
    **Body size:**
-   - Count total body lines. If ≤ 300 → output `pass — body within threshold (N lines)` and continue.
-   - If > 300: identify every `##` section and its line span. If 2+ sections each exceed 30 lines → output `candidate for ref/split — body N lines; sections <name> (X lines), <name> (Y lines) exceed 30-line threshold`.
+   - Count total body lines. If ≤ threshold → output `pass — body within threshold (N lines; threshold: T — always-on)` or `pass — body within threshold (N lines; threshold: T — standalone)` and continue.
+   - If > threshold: identify every `##` section and its line span. If 2+ sections each exceed 30 lines → output `candidate for ref/split — body N lines (threshold: T — always-on|standalone); sections <name> (X lines), <name> (Y lines) exceed 30-line threshold`.
 
    **Eval coverage:**
    - Read `skills/$ARGUMENTS/evals/evals.json` and count the entries in the `evals` array. If count ≥ 3 → output `pass — N eval cases`. If count < 3 → output `too few evals — N case(s); minimum is 3`.
 
    Output both sub-checks under `### Structural check` in the eval report, before any case results. Both checks are advisory — they do not block execution evals.
 
-   *Thresholds: 300-line body (advisory; hard limit per standard is 500), 30-line section, 3 minimum eval cases.*
+   *Thresholds: 300-line body for always-on skills (injected every session); 500-line body for standalone/sub-skill/external (Anthropic hard limit, on-demand only); 30-line section; 3 minimum eval cases.*
 
 1. **Read the skill.** Read `skills/$ARGUMENTS/SKILL.md`. If missing, report the gap and stop.
 
@@ -69,9 +74,9 @@ Trigger eval (whether the skill fires for the right queries) and benchmark/impro
 Run: <ISO date>
 
 ### Structural check
-Body: pass — body within threshold (N lines)
+Body: pass — body within threshold (N lines; threshold: T — always-on | standalone)
       -or-
-      candidate for ref/split — body N lines; sections <name> (X lines), <name> (Y lines) exceed 30-line threshold
+      candidate for ref/split — body N lines (threshold: T — always-on | standalone); sections <name> (X lines), <name> (Y lines) exceed 30-line threshold
 Evals: pass — N eval cases
        -or-
        too few evals — N case(s); minimum is 3

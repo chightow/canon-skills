@@ -220,7 +220,7 @@ Wait for explicit confirmation. Do not proceed if the trigger came from a broad 
    on the ticket board alongside Acceptance and Plan. If a criterion contains a `|`,
    write it as `\|` — bare pipes break the board's table renderer.
 
-8. **Close.** Run `sprint complete`. If it refuses because a required file is
+8. **Close.** Run `sprint complete` — never write `ticket.md` status directly. If it refuses because a required file is
    missing or checklist items remain unchecked, report the blockers and stop.
 
 ## Planning files
@@ -228,7 +228,7 @@ Wait for explicit confirmation. Do not proceed if the trigger came from a broad 
 Canonical layout:
 ```
 .tickets/<id>/
-  ticket.md        ← tkt-managed
+  ticket.md        ← tkt-managed; never edit status directly — valid values: open, in_progress, closed, cancelled
   acceptance.md    ← definition of done + test plan
   plan.md          ← approach, decisions, grill/impact sections for high-risk; written on approval, re-read after compaction
   research.md      ← optional; high-risk and brownfield sprints only; objective truth compression

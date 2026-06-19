@@ -83,6 +83,7 @@ High-risk sprints run orient, grill, impact-analysis, required mitigation tests,
 5. **Normal path.** For normal-tier work:
    - Inspect the files and callers needed for the requested change.
    - Add `## Approach` and `## Test Plan` to `plan.md`.
+   - **Perspective check.** Before drafting the brief, ask one challenge question from each lens: (a) *user* — will the behavior change match what they expect? (b) *security* — does this touch auth, input validation, or trust boundaries? (c) *architect* — does this add surface that canon's minimalism principle would resist? Surface any concern in the brief.
    - Produce the sprint brief from Step 9.
    - Skip Steps 6-8 unless new findings promote the work to high-risk.
 

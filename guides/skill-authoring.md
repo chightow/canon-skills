@@ -23,7 +23,7 @@ Write SKILL.md
       ↓
 canon-dev.sh lint          ← skill-setup-std: structure valid?
       ↓
-Write evals/evals.json     ← cover control + at least 2 other case types
+Write evals/evals.json     ← at least 3 evals: control + at least 2 other case types
       ↓
 /skill-eval <name>         ← skill-eval: behavior correct?
       ↓

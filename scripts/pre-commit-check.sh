@@ -54,6 +54,24 @@ if [ -n "$TKT_BIN" ]; then
   )
 fi
 
+# ── High-risk Sign-off gate ──────────────────────────────────────────────────
+# Block commits when the active sprint is high-risk and Sign-off is unchecked.
+_signoff_section() {
+  awk '/^## Sign-off[[:space:]]*$/{f=1;next} /^## /{f=0} f' "$1"
+}
+ACTIVE_ID=$(cat "$GIT_ROOT/.tickets/ACTIVE" 2>/dev/null | tr -d '[:space:]')
+if [ -n "$ACTIVE_ID" ]; then
+  ACTIVE_PLAN="$GIT_ROOT/.tickets/$ACTIVE_ID/plan.md"
+  if [ -f "$ACTIVE_PLAN" ] && grep -qiE 'tier[[:space:]]*:?[[:space:]]*\*{0,2}high-risk' "$ACTIVE_PLAN"; then
+    if _signoff_section "$ACTIVE_PLAN" | grep -qE '^[[:space:]]*[-*] \[ \]'; then
+      echo ""
+      echo "[pre-commit] BLOCKED — high-risk sprint $ACTIVE_ID has unchecked Sign-off."
+      echo "  Check the approval box in .tickets/$ACTIVE_ID/plan.md ## Sign-off before committing."
+      exit 1
+    fi
+  fi
+fi
+
 # ── Starters sync ────────────────────────────────────────────────────────────
 # If standards/efficiency.md is staged, auto-sync starters/ and re-stage.
 if git diff --cached --name-only 2>/dev/null | grep -q "^standards/efficiency\.md$"; then

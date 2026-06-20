@@ -1,0 +1,205 @@
+/* @theme octave */
+/*
+ * Octave brand palette (extracted from octave_template.pptx theme1.xml)
+ *
+ * Primary:
+ *   Octave Black  #1A1A1F
+ *   Gray 5        #3E4047
+ *   Gray 4        #6F7480
+ *   Gray 3        #B2B8C4
+ *   Gray 2        #CBD0D8
+ *   Gray 1        #E7EBF2
+ *   White         #FFFFFF
+ *
+ * Accents (use as highlights only — never flood):
+ *   Aqua          #00FFFF
+ *   Harlequin     #4FFF00
+ *   Yellow        #FFF500
+ *   Blaze Orange  #F46600
+ *   Pink          #FF00C7
+ *   Purple        #9933FF
+ *
+ * Logo: set --logo-url below once an SVG/PNG is available.
+ * To add logo: replace `none` with url('/abs/path/to/octave-logo.svg')
+ */
+
+:root {
+  --octave-black:  #1A1A1F;
+  --gray-5:        #3E4047;
+  --gray-4:        #6F7480;
+  --gray-3:        #B2B8C4;
+  --gray-2:        #CBD0D8;
+  --gray-1:        #E7EBF2;
+  --white:         #FFFFFF;
+
+  --aqua:          #00FFFF;
+  --harlequin:     #4FFF00;
+  --yellow:        #FFF500;
+  --blaze-orange:  #F46600;
+  --pink:          #FF00C7;
+  --purple:        #9933FF;
+
+  /* Primary accent used throughout — swap to any brand accent color */
+  --accent:        var(--aqua);
+
+  --logo-url: none;
+
+  --font-sans: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Menlo', monospace;
+}
+
+section {
+  /* Accent bar baked into background — frees both pseudo-elements */
+  background:
+    linear-gradient(90deg, var(--aqua) 0%, var(--harlequin) 25%, var(--yellow) 50%, var(--blaze-orange) 75%, var(--pink) 100%)
+    bottom / 100% 3px no-repeat,
+    var(--octave-black);
+  color: var(--gray-1);
+  font-family: var(--font-sans);
+  font-size: 28px;
+  padding: 52px 72px 64px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  position: relative;
+}
+
+/* Logo: top-right corner — activates when --logo-url is set */
+section::before {
+  content: '';
+  position: absolute;
+  top: 24px;
+  right: 48px;
+  width: 120px;
+  height: 36px;
+  background-image: var(--logo-url);
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: right center;
+  pointer-events: none;
+}
+
+/* Standard Marp pagination — section::after is Marp's canonical hook */
+section::after {
+  font-family: var(--font-mono);
+  font-size: 0.5em;
+  color: var(--gray-5);
+  content: attr(data-marpit-pagination) ' / ' attr(data-marpit-pagination-total);
+  position: absolute;
+  bottom: 16px;
+  left: 48px;
+}
+
+h1 {
+  font-size: 2em;
+  font-weight: 700;
+  color: var(--white);
+  margin: 0 0 0.2em;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+
+h2 {
+  font-size: 1.35em;
+  font-weight: 600;
+  color: var(--accent);
+  margin: 0 0 0.55em;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid var(--gray-5);
+}
+
+h3 {
+  font-size: 0.7em;
+  font-weight: 600;
+  color: var(--gray-4);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0.5em 0 0.25em;
+}
+
+p {
+  margin: 0.35em 0;
+  line-height: 1.55;
+}
+
+ul, ol {
+  margin: 0.3em 0;
+  padding-left: 1.3em;
+}
+
+li {
+  margin: 0.3em 0;
+  line-height: 1.5;
+}
+
+/* Bullet accent dots */
+ul li::marker {
+  color: var(--accent);
+}
+
+code {
+  font-family: var(--font-mono);
+  font-size: 0.8em;
+  background: var(--gray-5);
+  color: var(--aqua);
+  padding: 0.1em 0.4em;
+  border-radius: 3px;
+}
+
+pre {
+  background: var(--gray-5);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 6px 6px 0;
+  padding: 0.9em 1.1em;
+  margin: 0.6em 0;
+  overflow: hidden;
+}
+
+pre code {
+  background: none;
+  padding: 0;
+  font-size: 0.78em;
+  color: var(--gray-1);
+}
+
+blockquote {
+  border-left: 3px solid var(--accent);
+  margin: 0.6em 0;
+  padding: 0.4em 1em;
+  color: var(--gray-3);
+}
+
+strong {
+  color: var(--white);
+  font-weight: 700;
+}
+
+em {
+  color: var(--accent);
+  font-style: normal;
+}
+
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.82em;
+  margin: 0.5em 0;
+}
+
+th {
+  background: var(--gray-5);
+  color: var(--gray-3);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.72em;
+  letter-spacing: 0.06em;
+  padding: 0.5em 0.9em;
+  border-bottom: 2px solid var(--accent);
+  text-align: left;
+}
+
+td {
+  padding: 0.4em 0.9em;
+  border-bottom: 1px solid var(--gray-5);
+}

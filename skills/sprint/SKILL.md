@@ -7,6 +7,15 @@ depends: []
 hidden: true
 ---
 
+> **MCP-native:** This project exposes sprint management tools via an MCP server (`mcp_server/`).
+> When your IDE supports MCP, prefer `get_sprint_board()`, `start_sprint()`, `close_sprint()`,
+> `create_sprint_ticket()`, and related tools over the CLI. The MCP server and CLI operate on the
+> same file state (`.tickets/`, `HANDOFF.md`, etc.) and are fully compatible.
+>
+> To enable: ensure `mcp-launcher.py` is configured in your IDE's MCP settings.
+> See `.claude/settings.json`, `.vscode/mcp.json`, or `.opencode/opencode.json` for examples.
+
+
 # Sprint
 
 CLI-backed commands:

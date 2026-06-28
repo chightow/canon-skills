@@ -4,7 +4,7 @@
 Transition the `canon` project from a script-based workflow to a Model Context Protocol (MCP) architecture. This will provide a native, cross-platform way for AI agents to interact with the project state while maintaining the existing web-based dashboard and legacy scripts.
 
 ## Architecture Goals
-- **Language:** .NET (C#) (leveraging user expertise for high performance and type safety).
+- **Language:** Python (using the `mcp` SDK and `FastMCP` for rapid development and broad accessibility).
 - **State:** Shared file-system state (keep `.tickets/`, `HANDOFF.md`, etc.).
 - **Compatibility:** MCP tools will operate on the same files as the legacy bash/powershell scripts.
 

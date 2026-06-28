@@ -332,7 +332,7 @@ def update_ticket_status(
         "status": "ok",
     }
 
-def list_skills(skills_dir: Path, skill_name: str = None) -> List[Dict[str, Any]]:
+def list_skills(skills_dir: Path, skill_name: str = None) -> Any:
     """Inventory canon skills from the skills/ directory.
     
     If skill_name is provided, returns full content of that skill's SKILL.md.
@@ -666,7 +666,8 @@ def close_sprint(project_root: Path) -> Dict[str, Any]:
     
     # 3. Update HANDOFF.md
     handoff_content = handoff_path.read_text(encoding='utf-8')
-    summary_section = f"\n\n## Sprint Summary ({tickets[0].id if tickets else 'N/A'})\n{receipt_content}\n"
+    sprint_id = tickets[0].id if tickets else "N/A"
+    summary_section = f"\n\n## Sprint Summary ({sprint_id})\n{receipt_content}\n"
     
     new_handoff_content = handoff_content.rstrip() + summary_section
     handoff_path.write_text(new_handoff_content, encoding='utf-8')

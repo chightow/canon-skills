@@ -6,27 +6,12 @@ import sys
 import time
 import urllib.request
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, Literal
 
 from mcp.server.fastmcp import FastMCP
 from mcp_server.utils.project_context import find_project_root
-from mcp_server.utils.commands import (
-    add_acceptance_criterion as parse_add_acceptance_criterion,
-    create_sprint_ticket as parse_create_sprint_ticket,
-    update_ticket_status as parse_update_ticket_status,
-    update_ticket_body as parse_update_ticket_body,
-    read_doc as parse_read_doc,
-    write_doc as parse_write_doc,
-    list_skills as parse_list_skills,
-    get_ticket as parse_get_ticket,
-    git_info as parse_git_info,
-)
-from mcp_server.utils.sprint import (
-    get_sprint_board as parse_sprint_board,
-    start_sprint as parse_start_sprint,
-    close_sprint as parse_close_sprint,
-    log_subagent_run as parse_log_subagent_run,
-)
+from mcp_server.utils import commands as cmd
+from mcp_server.utils import sprint as sp
 
 app = FastMCP("canon-mcp-server")
 
@@ -50,122 +35,120 @@ atexit.register(_cleanup_dashboard)
 
 @app.tool()
 def list_skills(skill_name: Optional[str] = None) -> Dict[str, Any]:
-    """Inventory all canon skills from the skills/ directory.
-    
-    If skill_name is provided, returns the full content of that skill's SKILL.md.
-    Otherwise returns metadata for all available skills (name, description, category, etc.).
+    """List all skills or get a specific skill by name."""
+    return cmd.list_skills(PROJECT_ROOT / "skills", skill_name)
+
+
+@app.tool()
+def ticket(
+    action: Literal["get", "status", "doc", "add_criterion"],
+    ticket_id: str,
+    new_status: Optional[Literal["open", "in_progress", "closed", "cancelled", "archived"]] = None,
+    doc_name: Optional[Literal["acceptance", "plan", "test_plan", "summary", "body"]] = None,
+    content: str = "",
+    criterion: str = "",
+) -> Dict[str, Any]:
+    """Manage tickets: get info, update status, read/write docs, add acceptance criteria.
+
+    Actions:
+    - get: read ticket and all companion files
+    - status: change ticket status (requires new_status)
+    - doc: read (no content) or write (with content) a document
+    - add_criterion: append acceptance criterion (requires criterion)
     """
-    skills_dir = PROJECT_ROOT / "skills"
-    return parse_list_skills(skills_dir, skill_name)
+    tickets_dir = PROJECT_ROOT / ".tickets"
+
+    if action == "get":
+        return cmd.get_ticket(tickets_dir, ticket_id)
+
+    if action == "status":
+        if not new_status:
+            return {"status": "error", "message": "new_status required for status action"}
+        return cmd.update_ticket_status(tickets_dir, ticket_id, new_status)
+
+    if action == "doc":
+        if not doc_name:
+            return {"status": "error", "message": "doc_name required for doc action"}
+        if content:
+            if doc_name == "body":
+                return cmd.update_ticket_body(tickets_dir, ticket_id, content)
+            return cmd.write_doc(tickets_dir, ticket_id, f"{doc_name}.md", content)
+        if doc_name == "body":
+            ticket_file = tickets_dir / ticket_id / "ticket.md"
+            if not ticket_file.exists():
+                return {"status": "error", "message": f"Ticket '{ticket_id}' not found"}
+            return {"ticket_id": ticket_id, "body": ticket_file.read_text(encoding='utf-8')}
+        return cmd.read_doc(tickets_dir, ticket_id, f"{doc_name}.md")
+
+    if action == "add_criterion":
+        if not criterion:
+            return {"status": "error", "message": "criterion required for add_criterion action"}
+        return cmd.add_acceptance_criterion(tickets_dir, ticket_id, criterion)
+
+    return {"status": "error", "message": f"Unknown action: {action}"}
 
 
 @app.tool()
-def get_ticket(ticket_id: str) -> Dict[str, Any]:
-    """Read a specific ticket's files (ticket.md, acceptance.md, plan.md, summary.md, test_plan.md)."""
-    return parse_get_ticket(PROJECT_ROOT / ".tickets", ticket_id)
+def sprint(
+    action: Literal["start", "board", "close"],
+    title: str = "",
+    ticket_id: str = "",
+    priority: Literal["low", "medium", "high"] = "medium",
+) -> Dict[str, Any]:
+    """Manage sprints: start a new one, view board, close.
 
-
-@app.tool()
-def start_sprint(title: Optional[str] = None, ticket_id: Optional[str] = None, priority: str = "medium") -> Dict[str, Any]:
+    Actions:
+    - start: create new ticket (provide title) or resume existing (provide ticket_id)
+    - board: show sprint tickets + handoff context
+    - close: validate gates, generate receipt, update HANDOFF.md
     """
-    Start a sprint: create a ticket with plan.md and ensure DECISIONS.md and HANDOFF.md exist.
-    Provide either a title (creates new ticket) or an existing ticket_id.
-    When creating a new ticket, priority defaults to "medium".
-    """
-    if not title and not ticket_id:
-        return {"error": "Provide either a title (to create a new ticket) or an existing ticket_id."}
-    if title and ticket_id:
-        return {"error": "Provide either a title or a ticket_id, not both."}
-    return parse_start_sprint(PROJECT_ROOT, title or "", ticket_id, priority)
+    if action == "start":
+        if not title and not ticket_id:
+            return {"status": "error", "message": "Provide title (new ticket) or ticket_id (existing)."}
+        if title and ticket_id:
+            return {"status": "error", "message": "Provide title or ticket_id, not both."}
+        return sp.start_sprint(PROJECT_ROOT, title, ticket_id, priority)
 
+    if action == "board":
+        return sp.get_sprint_board(PROJECT_ROOT)
 
-@app.tool()
-def get_sprint_board() -> Dict[str, Any]:
-    """Get the current sprint board including tickets and handoff context."""
-    return parse_sprint_board(PROJECT_ROOT)
+    if action == "close":
+        return sp.close_sprint(PROJECT_ROOT)
 
-
-@app.tool()
-def create_sprint_ticket(description: str, priority: str) -> Dict[str, Any]:
-    """Create a new sprint ticket with acceptance criteria and test plan templates."""
-    return parse_create_sprint_ticket(
-        tickets_dir=PROJECT_ROOT / ".tickets",
-        description=description,
-        priority=priority,
-    )
-
-
-@app.tool()
-def update_ticket_status(ticket_id: str, new_status: str) -> Dict[str, Any]:
-    """Update the status field of an existing ticket's frontmatter."""
-    return parse_update_ticket_status(
-        tickets_dir=PROJECT_ROOT / ".tickets",
-        ticket_id=ticket_id,
-        new_status=new_status,
-    )
-
-
-@app.tool()
-def update_ticket_body(ticket_id: str, body: str) -> Dict[str, Any]:
-    """Replace the markdown body of a ticket, preserving YAML frontmatter."""
-    return parse_update_ticket_body(
-        tickets_dir=PROJECT_ROOT / ".tickets",
-        ticket_id=ticket_id,
-        body=body,
-    )
-
-
-@app.tool()
-def add_acceptance_criterion(ticket_id: str, criterion: str) -> Dict[str, Any]:
-    """Add an acceptance criterion to an existing ticket."""
-    return parse_add_acceptance_criterion(
-        tickets_dir=PROJECT_ROOT / ".tickets",
-        ticket_id=ticket_id,
-        criterion_text=criterion,
-    )
-
-
-@app.tool()
-def read_doc(ticket_id: str, doc_name: str) -> Dict[str, Any]:
-    """Read a companion document from a ticket directory (acceptance.md, plan.md, test_plan.md, summary.md)."""
-    return parse_read_doc(PROJECT_ROOT / ".tickets", ticket_id, doc_name)
-
-
-@app.tool()
-def write_doc(ticket_id: str, doc_name: str, content: str) -> Dict[str, Any]:
-    """Write content to a companion document in a ticket directory."""
-    return parse_write_doc(PROJECT_ROOT / ".tickets", ticket_id, doc_name, content)
+    return {"status": "error", "message": f"Unknown action: {action}"}
 
 
 @app.tool()
 def git_info() -> Dict[str, Any]:
-    """Return git branch, recent commits, and modified file count for the project."""
-    return parse_git_info(PROJECT_ROOT)
+    """Show branch, recent commits, modified file count."""
+    return cmd.git_info(PROJECT_ROOT)
 
 
 @app.tool()
-def close_sprint() -> Dict[str, Any]:
-    """
-    Validates mechanical close gates, generates a delivery receipt, 
-    and updates HANDOFF.md with the final summary.
-    """
-    return parse_close_sprint(PROJECT_ROOT)
+def log_subagent_run(
+    agent_id: str,
+    agent_type: str = "agent",
+    session_id: str = "",
+) -> Dict[str, Any]:
+    """Log evaluator run to audit trail (internal)."""
+    return sp.log_subagent_run(PROJECT_ROOT, agent_id, agent_type, session_id)
 
 
 @app.tool()
-def log_subagent_run(agent_id: str, agent_type: str = "agent", session_id: str = "") -> Dict[str, Any]:
-    """Log a subagent run to the shared audit trail (.canon/subagent-runs.jsonl).
-
-    Called by sprint complete protocol after the evaluator subagent finishes.
-    Makes the evaluator audit trail work across all IDEs (Claude Code, opencode,
-    VSCode) instead of relying on IDE-specific SubagentStop hooks.
-    
-    Args:
-        agent_id: The evaluator-run-id from eval-report.md (e.g. "1719000000-12345")
-        agent_type: Type of subagent (default: "agent")
-        session_id: Optional session identifier
-    """
-    return parse_log_subagent_run(PROJECT_ROOT, agent_id, agent_type, session_id)
+def open_dashboard() -> Dict[str, Any]:
+    """Launch local kanban dashboard in browser (human use only)."""
+    try:
+        port = _dashboard_port()
+        if port is None:
+            port = _find_free_port()
+            if not _start_dashboard(port):
+                return {"status": "error", "message": f"Dashboard failed to start on port {port}"}
+        url = f"http://127.0.0.1:{port}"
+        _open_browser(url)
+        return {"status": "ok", "url": url}
+    except Exception as e:
+        print(f"Failed to launch dashboard: {e}", file=sys.stderr)
+        return {"status": "error", "message": f"Failed to launch dashboard: {e}"}
 
 
 def _dashboard_port() -> Optional[int]:
@@ -202,15 +185,15 @@ def _start_dashboard(port: int) -> bool:
 
     if sys.platform == "win32":
         server_script = PROJECT_ROOT / "tools" / "sprint-check-app" / "server.py"
-        cmd = [sys.executable, str(server_script), str(port)]
+        dash_cmd = [sys.executable, str(server_script), str(port)]
         creationflags = subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP
     else:
         script_path = PROJECT_ROOT / "tools" / "sprint-check"
-        cmd = ["bash", str(script_path), str(port)]
+        dash_cmd = ["bash", str(script_path), str(port)]
         creationflags = 0
 
     _dashboard_proc = subprocess.Popen(
-        cmd,
+        dash_cmd,
         cwd=str(PROJECT_ROOT),
         env=env,
         creationflags=creationflags,
@@ -221,7 +204,6 @@ def _start_dashboard(port: int) -> bool:
         _dashboard_proc = None
         return False
 
-    # Wait up to 3s for the dashboard to start responding
     for _ in range(10):
         try:
             resp = urllib.request.urlopen(
@@ -258,30 +240,13 @@ def _open_browser(url: str) -> None:
         except (FileNotFoundError, subprocess.CalledProcessError):
             pass
     elif sys.platform == "linux":
-        for cmd in ["xdg-open", "wslview"]:
+        for c in ["xdg-open", "wslview"]:
             try:
-                subprocess.run([cmd, url], check=True)
+                subprocess.run([c, url], check=True)
                 return
             except (FileNotFoundError, subprocess.CalledProcessError):
                 continue
     print(f"Open in your browser: {url}", file=sys.stderr)
-
-
-@app.tool()
-def open_dashboard() -> Dict[str, Any]:
-    """Launch the local kanban dashboard web UI."""
-    try:
-        port = _dashboard_port()
-        if port is None:
-            port = _find_free_port()
-            if not _start_dashboard(port):
-                return {"error": f"Dashboard failed to start on port {port}"}
-        url = f"http://127.0.0.1:{port}"
-        _open_browser(url)
-        return {"status": "ok", "url": url}
-    except Exception as e:
-        print(f"Failed to launch dashboard: {e}", file=sys.stderr)
-        return {"error": f"Failed to launch dashboard: {e}"}
 
 
 if __name__ == "__main__":

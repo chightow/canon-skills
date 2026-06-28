@@ -1,5 +1,6 @@
 import atexit
 import os
+import re
 import socket
 import subprocess
 import sys
@@ -20,6 +21,24 @@ PROJECT_ROOT = find_project_root(Path(__file__).parent.parent.resolve())
 _dashboard_proc: Optional[subprocess.Popen] = None
 
 
+def _ok(**data: Any) -> Dict[str, Any]:
+    return {"status": "ok", "data": data}
+
+
+def _err(message: str) -> Dict[str, Any]:
+    return {"status": "error", "data": {}, "message": message}
+
+
+def _wrap(result: Dict[str, Any]) -> Dict[str, Any]:
+    """Normalize internal function return to {status, data, message?}."""
+    if "error" in result:
+        return _err(result["error"])
+    if result.get("status") == "error":
+        return _err(result.get("message", "Unknown error"))
+    data = {k: v for k, v in result.items() if k != "status"}
+    return {"status": "ok", "data": data}
+
+
 def _cleanup_dashboard() -> None:
     global _dashboard_proc
     if _dashboard_proc is not None and _dashboard_proc.poll() is None:
@@ -35,8 +54,8 @@ atexit.register(_cleanup_dashboard)
 
 @app.tool()
 def list_skills(skill_name: Optional[str] = None) -> Dict[str, Any]:
-    """List all skills or get a specific skill by name."""
-    return cmd.list_skills(PROJECT_ROOT / "skills", skill_name)
+    """List all skills. Omit skill_name for catalog, provide one for full details."""
+    return _wrap(cmd.list_skills(PROJECT_ROOT / "skills", skill_name))
 
 
 @app.tool()
@@ -48,44 +67,40 @@ def ticket(
     content: str = "",
     criterion: str = "",
 ) -> Dict[str, Any]:
-    """Manage tickets: get info, update status, read/write docs, add acceptance criteria.
-
-    Actions:
-    - get: read ticket and all companion files
+    """Manage tickets. Actions:
+    - get: read ticket + all companion files (acceptance, plan, test_plan, summary)
     - status: change ticket status (requires new_status)
-    - doc: read (no content) or write (with content) a document
-    - add_criterion: append acceptance criterion (requires criterion)
-    """
-    tickets_dir = PROJECT_ROOT / ".tickets"
+    - doc: read (omit content) or write (provide content) a document
+    - add_criterion: append acceptance criterion to acceptance.md
 
+    Hint: for doc action, doc_name=body reads/writes the ticket body.
+    Leave content empty to read, provide text to write/overwrite.
+    """
     if action == "get":
-        return cmd.get_ticket(tickets_dir, ticket_id)
+        return _wrap(cmd.get_ticket(PROJECT_ROOT / ".tickets", ticket_id))
 
     if action == "status":
         if not new_status:
-            return {"status": "error", "message": "new_status required for status action"}
-        return cmd.update_ticket_status(tickets_dir, ticket_id, new_status)
+            return _err("new_status required for status action")
+        return _wrap(cmd.update_ticket_status(PROJECT_ROOT / ".tickets", ticket_id, new_status))
 
     if action == "doc":
         if not doc_name:
-            return {"status": "error", "message": "doc_name required for doc action"}
-        if content:
+            return _err("doc_name required: acceptance, plan, test_plan, summary, or body")
+        if not content:
             if doc_name == "body":
-                return cmd.update_ticket_body(tickets_dir, ticket_id, content)
-            return cmd.write_doc(tickets_dir, ticket_id, f"{doc_name}.md", content)
+                return _wrap(cmd.get_ticket(PROJECT_ROOT / ".tickets", ticket_id))
+            return _wrap(cmd.read_doc(PROJECT_ROOT / ".tickets", ticket_id, f"{doc_name}.md"))
         if doc_name == "body":
-            ticket_file = tickets_dir / ticket_id / "ticket.md"
-            if not ticket_file.exists():
-                return {"status": "error", "message": f"Ticket '{ticket_id}' not found"}
-            return {"ticket_id": ticket_id, "body": ticket_file.read_text(encoding='utf-8')}
-        return cmd.read_doc(tickets_dir, ticket_id, f"{doc_name}.md")
+            return _wrap(cmd.update_ticket_body(PROJECT_ROOT / ".tickets", ticket_id, content))
+        return _wrap(cmd.write_doc(PROJECT_ROOT / ".tickets", ticket_id, f"{doc_name}.md", content))
 
     if action == "add_criterion":
         if not criterion:
-            return {"status": "error", "message": "criterion required for add_criterion action"}
-        return cmd.add_acceptance_criterion(tickets_dir, ticket_id, criterion)
+            return _err("criterion text required for add_criterion action")
+        return _wrap(cmd.add_acceptance_criterion(PROJECT_ROOT / ".tickets", ticket_id, criterion))
 
-    return {"status": "error", "message": f"Unknown action: {action}"}
+    return _err(f"Unknown action: {action}")
 
 
 @app.tool()
@@ -95,60 +110,51 @@ def sprint(
     ticket_id: str = "",
     priority: Literal["low", "medium", "high"] = "medium",
 ) -> Dict[str, Any]:
-    """Manage sprints: start a new one, view board, close.
+    """Manage sprints. Actions:
+    - start: create a new sprint ticket (provide title) or resume an existing one (provide ticket_id)
+    - board: show current sprint tickets + handoff context
+    - close: validate gates, log eval runs, generate receipt, update HANDOFF.md
 
-    Actions:
-    - start: create new ticket (provide title) or resume existing (provide ticket_id)
-    - board: show sprint tickets + handoff context
-    - close: validate gates, generate receipt, update HANDOFF.md
+    Hint: sprint(close) automatically logs all evaluator runs found in eval-report.md.
+    No need to log them separately.
     """
     if action == "start":
         if not title and not ticket_id:
-            return {"status": "error", "message": "Provide title (new ticket) or ticket_id (existing)."}
+            return _err("Provide title (new ticket) or ticket_id (existing), not both.")
         if title and ticket_id:
-            return {"status": "error", "message": "Provide title or ticket_id, not both."}
-        return sp.start_sprint(PROJECT_ROOT, title, ticket_id, priority)
+            return _err("Provide title or ticket_id, not both.")
+        return _wrap(sp.start_sprint(PROJECT_ROOT, title, ticket_id, priority))
 
     if action == "board":
-        return sp.get_sprint_board(PROJECT_ROOT)
+        return _wrap(sp.get_sprint_board(PROJECT_ROOT))
 
     if action == "close":
-        return sp.close_sprint(PROJECT_ROOT)
+        _auto_log_eval_runs()
+        return _wrap(sp.close_sprint(PROJECT_ROOT))
 
-    return {"status": "error", "message": f"Unknown action: {action}"}
+    return _err(f"Unknown action: {action}")
 
 
 @app.tool()
 def git_info() -> Dict[str, Any]:
-    """Show branch, recent commits, modified file count."""
-    return cmd.git_info(PROJECT_ROOT)
+    """Show git branch, recent commits, modified file count."""
+    return _wrap(cmd.git_info(PROJECT_ROOT))
 
 
-@app.tool()
-def log_subagent_run(
-    agent_id: str,
-    agent_type: str = "agent",
-    session_id: str = "",
-) -> Dict[str, Any]:
-    """Log evaluator run to audit trail (internal)."""
-    return sp.log_subagent_run(PROJECT_ROOT, agent_id, agent_type, session_id)
-
-
-@app.tool()
-def open_dashboard() -> Dict[str, Any]:
-    """Launch local kanban dashboard in browser (human use only)."""
-    try:
-        port = _dashboard_port()
-        if port is None:
-            port = _find_free_port()
-            if not _start_dashboard(port):
-                return {"status": "error", "message": f"Dashboard failed to start on port {port}"}
-        url = f"http://127.0.0.1:{port}"
-        _open_browser(url)
-        return {"status": "ok", "url": url}
-    except Exception as e:
-        print(f"Failed to launch dashboard: {e}", file=sys.stderr)
-        return {"status": "error", "message": f"Failed to launch dashboard: {e}"}
+def _auto_log_eval_runs() -> None:
+    """Find all eval-report.md files and log their evaluator-run-ids."""
+    if not (PROJECT_ROOT / ".tickets").exists():
+        return
+    for d in (PROJECT_ROOT / ".tickets").iterdir():
+        if not d.is_dir():
+            continue
+        report = d / "eval-report.md"
+        if not report.exists():
+            continue
+        content = report.read_text(encoding="utf-8")
+        m = re.search(r"^evaluator-run-id:\s+(\S+)", content, re.MULTILINE)
+        if m:
+            sp.log_subagent_run(PROJECT_ROOT, m.group(1))
 
 
 def _dashboard_port() -> Optional[int]:

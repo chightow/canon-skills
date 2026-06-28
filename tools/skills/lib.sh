@@ -3,6 +3,9 @@
 
 set -euo pipefail
 
+# Guard: skip re-execution when sourced multiple times
+if declare -F registered_skill_rows &>/dev/null; then return 0; fi
+
 # We assume this script is sourced by tools/skills.sh or other sub-scripts in tools/skills/
 # and that the caller has set up the appropriate paths.
 

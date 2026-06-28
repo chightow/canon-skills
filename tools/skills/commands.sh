@@ -50,8 +50,7 @@ _post_register_prompts() {
 
 _prune_redundant_deps() {
   local skill_file="$1" project_dir="$2" name="$3"
-  local depends; depends=$(fm_field "$skill_file" depends)
-  [ -z "$depends" ] && return 0
+  [ -z "$(fm_field "$skill_file" depends)" ] && return 0
   local agents_file="$project_dir/AGENTS.md"
   local redundant=()
   while IFS= read -r dep; do

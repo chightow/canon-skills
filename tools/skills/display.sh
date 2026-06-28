@@ -81,5 +81,5 @@ cmd_list() {
 
   done < <(printf '%s\n' "${entries[@]+"${entries[@]}"}" | sort -t$'\t' -k1,1 -k2,2)
   echo ""
-  printf "${dim}To uninstall: skills.sh uninstall && rm -rf ~/.canon${reset}\n"
+  printf "${dim}To uninstall: %s uninstall && rm -rf ~/.canon${reset}\n" "$(basename "$0")"
 }

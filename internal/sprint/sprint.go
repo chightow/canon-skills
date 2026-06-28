@@ -34,7 +34,7 @@ var mu sync.Mutex
 
 func GetSprintBoard(projectRoot string) map[string]any {
 	ticketsDir := filepath.Join(projectRoot, ".tickets")
-	tickets, _ := parsers.ParseTickets(ticketsDir)
+	tickets, warnings := parsers.ParseTickets(ticketsDir)
 	handoff := parsers.ParseHandoff(filepath.Join(projectRoot, "HANDOFF.md"))
 
 	var ticketList []any
@@ -55,11 +55,15 @@ func GetSprintBoard(projectRoot string) map[string]any {
 		ticketList = []any{}
 	}
 
-	return map[string]any{
+	result := map[string]any{
 		"tickets":      ticketList,
 		"handoff":      handoff,
 		"project_root": projectRoot,
 	}
+	if len(warnings) > 0 {
+		result["warnings"] = warnings
+	}
+	return result
 }
 
 func LogSubagentRun(projectRoot, agentID, agentType, sessionID string) map[string]any {
@@ -79,7 +83,9 @@ func LogSubagentRun(projectRoot, agentID, agentType, sessionID string) map[strin
 		return map[string]any{"error": fmt.Sprintf("cannot open log: %v", err)}
 	}
 	defer f.Close()
-	json.NewEncoder(f).Encode(entry)
+	if err := json.NewEncoder(f).Encode(entry); err != nil {
+		return map[string]any{"error": fmt.Sprintf("failed to encode log entry: %v", err)}
+	}
 	return map[string]any{"status": "ok", "entry": entry}
 }
 
@@ -253,20 +259,15 @@ func CloseSprint(projectRoot string) map[string]any {
 
 	sprintID := readActiveSprintID(ticketsDir)
 	if sprintID == "" {
-		// Pick the smallest non-trivial terminal ID for deterministic fallback.
-		fallback := ""
 		for _, t := range nonTrivial {
-			if !terminalStatuses[strings.ToLower(t.Status)] {
-				continue
-			}
-			if fallback == "" || t.ID < fallback {
-				fallback = t.ID
+			if terminalStatuses[strings.ToLower(t.Status)] {
+				sprintID = t.ID
+				break
 			}
 		}
-		if fallback == "" {
-			fallback = tickets[0].ID
+		if sprintID == "" {
+			sprintID = tickets[0].ID
 		}
-		sprintID = fallback
 	}
 	summaryHeading := fmt.Sprintf("## Sprint Summary (%s)", sprintID)
 	if strings.Contains(handoffContent, summaryHeading) {

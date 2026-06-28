@@ -223,14 +223,13 @@ func parseTimestamp(ts string) (int64, error) {
 	if strings.HasSuffix(ts, "Z") {
 		normalized = ts[:len(ts)-1] + "+00:00"
 	}
-	t, err := time.Parse(time.RFC3339, normalized)
-	if err != nil {
-		t, err = time.Parse("2006-01-02T15:04:05", normalized)
-		if err != nil {
-			return 0, fmt.Errorf("cannot parse timestamp: %s", ts)
+	for _, format := range []string{time.RFC3339Nano, time.RFC3339, "2006-01-02T15:04:05"} {
+		t, err := time.Parse(format, normalized)
+		if err == nil {
+			return t.Unix(), nil
 		}
 	}
-	return t.Unix(), nil
+	return 0, fmt.Errorf("cannot parse timestamp: %s", ts)
 }
 
 func getStr(data map[string]string, key, fallback string) string {

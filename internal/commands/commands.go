@@ -37,7 +37,7 @@ func nextTicketID(ticketsDir string) uint64 {
 	return maxN + 1
 }
 
-var mu sync.Mutex
+var mu sync.RWMutex
 
 var winReserved = []string{"CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"}
 
@@ -229,7 +229,7 @@ func UpdateTicketStatus(ticketsDir, ticketID, newStatus string) map[string]any {
 	if err != nil {
 		return map[string]any{"error": fmt.Sprintf("Ticket %s not found", ticketID)}
 	}
-	fmRe := regexp.MustCompile(`(?s)^(---\n.*?\n---)\n?(.*)$`)
+	fmRe := regexp.MustCompile(`(?s)^(---\r?\n.*?\r?\n---)\r?\n?(.*)$`)
 	m := fmRe.FindStringSubmatch(string(content))
 	if m == nil {
 		return map[string]any{"error": "ticket.md has no frontmatter"}
@@ -247,8 +247,8 @@ func GetTicket(ticketsDir, ticketID string) map[string]any {
 	if err := validTicketID(ticketID); err != nil {
 		return map[string]any{"error": fmt.Sprintf("Invalid ticket ID '%s': %v", ticketID, err)}
 	}
-	mu.Lock()
-	defer mu.Unlock()
+	mu.RLock()
+	defer mu.RUnlock()
 	ticketDir := filepath.Join(ticketsDir, ticketID)
 	if _, err := os.Stat(ticketDir); os.IsNotExist(err) {
 		return map[string]any{"error": fmt.Sprintf("Ticket '%s' not found at %s", ticketID, ticketDir)}
@@ -273,6 +273,25 @@ func GetTicket(ticketsDir, ticketID string) map[string]any {
 	return result
 }
 
+func GetTicketBody(ticketsDir, ticketID string) map[string]any {
+	if err := validTicketID(ticketID); err != nil {
+		return map[string]any{"error": fmt.Sprintf("Invalid ticket ID '%s': %v", ticketID, err)}
+	}
+	mu.RLock()
+	defer mu.RUnlock()
+	ticketFile := filepath.Join(ticketsDir, ticketID, "ticket.md")
+	content, err := os.ReadFile(ticketFile)
+	if err != nil {
+		return map[string]any{"error": fmt.Sprintf("Ticket %s not found", ticketID)}
+	}
+	re := regexp.MustCompile(`(?s)^(---\r?\n.*?\r?\n---)\r?\n?(.*)$`)
+	m := re.FindStringSubmatch(string(content))
+	if m == nil {
+		return map[string]any{"content": strings.TrimSpace(string(content))}
+	}
+	return map[string]any{"content": strings.TrimSpace(m[2])}
+}
+
 func UpdateTicketBody(ticketsDir, ticketID, body string) map[string]any {
 	if err := validTicketID(ticketID); err != nil {
 		return map[string]any{"error": fmt.Sprintf("Invalid ticket ID '%s': %v", ticketID, err)}
@@ -288,7 +307,7 @@ func UpdateTicketBody(ticketsDir, ticketID, body string) map[string]any {
 		return map[string]any{"error": "Ticket body cannot be empty"}
 	}
 
-	re := regexp.MustCompile(`(?s)^(---\n.*?\n---)\n?`)
+	re := regexp.MustCompile(`(?s)^(---\r?\n.*?\r?\n---)\r?\n?`)
 	var newContent string
 	if m := re.FindStringSubmatch(string(content)); m != nil {
 		newContent = m[1] + "\n\n" + strings.TrimLeft(body, "\n")
@@ -305,8 +324,8 @@ func ReadDoc(ticketsDir, ticketID, docName string) map[string]any {
 	if err := validTicketID(ticketID); err != nil {
 		return map[string]any{"error": fmt.Sprintf("Invalid ticket ID '%s': %v", ticketID, err)}
 	}
-	mu.Lock()
-	defer mu.Unlock()
+	mu.RLock()
+	defer mu.RUnlock()
 	docName = strings.ToLower(docName)
 	validDocs := map[string]bool{"acceptance.md": true, "plan.md": true, "test_plan.md": true, "summary.md": true}
 	if !validDocs[docName] {

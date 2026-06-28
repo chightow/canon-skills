@@ -91,7 +91,7 @@ func handleTicket(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolRe
 		}
 		if content == "" {
 			if docName == "body" {
-				return jsonResult(commands.GetTicket(ticketsDir, ticketID)), nil
+				return jsonResult(commands.GetTicketBody(ticketsDir, ticketID)), nil
 			}
 			return jsonResult(commands.ReadDoc(ticketsDir, ticketID, docName+".md")), nil
 		}

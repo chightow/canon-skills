@@ -1,0 +1,8 @@
+{
+  "servers": {
+    "canon-mcp-server": {
+      "command": "python",
+      "args": ["mcp-launcher.py"]
+    }
+  }
+}

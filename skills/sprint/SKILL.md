@@ -4,6 +4,7 @@ description: Manages the sprint workflow for focused changes. Use when asked to 
 category: dev
 tags: [workflow, planning, quality, tickets, orchestration]
 depends: []
+hidden: true
 ---
 
 # Sprint

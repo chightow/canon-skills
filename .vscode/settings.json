@@ -1,0 +1,7 @@
+{
+  "settings": {
+    "terminal.integrated.env.windows": {
+      "PATH": "${env:PATH};C:\\Program Files\\Git\\bin"
+    }
+  }
+}

@@ -4,7 +4,7 @@ import subprocess
 from pathlib import Path
 from typing import List, Dict, Any
 
-from .parsers import _get_section, _parse_plan_approved, _parse_plan_decision
+from .parsers import _parse_plan_approved, _parse_plan_decision
 
 
 def add_acceptance_criterion(
@@ -48,7 +48,7 @@ def add_acceptance_criterion(
     for i in range(list_start_idx, len(lines)):
         stripped = lines[i].strip()
         if not stripped:
-            break
+            continue
         numbered_match = re.match(r'^(\d+)\.\s*', stripped)
         if numbered_match:
             is_numbered = True

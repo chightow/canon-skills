@@ -5,9 +5,8 @@ import subprocess
 import sys
 import time
 import urllib.request
-import urllib.error
 from pathlib import Path
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional
 
 from mcp.server.fastmcp import FastMCP
 from mcp_server.utils.project_context import find_project_root
@@ -235,6 +234,11 @@ def _start_dashboard(port: int) -> bool:
         except Exception:
             pass
         time.sleep(0.3)
+    _dashboard_proc.terminate()
+    try:
+        _dashboard_proc.wait(timeout=5)
+    except subprocess.TimeoutExpired:
+        _dashboard_proc.kill()
     _dashboard_proc = None
     return False
 

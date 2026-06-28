@@ -179,7 +179,7 @@ def create_sprint_ticket(
 
     ticket_file = ticket_dir / "ticket.md"
     ticket_file.write_text(
-        f"---\nid: {ticket_id}\ntitle: {description[:50]}...\nstatus: todo\npriority: {priority}\n---\n\n## Description\n{description}\n\n## Acceptance Criteria\n",
+        f"---\nid: {ticket_id}\ntitle: {description[:50]}...\nstatus: open\npriority: {priority}\n---\n\n## Description\n{description}\n\n## Acceptance Criteria\n",
         encoding='utf-8'
     )
 
@@ -194,12 +194,23 @@ def create_sprint_ticket(
         "status": "ok",
     }
 
+VALID_STATUSES = {"open", "in_progress", "closed", "cancelled", "archived"}
+
+
 def update_ticket_status(
     tickets_dir: Path,
     ticket_id: str,
     new_status: str,
 ) -> Dict[str, Any]:
     """Update the status field of an existing ticket's frontmatter."""
+    if new_status not in VALID_STATUSES:
+        return {
+            "error": (
+                f"Invalid status '{new_status}'. "
+                f"Must be one of: {', '.join(sorted(VALID_STATUSES))}"
+            )
+        }
+
     ticket_file = tickets_dir / ticket_id / "ticket.md"
     if not ticket_file.exists():
         return {"error": f"Ticket {ticket_id} not found"}
@@ -215,4 +226,282 @@ def update_ticket_status(
         "ticket_id": ticket_id,
         "new_status": new_status,
         "status": "ok",
+    }
+
+def list_skills(skills_dir: Path, skill_name: str = None) -> List[Dict[str, Any]]:
+    """Inventory canon skills from the skills/ directory.
+    
+    If skill_name is provided, returns full content of that skill's SKILL.md.
+    Otherwise returns metadata for all skills.
+    """
+    if not skills_dir.exists():
+        return {"error": f"Skills directory not found: {skills_dir}"}
+    
+    if skill_name:
+        skill_path = skills_dir / skill_name / "SKILL.md"
+        if not skill_path.exists():
+            return {"error": f"Skill '{skill_name}' not found at {skill_path}"}
+        content = skill_path.read_text(encoding='utf-8')
+        return {"name": skill_name, "content": content}
+    
+    results = []
+    for entry in sorted(skills_dir.iterdir()):
+        if not entry.is_dir():
+            continue
+        skill_file = entry / "SKILL.md"
+        if not skill_file.exists():
+            continue
+        
+        content = skill_file.read_text(encoding='utf-8')
+        frontmatter_match = re.search(r'^---\n(.*?)\n---', content, re.DOTALL)
+        data = {}
+        if frontmatter_match:
+            for line in frontmatter_match.group(1).strip().split('\n'):
+                if ':' in line:
+                    key, value = line.split(':', 1)
+                    data[key.strip()] = value.strip()
+        
+        is_hidden = data.get("hidden", "false") == "true"
+        if is_hidden:
+            continue
+        raw_tags = data.get("tags", "").strip("[]").replace(", ", ",")
+        raw_deps = data.get("depends", "").strip("[]").replace(", ", ",")
+        results.append({
+            "name": data.get("name", entry.name),
+            "description": data.get("description", ""),
+            "category": data.get("category", ""),
+            "tags": [t for t in raw_tags.split(",") if t] if data.get("tags") else [],
+            "hidden": is_hidden,
+            "depends": [d for d in raw_deps.split(",") if d] if data.get("depends") else [],
+            "path": str(skill_file),
+        })
+    
+    return results
+
+
+def get_ticket(tickets_dir: Path, ticket_id: str) -> Dict[str, Any]:
+    """Read all files in a ticket directory and return their contents."""
+    ticket_dir = tickets_dir / ticket_id
+    if not ticket_dir.exists():
+        return {"error": f"Ticket '{ticket_id}' not found at {ticket_dir}"}
+
+    result = {"ticket_id": ticket_id, "files": {}}
+    for fname in ["ticket.md", "acceptance.md", "plan.md", "summary.md", "test_plan.md"]:
+        fpath = ticket_dir / fname
+        if fpath.exists():
+            result["files"][fname] = fpath.read_text(encoding='utf-8')
+    return result
+
+
+def update_ticket_body(
+    tickets_dir: Path,
+    ticket_id: str,
+    body: str,
+) -> Dict[str, Any]:
+    """Replace the markdown body of a ticket (preserving YAML frontmatter)."""
+    ticket_file = tickets_dir / ticket_id / "ticket.md"
+    if not ticket_file.exists():
+        return {"error": f"Ticket {ticket_id} not found"}
+
+    content = ticket_file.read_text(encoding='utf-8')
+    frontmatter_match = re.search(r'^(---\n.*?\n---)\n?', content, re.DOTALL)
+    if frontmatter_match:
+        new_content = frontmatter_match.group(1) + "\n\n" + body.lstrip("\n")
+    else:
+        new_content = body
+
+    ticket_file.write_text(new_content, encoding='utf-8')
+    return {"ticket_id": ticket_id, "status": "ok"}
+
+
+def read_doc(
+    tickets_dir: Path,
+    ticket_id: str,
+    doc_name: str,
+) -> Dict[str, Any]:
+    """Read a companion document from a ticket directory."""
+    valid_docs = {"acceptance.md", "plan.md", "test_plan.md", "summary.md"}
+    if doc_name not in valid_docs:
+        return {
+            "error": (
+                f"Invalid doc_name '{doc_name}'. "
+                f"Must be one of: {', '.join(sorted(valid_docs))}"
+            )
+        }
+
+    doc_path = tickets_dir / ticket_id / doc_name
+    if not doc_path.exists():
+        return {"error": f"Document '{doc_name}' not found for ticket {ticket_id}"}
+
+    content = doc_path.read_text(encoding='utf-8')
+    return {
+        "ticket_id": ticket_id,
+        "doc_name": doc_name,
+        "content": content,
+    }
+
+
+def write_doc(
+    tickets_dir: Path,
+    ticket_id: str,
+    doc_name: str,
+    content: str,
+) -> Dict[str, Any]:
+    """Write content to a companion document in a ticket directory."""
+    valid_docs = {"acceptance.md", "plan.md", "test_plan.md", "summary.md"}
+    if doc_name not in valid_docs:
+        return {
+            "error": (
+                f"Invalid doc_name '{doc_name}'. "
+                f"Must be one of: {', '.join(sorted(valid_docs))}"
+            )
+        }
+
+    doc_path = tickets_dir / ticket_id / doc_name
+    ticket_dir = tickets_dir / ticket_id
+    if not ticket_dir.exists():
+        return {"error": f"Ticket {ticket_id} not found"}
+
+    doc_path.parent.mkdir(parents=True, exist_ok=True)
+    doc_path.write_text(content, encoding='utf-8')
+    return {
+        "ticket_id": ticket_id,
+        "doc_name": doc_name,
+        "status": "ok",
+    }
+
+
+def git_info(project_root: Path) -> Dict[str, Any]:
+    """Return git branch, recent commits, and modified file count."""
+    import subprocess
+
+    def _run_git(*args: str) -> str:
+        try:
+            return subprocess.check_output(
+                ["git", *args],
+                cwd=str(project_root),
+                stderr=subprocess.STDOUT,
+                text=True,
+            ).strip()
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            return ""
+
+    branch = _run_git("rev-parse", "--abbrev-ref", "HEAD")
+    log_output = _run_git("log", "--oneline", "--format=%H|%an|%s", "-5")
+    status_output = _run_git("status", "--porcelain")
+
+    commits = []
+    if log_output:
+        for line in log_output.splitlines():
+            parts = line.strip().split("|", 2)
+            if len(parts) == 3:
+                commits.append({"hash": parts[0], "author": parts[1], "subject": parts[2]})
+            elif len(parts) == 2:
+                commits.append({"hash": parts[0], "author": parts[1], "subject": ""})
+            elif parts:
+                commits.append({"hash": parts[0], "author": "", "subject": ""})
+
+    modified_count = len([l for l in status_output.splitlines() if l.strip()]) if status_output else 0
+
+    return {
+        "branch": branch or "unknown",
+        "commits": commits,
+        "modified_file_count": modified_count,
+    }
+
+
+def start_sprint(project_root: Path, title: str, ticket_id: str = None) -> Dict[str, Any]:
+    """Start a sprint: create ticket, plan.md, and ensure context files."""
+    tickets_dir = project_root / ".tickets"
+
+    # Resolve or create ticket
+    if ticket_id:
+        tdir = tickets_dir / ticket_id
+        if not tdir.exists():
+            return {"error": f"Ticket '{ticket_id}' not found"}
+        tid = ticket_id
+    else:
+        result = create_sprint_ticket(tickets_dir, title, "medium")
+        if "error" in result:
+            return result
+        tid = result["ticket_id"]
+
+    tdir = tickets_dir / tid
+
+    # Create plan.md if missing
+    plan_file = tdir / "plan.md"
+    if not plan_file.exists():
+        plan_file.write_text(
+            f"---\nid: {tid}\n---\n\n# Plan\n\nTicket: `{tid}`\n\n"
+            f"## Sign-off\n\n- [ ] Plan approved — proceed to implementation\n\n"
+            f"## Approach\n\n\n## Files\n\n\n## Decisions\n\n",
+            encoding='utf-8'
+        )
+
+    # Ensure context files
+    for ctx_file, ctx_content in [
+        (project_root / "DECISIONS.md",
+         "# Decisions\n\n| Date | Decision | Reason |\n|---|---|---|\n"),
+        (project_root / "HANDOFF.md",
+         "# Handoff\n\n## Current Focus\n\n## In Progress\n\n## Discoveries\n\n## Next Steps\n\n1. \n"),
+    ]:
+        if not ctx_file.exists():
+            ctx_file.write_text(ctx_content, encoding='utf-8')
+
+    # Write ACTIVE marker
+    active_file = tickets_dir / "ACTIVE"
+    active_file.write_text(f"{tid}\n", encoding='utf-8')
+
+    return {
+        "ticket_id": tid,
+        "ticket_dir": str(tdir),
+        "status": "started",
+        "message": f"Sprint started: {tid}",
+    }
+
+
+def close_sprint(project_root: Path) -> Dict[str, Any]:
+    """
+    Validates mechanical close gates, generates a delivery receipt, 
+    and updates HANDOFF.md with the final summary.
+    """
+    tickets_dir = project_root / ".tickets"
+    handoff_path = project_root / "HANDOFF.md"
+    
+    # 1. Validate Mechanical Close Gates
+    # All tickets must be in a terminal state
+    terminal_statuses = {"closed", "cancelled", "archived"}
+    tickets = parse_tickets(tickets_dir)
+    incomplete_tickets = [
+        t.id for t in tickets
+        if t.status.lower() not in terminal_statuses
+    ]
+    
+    if incomplete_tickets:
+        return {
+            "status": "error",
+            "message": f"Cannot close sprint. The following tickets are not terminal (closed/cancelled/archived): {', '.join(incomplete_tickets)}"
+        }
+    
+    # 2. Generate Delivery Receipt Table
+    # (Simplified for now, could be expanded to include more details)
+    receipt_lines = ["## Delivery Receipt", "| Ticket ID | Status | Title |", "| --- | --- | --- |"]
+    for t in tickets:
+        receipt_lines.append(f"| {t.id} | {t.status} | {t.title} |")
+    
+    receipt_content = "\n".join(receipt_lines)
+    
+    # 3. Update HANDOFF.md
+    # We'll append a new section for the final summary
+    handoff_content = handoff_path.read_text(encoding='utf-8')
+    summary_section = f"\n\n## Sprint Summary ({tickets[0].id if tickets else 'N/A'})\n{receipt_content}\n"
+    
+    # If summary already exists, we might want to replace it, but for now, just append.
+    new_handoff_content = handoff_content.rstrip() + summary_section
+    handoff_path.write_text(new_handoff_content, encoding='utf-8')
+    
+    return {
+        "status": "success",
+        "message": "Sprint closed successfully and HANDOFF.md updated.",
+        "receipt": receipt_content
     }

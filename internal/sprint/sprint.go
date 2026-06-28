@@ -2,13 +2,14 @@ package sprint
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"regexp"
 	"sort"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/sunitghub/canon-skills/internal/commands"
@@ -16,25 +17,23 @@ import (
 	"github.com/sunitghub/canon-skills/internal/parsers"
 )
 
-// trivialTierRe matches a frontmatter field `tier: trivial` (case-insensitive).
-// It is matched only inside the plan.md frontmatter block, never inside the body.
-var trivialTierRe = regexp.MustCompile(`(?im)^\s*tier\s*:\s*"?trivial"?\s*$`)
+// trivialTierRe matches a top-level frontmatter field `tier: trivial` (case-insensitive).
+var trivialTierRe = regexp.MustCompile(`(?im)^tier\s*:\s*"?trivial"?\s*$`)
 
 var verdictPassRe = regexp.MustCompile(`(?m)^pass:\s*\S`)
 var runIDRe = regexp.MustCompile(`(?m)^evaluator-run-id:\s+(\S+)`)
 var verdictLineRe = regexp.MustCompile(`(?m)^(pass|fail):`)
 
+var frontmatterExtractRe = regexp.MustCompile(`(?s)^---\r?\n(.*?)\r?\n---`)
+
 // hasFrontmatter reports whether content begins with a YAML frontmatter fence.
 func hasFrontmatter(content string) (string, bool) {
-	re := regexp.MustCompile(`(?s)^---\r?\n(.*?)\r?\n---`)
-	m := re.FindStringSubmatch(content)
+	m := frontmatterExtractRe.FindStringSubmatch(content)
 	if m == nil {
 		return "", false
 	}
 	return m[1], true
 }
-
-var mu sync.Mutex
 
 func GetSprintBoard(projectRoot string) map[string]any {
 	ticketsDir := filepath.Join(projectRoot, ".tickets")
@@ -96,28 +95,38 @@ func LogSubagentRun(projectRoot, agentID, agentType, sessionID string) map[strin
 }
 
 func StartSprint(projectRoot, title, ticketID, priority string) map[string]any {
-	mu.Lock()
-	defer mu.Unlock()
+	commands.Lock()
+	defer commands.Unlock()
 	ticketsDir := filepath.Join(projectRoot, ".tickets")
 
 	var tid string
 	if ticketID != "" {
 		tdir := filepath.Join(ticketsDir, ticketID)
 		if _, err := os.Stat(tdir); err != nil {
+			if errors.Is(err, fs.ErrNotExist) {
+				return map[string]any{"error": fmt.Sprintf("Cannot access ticket '%s': not found", ticketID)}
+			}
 			return map[string]any{"error": fmt.Sprintf("Cannot access ticket '%s': %v", ticketID, err)}
 		}
 		tid = ticketID
 	} else {
-		result := commands.CreateSprintTicket(ticketsDir, title, priority)
+		result := commands.CreateSprintTicketLocked(ticketsDir, title, priority)
 		if err, ok := result["error"]; ok {
 			return map[string]any{"error": err}
 		}
-		tid = result["ticket_id"].(string)
+		var ok bool
+		tid, ok = result["ticket_id"].(string)
+		if !ok {
+			return map[string]any{"error": "internal error: CreateSprintTicket returned no ticket_id"}
+		}
 	}
 
 	tdir := filepath.Join(ticketsDir, tid)
 	planFile := filepath.Join(tdir, "plan.md")
-	if _, err := os.Stat(planFile); os.IsNotExist(err) {
+	if _, err := os.Stat(planFile); err != nil {
+		if !errors.Is(err, fs.ErrNotExist) {
+			return map[string]any{"error": fmt.Sprintf("Cannot stat plan.md: %v", err)}
+		}
 		if err := os.WriteFile(planFile, []byte(
 			fmt.Sprintf("---\nid: %s\n---\n\n# Plan\n\nTicket: `%s`\n\n## Sign-off\n\n- [ ] Plan approved — proceed to implementation\n\n## Approach\n\n\n## Files\n\n\n## Decisions\n\n", tid, tid),
 		), 0644); err != nil {
@@ -129,7 +138,10 @@ func StartSprint(projectRoot, title, ticketID, priority string) map[string]any {
 		{filepath.Join(projectRoot, "DECISIONS.md"), "# Decisions\n\n| Date | Decision | Reason |\n|---|---|---|\n"},
 		{filepath.Join(projectRoot, "HANDOFF.md"), "# Handoff\n\n## Current Focus\n\n## In Progress\n\n## Discoveries\n\n## Next Steps\n\n1. \n"},
 	} {
-		if _, err := os.Stat(pair[0]); os.IsNotExist(err) {
+		if _, err := os.Stat(pair[0]); err != nil {
+			if !errors.Is(err, fs.ErrNotExist) {
+				return map[string]any{"error": fmt.Sprintf("Cannot stat %s: %v", pair[0], err)}
+			}
 			if err := os.WriteFile(pair[0], []byte(pair[1]), 0644); err != nil {
 				return map[string]any{"error": fmt.Sprintf("Failed to write %s: %v", pair[0], err)}
 			}
@@ -158,8 +170,8 @@ func readActiveSprintID(ticketsDir string) string {
 }
 
 func CloseSprint(projectRoot string) map[string]any {
-	mu.Lock()
-	defer mu.Unlock()
+	commands.Lock()
+	defer commands.Unlock()
 	ticketsDir := filepath.Join(projectRoot, ".tickets")
 	handoffPath := filepath.Join(projectRoot, "HANDOFF.md")
 
@@ -256,7 +268,8 @@ func CloseSprint(projectRoot string) map[string]any {
 	var receiptLines []string
 	receiptLines = append(receiptLines, "## Delivery Receipt", "| Ticket ID | Status | Title |", "| --- | --- | --- |")
 	for _, t := range tickets {
-		receiptLines = append(receiptLines, fmt.Sprintf("| %s | %s | %s |", t.ID, t.Status, strings.ReplaceAll(t.Title, "|", "\\|")))
+		esc := func(s string) string { return strings.ReplaceAll(s, "|", "\\|") }
+		receiptLines = append(receiptLines, fmt.Sprintf("| %s | %s | %s |", esc(t.ID), esc(t.Status), esc(t.Title)))
 	}
 	receiptContent := strings.Join(receiptLines, "\n")
 
@@ -279,7 +292,7 @@ func CloseSprint(projectRoot string) map[string]any {
 		}
 	}
 	summaryHeading := fmt.Sprintf("## Sprint Summary (%s)", sprintID)
-	if strings.Contains(handoffContent, summaryHeading) {
+	if regexp.MustCompile(`(?m)^` + regexp.QuoteMeta(summaryHeading) + `$`).MatchString(handoffContent) {
 		return map[string]any{
 			"status":  "error",
 			"message": fmt.Sprintf("Sprint %s already has a summary in HANDOFF.md. Remove the existing section first if you need to re-close.", sprintID),

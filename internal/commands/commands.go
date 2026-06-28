@@ -3,6 +3,7 @@ package commands
 import (
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -39,12 +40,18 @@ func nextTicketID(ticketsDir string) uint64 {
 
 var mu sync.RWMutex
 
+func Lock()   { mu.Lock() }
+func Unlock() { mu.Unlock() }
+
 var winReserved = []string{"CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"}
 
 var validTicketIDRe = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_-]*$`)
 
 var frontmatterRe = regexp.MustCompile(`(?s)^(---\r?\n.*?\r?\n---)\r?\n?(.*)$`)
 var statusLineRe = regexp.MustCompile(`(?m)^status:.*$`)
+
+var numRe = regexp.MustCompile(`^(\d+)\.\s`)
+var bulletRe = regexp.MustCompile(`^[-*]\s`)
 
 func validTicketID(id string) error {
 	if id == "" {
@@ -115,8 +122,6 @@ func AddAcceptanceCriterion(ticketsDir, ticketID, criterionText string) map[stri
 	isNumbered := false
 	foundExisting := false
 	lastItemLineIdx := -1
-	numRe := regexp.MustCompile(`^(\d+)\.\s`)
-	bulletRe := regexp.MustCompile(`^[-*]\s`)
 
 	for i := lineStart; i < len(lines); i++ {
 		stripped := strings.TrimSpace(lines[i])
@@ -165,6 +170,15 @@ func AddAcceptanceCriterion(ticketsDir, ticketID, criterionText string) map[stri
 func CreateSprintTicket(ticketsDir, description, priority string) map[string]any {
 	mu.Lock()
 	defer mu.Unlock()
+	return createSprintTicketLocked(ticketsDir, description, priority)
+}
+
+// CreateSprintTicketLocked must be called with mu held.
+func CreateSprintTicketLocked(ticketsDir, description, priority string) map[string]any {
+	return createSprintTicketLocked(ticketsDir, description, priority)
+}
+
+func createSprintTicketLocked(ticketsDir, description, priority string) map[string]any {
 	if err := os.MkdirAll(ticketsDir, 0755); err != nil {
 		return map[string]any{"error": fmt.Sprintf("Failed to create tickets directory: %v", err)}
 	}
@@ -192,11 +206,12 @@ func CreateSprintTicket(ticketsDir, description, priority string) map[string]any
 		}
 	}
 	safeTitle := yamlEscape(title)
+	safePriority := yamlEscape(priority)
 
 	ticketFile := filepath.Join(ticketsDir, ticketID, "ticket.md")
 	if err := os.WriteFile(ticketFile, []byte(fmt.Sprintf(
 		"---\nid: %s\ntitle: \"%s\"\nstatus: open\npriority: %s\n---\n\n## Description\n%s\n\n## Acceptance Criteria\n",
-		ticketID, safeTitle, priority, description,
+		ticketID, safeTitle, safePriority, description,
 	)), 0644); err != nil {
 		return map[string]any{"error": fmt.Sprintf("Failed to write ticket.md: %v", err)}
 	}
@@ -244,8 +259,11 @@ func GetTicket(ticketsDir, ticketID string) map[string]any {
 	mu.RLock()
 	defer mu.RUnlock()
 	ticketDir := filepath.Join(ticketsDir, ticketID)
-	if _, err := os.Stat(ticketDir); os.IsNotExist(err) {
-		return map[string]any{"error": fmt.Sprintf("Ticket '%s' not found at %s", ticketID, ticketDir)}
+	if _, err := os.Stat(ticketDir); err != nil {
+		if errors.Is(err, fs.ErrNotExist) {
+			return map[string]any{"error": fmt.Sprintf("Ticket '%s' not found at %s", ticketID, ticketDir)}
+		}
+		return map[string]any{"error": fmt.Sprintf("Cannot stat ticket '%s': %v", ticketID, err)}
 	}
 
 	result := map[string]any{"ticket_id": ticketID, "files": map[string]string{}}
@@ -278,8 +296,7 @@ func GetTicketBody(ticketsDir, ticketID string) map[string]any {
 	if err != nil {
 		return map[string]any{"error": fmt.Sprintf("Ticket %s not found", ticketID)}
 	}
-	re := regexp.MustCompile(`(?s)^(---\r?\n.*?\r?\n---)\r?\n?(.*)$`)
-	m := re.FindStringSubmatch(string(content))
+	m := frontmatterRe.FindStringSubmatch(string(content))
 	if m == nil {
 		return map[string]any{"content": strings.TrimSpace(string(content))}
 	}
@@ -301,9 +318,8 @@ func UpdateTicketBody(ticketsDir, ticketID, body string) map[string]any {
 		return map[string]any{"error": "Ticket body cannot be empty"}
 	}
 
-	re := regexp.MustCompile(`(?s)^(---\r?\n.*?\r?\n---)\r?\n?`)
 	var newContent string
-	if m := re.FindStringSubmatch(string(content)); m != nil {
+	if m := frontmatterRe.FindStringSubmatch(string(content)); m != nil {
 		newContent = m[1] + "\n\n" + strings.TrimLeft(body, "\n")
 	} else {
 		newContent = body
@@ -345,8 +361,11 @@ func WriteDoc(ticketsDir, ticketID, docName, content string) map[string]any {
 		return map[string]any{"error": fmt.Sprintf("Invalid doc_name '%s'. Must be one of: acceptance.md, plan.md, test_plan.md, summary.md", docName)}
 	}
 	ticketDir := filepath.Join(ticketsDir, ticketID)
-	if _, err := os.Stat(ticketDir); os.IsNotExist(err) {
-		return map[string]any{"error": fmt.Sprintf("Ticket %s not found", ticketID)}
+	if _, err := os.Stat(ticketDir); err != nil {
+		if errors.Is(err, fs.ErrNotExist) {
+			return map[string]any{"error": fmt.Sprintf("Ticket %s not found", ticketID)}
+		}
+		return map[string]any{"error": fmt.Sprintf("Cannot stat ticket %s: %v", ticketID, err)}
 	}
 	docPath := filepath.Join(ticketDir, docName)
 	if err := os.MkdirAll(filepath.Dir(docPath), 0755); err != nil {

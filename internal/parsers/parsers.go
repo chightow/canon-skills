@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/sunitghub/canon-skills/internal/models"
@@ -18,6 +19,8 @@ var AgentRunLogPaths = []string{
 	".claude/subagent-runs.jsonl",
 	".opencode/subagent-runs.jsonl",
 }
+
+const subagentRunWindowSec = 600
 
 func ParseTickets(ticketsDir string) (tickets []models.Ticket, warnings []string) {
 	entries, err := os.ReadDir(ticketsDir)
@@ -40,8 +43,12 @@ func ParseTickets(ticketsDir string) (tickets []models.Ticket, warnings []string
 			body := strings.ReplaceAll(string(content), "\r", "")
 			firstLine := strings.SplitN(strings.TrimSpace(body), "\n", 2)[0]
 			if firstLine != "" {
-				data["id"] = firstLine
-				data["title"] = firstLine
+				firstLine = strings.TrimLeft(firstLine, "#")
+				firstLine = strings.TrimSpace(firstLine)
+				if firstLine != "" {
+					data["id"] = firstLine
+					data["title"] = firstLine
+				}
 			}
 		}
 		acceptance := extractSection(string(content), "Acceptance Criteria")
@@ -112,6 +119,7 @@ func checkFile(root, rel string, runEpoch int64) bool {
 	}
 	defer f.Close()
 	scanner := bufio.NewScanner(f)
+	scanner.Buffer(make([]byte, 0, 64*1024), 4*1024*1024)
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
 		if line == "" {
@@ -133,9 +141,12 @@ func checkFile(root, rel string, runEpoch int64) bool {
 		if diff < 0 {
 			diff = -diff
 		}
-		if diff <= 600 {
+		if diff <= subagentRunWindowSec {
 			return true
 		}
+	}
+	if err := scanner.Err(); err != nil {
+		return false
 	}
 	return false
 }
@@ -167,11 +178,21 @@ func ParseFrontmatterRaw(content string) map[string]string {
 }
 
 var (
-	headingRe = regexp.MustCompile(`(?m)^## `)
+	headingRe    = regexp.MustCompile(`(?m)^## `)
+	headingCache sync.Map
 )
 
+func headingPattern(heading string) *regexp.Regexp {
+	if v, ok := headingCache.Load(heading); ok {
+		return v.(*regexp.Regexp)
+	}
+	re := regexp.MustCompile(fmt.Sprintf(`(?m)^## %s\s*$`, regexp.QuoteMeta(heading)))
+	actual, _ := headingCache.LoadOrStore(heading, re)
+	return actual.(*regexp.Regexp)
+}
+
 func extractSection(content, heading string) string {
-	pattern := regexp.MustCompile(fmt.Sprintf(`(?m)^## %s\s*$`, regexp.QuoteMeta(heading)))
+	pattern := headingPattern(heading)
 	loc := pattern.FindStringIndex(content)
 	if loc == nil {
 		return ""
@@ -186,7 +207,7 @@ func extractSection(content, heading string) string {
 
 func extractTasks(content string) []string {
 	var tasks []string
-	pattern := regexp.MustCompile(`(?m)^## Active Tasks\s*$`)
+	pattern := headingPattern("Active Tasks")
 	loc := pattern.FindStringIndex(content)
 	if loc == nil {
 		return tasks

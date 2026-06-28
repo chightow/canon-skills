@@ -20,6 +20,7 @@ doc-findings.md
 .claude/skills
 .claude/subagent-runs.jsonl
 .canon/subagent-runs.jsonl
+.opencode/subagent-runs.jsonl
 .agents/
 
 node_modules/

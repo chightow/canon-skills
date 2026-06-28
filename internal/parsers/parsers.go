@@ -1,0 +1,221 @@
+package parsers
+
+import (
+	"bufio"
+	"encoding/json"
+	"fmt"
+	"os"
+	"path/filepath"
+	"regexp"
+	"strings"
+	"time"
+
+	"github.com/chightow/canon-skills/internal/models"
+)
+
+var AgentRunLogPaths = []string{
+	".canon/subagent-runs.jsonl",
+	".claude/subagent-runs.jsonl",
+	".opencode/subagent-runs.jsonl",
+}
+
+func ParseTickets(ticketsDir string) []models.Ticket {
+	var tickets []models.Ticket
+	entries, err := os.ReadDir(ticketsDir)
+	if err != nil {
+		return tickets
+	}
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			continue
+		}
+		ticketFile := filepath.Join(ticketsDir, entry.Name(), "ticket.md")
+		content, err := os.ReadFile(ticketFile)
+		if err != nil {
+			continue
+		}
+		data := ParseFrontmatterRaw(string(content))
+		acceptance := extractSection(string(content), "Acceptance Criteria")
+		description := extractSection(string(content), "Description")
+
+		tickets = append(tickets, models.Ticket{
+			ID:                 getStr(data, "id", "unknown"),
+			Status:             getStr(data, "status", "unknown"),
+			Title:              getStr(data, "title", "No Title"),
+			Description:        description,
+			AcceptanceCriteria: acceptance,
+			Priority:           data["priority"],
+		})
+	}
+	return tickets
+}
+
+func ParseHandoff(handoffPath string) models.Handoff {
+	content, err := os.ReadFile(handoffPath)
+	if err != nil {
+		return models.Handoff{ActiveTasks: []string{}, Context: "Extracted from HANDOFF.md"}
+	}
+	tasks := extractTasks(string(content))
+	return models.Handoff{
+		ActiveTasks: tasks,
+		Context:     "Extracted from HANDOFF.md",
+	}
+}
+
+func ParsePlanApproved(planPath string) bool {
+	content, err := os.ReadFile(planPath)
+	if err != nil {
+		return false
+	}
+	signoff := getSection(string(content), "Sign-off")
+	re := regexp.MustCompile(`^\s*[-*]\s+\[[xX]\]\s+\S`)
+	return re.MatchString(signoff)
+}
+
+func ParsePlanDecision(planPath string) string {
+	content, err := os.ReadFile(planPath)
+	if err != nil {
+		return ""
+	}
+	decisions := getSection(string(content), "Decisions")
+	for _, line := range strings.Split(decisions, "\n") {
+		line = strings.TrimSpace(line)
+		if strings.HasPrefix(line, "### ") {
+			return strings.TrimPrefix(line, "### ")
+		}
+	}
+	return ""
+}
+
+func CheckSubagentRun(projectRoot string, runEpoch int64) bool {
+	for _, rel := range AgentRunLogPaths {
+		jsonlPath := filepath.Join(projectRoot, rel)
+		f, err := os.Open(jsonlPath)
+		if err != nil {
+			continue
+		}
+		defer f.Close()
+		scanner := bufio.NewScanner(f)
+		for scanner.Scan() {
+			line := strings.TrimSpace(scanner.Text())
+			if line == "" {
+				continue
+			}
+			var entry map[string]any
+			if err := json.Unmarshal([]byte(line), &entry); err != nil {
+				continue
+			}
+			ts, ok := entry["ts"].(string)
+			if !ok || ts == "" {
+				continue
+			}
+			entryEpoch, err := parseTimestamp(ts)
+			if err != nil {
+				continue
+			}
+			diff := entryEpoch - runEpoch
+			if diff < 0 {
+				diff = -diff
+			}
+			if diff <= 3600 {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func ParseFrontmatterRaw(content string) map[string]string {
+	data := make(map[string]string)
+	re := regexp.MustCompile(`(?s)^---\r?\n(.*?)\r?\n---`)
+	m := re.FindStringSubmatch(content)
+	if m == nil {
+		return data
+	}
+	body := strings.ReplaceAll(m[1], "\r", "")
+	for _, line := range strings.Split(body, "\n") {
+		parts := strings.SplitN(line, ":", 2)
+		if len(parts) == 2 {
+			data[strings.TrimSpace(strings.ToLower(parts[0]))] = strings.TrimSpace(parts[1])
+		}
+	}
+	return data
+}
+
+var (
+	headingRe = regexp.MustCompile(`(?m)^## `)
+)
+
+func extractSection(content, heading string) string {
+	pattern := regexp.MustCompile(fmt.Sprintf(`(?m)^## %s\s*$`, regexp.QuoteMeta(heading)))
+	loc := pattern.FindStringIndex(content)
+	if loc == nil {
+		return ""
+	}
+	after := content[loc[1]:]
+	nextLoc := headingRe.FindStringIndex(after)
+	if nextLoc == nil {
+		return strings.TrimSpace(after)
+	}
+	return strings.TrimSpace(after[:nextLoc[0]])
+}
+
+func getSection(content string, heading string) string {
+	return extractSection(content, heading)
+}
+
+func extractTasks(content string) []string {
+	var tasks []string
+	pattern := regexp.MustCompile(`(?m)^## Active Tasks\s*$`)
+	loc := pattern.FindStringIndex(content)
+	if loc == nil {
+		return tasks
+	}
+	after := content[loc[1]:]
+	nextLoc := headingRe.FindStringIndex(after)
+	var section string
+	if nextLoc == nil {
+		section = strings.TrimSpace(after)
+	} else {
+		section = strings.TrimSpace(after[:nextLoc[0]])
+	}
+	if section == "" {
+		return tasks
+	}
+	for _, line := range strings.Split(section, "\n") {
+		line = strings.TrimSpace(line)
+		line = boldRe.ReplaceAllString(line, "$1")
+		line = italicRe.ReplaceAllString(line, "$1")
+		if line != "" && strings.HasPrefix(line, "- ") {
+			tasks = append(tasks, strings.TrimPrefix(line, "- "))
+		}
+	}
+	return tasks
+}
+
+var (
+	boldRe   = regexp.MustCompile(`\*\*(.*?)\*\*`)
+	italicRe = regexp.MustCompile(`\*(.*?)\*`)
+)
+
+func parseTimestamp(ts string) (int64, error) {
+	normalized := ts
+	if strings.HasSuffix(ts, "Z") {
+		normalized = ts[:len(ts)-1] + "+00:00"
+	}
+	t, err := time.Parse(time.RFC3339, normalized)
+	if err != nil {
+		t, err = time.Parse("2006-01-02T15:04:05", normalized)
+		if err != nil {
+			return 0, fmt.Errorf("cannot parse timestamp: %s", ts)
+		}
+	}
+	return t.Unix(), nil
+}
+
+func getStr(data map[string]string, key, fallback string) string {
+	if v, ok := data[key]; ok && v != "" {
+		return v
+	}
+	return fallback
+}

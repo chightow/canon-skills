@@ -25,3 +25,7 @@ doc-findings.md
 node_modules/
 package-lock.json
 test-results/
+
+# Go MCP server binary
+/mcp-server.exe
+/mcp-server

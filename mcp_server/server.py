@@ -176,7 +176,7 @@ def _dashboard_port() -> Optional[int]:
             resp = urllib.request.urlopen(f"http://127.0.0.1:{port}/api/tickets?all=1", timeout=0.5)
             if resp.status == 200:
                 return port
-        except (urllib.error.URLError, ConnectionError, OSError):
+        except OSError:
             continue
     return None
 

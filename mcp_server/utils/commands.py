@@ -4,7 +4,6 @@ import subprocess
 from pathlib import Path
 from typing import List, Dict, Any, Union
 
-from .models import Ticket
 from .parsers import _get_section, _parse_plan_approved, _parse_plan_decision
 
 
@@ -37,14 +36,19 @@ def add_acceptance_criterion(
         return {"ticket_id": ticket_id, "criterion": criterion_text, "status": "ok"}
 
     lines = list_section.split('\n')
+    # skip leading blank lines before list
+    list_start_idx = 0
+    while list_start_idx < len(lines) and not lines[list_start_idx].strip():
+        list_start_idx += 1
+
     last_num = 0
     is_numbered = False
     last_item_line = -1
 
-    for i, line in enumerate(lines):
-        stripped = line.strip()
+    for i in range(list_start_idx, len(lines)):
+        stripped = lines[i].strip()
         if not stripped:
-            continue
+            break
         numbered_match = re.match(r'^(\d+)\.\s*', stripped)
         if numbered_match:
             is_numbered = True
@@ -82,7 +86,7 @@ def create_sprint_ticket(
     ticket_dir.mkdir(parents=True, exist_ok=True)
 
     title = description if len(description) <= 50 else description[:47] + "..."
-    safe_title = title.replace("\\", "\\\\").replace("\"", "\\\"")
+    safe_title = _yaml_escape(title)
 
     ticket_file = ticket_dir / "ticket.md"
     ticket_file.write_text(
@@ -164,15 +168,13 @@ def list_skills(skills_dir: Path, skill_name: str = None) -> Union[List[Dict[str
         is_hidden = data.get("hidden", "false") == "true"
         if is_hidden:
             continue
-        raw_tags = _parse_yaml_list(data.get("tags", ""))
-        raw_deps = _parse_yaml_list(data.get("depends", ""))
         results.append({
             "name": data.get("name", entry.name),
             "description": data.get("description", ""),
             "category": data.get("category", ""),
-            "tags": [t for t in raw_tags.split(",") if t] if data.get("tags") else [],
+            "tags": _parse_yaml_list(data.get("tags", "")),
             "hidden": is_hidden,
-            "depends": [d for d in raw_deps.split(",") if d] if data.get("depends") else [],
+            "depends": _parse_yaml_list(data.get("depends", "")),
             "path": str(skill_file),
         })
 
@@ -190,8 +192,10 @@ def get_ticket(tickets_dir: Path, ticket_id: str) -> Dict[str, Any]:
         if fpath.exists():
             result["files"][fname] = fpath.read_text(encoding='utf-8')
     plan_path = ticket_dir / "plan.md"
-    result["plan_approved"] = _parse_plan_approved(plan_path)
-    result["plan_decision"] = _parse_plan_decision(plan_path)
+    result["plan"] = {
+        "approved": _parse_plan_approved(plan_path),
+        "decision": _parse_plan_decision(plan_path),
+    }
     return result
 
 
@@ -273,12 +277,22 @@ def write_doc(
     }
 
 
-def _parse_yaml_list(raw: str) -> str:
+def _yaml_escape(value: str) -> str:
+    return (
+        value
+        .replace("\\", "\\\\")
+        .replace("\"", "\\\"")
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+        .replace("\t", "\\t")
+    )
+
+
+def _parse_yaml_list(raw: str) -> List[str]:
     if raw.startswith("[") and raw.endswith("]"):
         inner = raw[1:-1]
-        parts = [p.strip() for p in inner.split(",")]
-        return ",".join(parts)
-    return raw
+        return [p.strip() for p in inner.split(",") if p.strip()]
+    return [raw] if raw else []
 
 
 def git_info(project_root: Path) -> Dict[str, Any]:

@@ -21,6 +21,7 @@ def get_sprint_board(project_root: Path) -> Dict[str, Any]:
             "status": t.status,
             "title": t.title,
             "description": t.description,
+            "priority": t.priority,
             "acceptance_criteria": t.acceptance_criteria,
             "plan_approved": _parse_plan_approved(plan_path),
             "plan_decision": _parse_plan_decision(plan_path),

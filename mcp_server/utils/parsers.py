@@ -1,6 +1,6 @@
 import json
 import re
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
 from typing import List, Dict, Any
 from .models import Ticket
@@ -49,7 +49,8 @@ def parse_tickets(tickets_dir: Path) -> List[Ticket]:
                     status=data.get('status', 'unknown'),
                     title=data.get('title', 'No Title'),
                     description=description,
-                    acceptance_criteria=acceptance_criteria
+                    acceptance_criteria=acceptance_criteria,
+                    priority=data.get('priority'),
                 ))
     return tickets
 
@@ -110,7 +111,6 @@ AGENT_RUN_LOG_PATHS = [
     ".canon/subagent-runs.jsonl",
     ".claude/subagent-runs.jsonl",
     ".opencode/subagent-runs.jsonl",
-    ".vscode/subagent-runs.jsonl",
 ]
 
 

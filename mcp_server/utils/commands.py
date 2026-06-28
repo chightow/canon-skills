@@ -81,11 +81,18 @@ def create_sprint_ticket(
     description: str,
     priority: str,
 ) -> Dict[str, Any]:
-    ticket_id = f"TKT-{os.urandom(4).hex().upper()}"
-    ticket_dir = tickets_dir / ticket_id
-    ticket_dir.mkdir(parents=True, exist_ok=True)
+    for _ in range(10):
+        ticket_id = f"TKT-{os.urandom(4).hex().upper()}"
+        ticket_dir = tickets_dir / ticket_id
+        try:
+            ticket_dir.mkdir(parents=True, exist_ok=False)
+            break
+        except FileExistsError:
+            continue
+    else:
+        return {"error": "Failed to generate unique ticket ID after 10 attempts"}
 
-    title = description if len(description) <= 50 else description[:47] + "..."
+    title = description if len(description) <= 50 else description[:47].rsplit(' ', 1)[0] + "..."
     safe_title = _yaml_escape(title)
 
     ticket_file = ticket_dir / "ticket.md"
@@ -227,8 +234,9 @@ def read_doc(
     ticket_id: str,
     doc_name: str,
 ) -> Dict[str, Any]:
+    doc_name = doc_name.lower()
     valid_docs = {"acceptance.md", "plan.md", "test_plan.md", "summary.md"}
-    if doc_name.lower() not in valid_docs:
+    if doc_name not in valid_docs:
         return {
             "error": (
                 f"Invalid doc_name '{doc_name}'. "
@@ -254,8 +262,9 @@ def write_doc(
     doc_name: str,
     content: str,
 ) -> Dict[str, Any]:
+    doc_name = doc_name.lower()
     valid_docs = {"acceptance.md", "plan.md", "test_plan.md", "summary.md"}
-    if doc_name.lower() not in valid_docs:
+    if doc_name not in valid_docs:
         return {
             "error": (
                 f"Invalid doc_name '{doc_name}'. "
@@ -322,7 +331,7 @@ def git_info(project_root: Path) -> Dict[str, Any]:
             elif parts:
                 commits.append({"hash": parts[0], "author": "", "subject": ""})
 
-    modified_count = len([l for l in status_output.splitlines() if l.strip()]) if status_output else 0
+    modified_count = len([l for l in status_output.splitlines() if l.strip()])
 
     return {
         "branch": branch or "unknown",

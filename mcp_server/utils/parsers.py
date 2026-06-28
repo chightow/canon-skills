@@ -138,8 +138,6 @@ def _check_subagent_run(project_root: Path, run_epoch: int) -> bool:
                             return True
                     except Exception as exc:
                         logger.warning("Failed to parse entry in %s: %s", jsonl_path, exc)
-                        pass
         except Exception as exc:
             logger.warning("Failed to read %s: %s", jsonl_path, exc)
-            pass
     return False

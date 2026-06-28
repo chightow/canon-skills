@@ -1,5 +1,7 @@
+import json
 import os
 import re
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Dict, Any
 from .models import Ticket
@@ -148,21 +150,84 @@ def add_acceptance_criterion(
         "status": "ok",
     }
 
+def _get_section(content: str, heading: str) -> str:
+    """Extract content under a ## heading until the next ## heading or end."""
+    pattern = re.compile(
+        r'^##\s+' + re.escape(heading) + r'\s*$(.*?)(?=^##\s|\Z)',
+        re.MULTILINE | re.DOTALL
+    )
+    m = pattern.search(content)
+    return m.group(1).strip() if m else ""
+
+
+def _parse_plan_approved(plan_path: Path) -> bool:
+    """Check if plan.md's ## Sign-off section has a checked item."""
+    if not plan_path.exists():
+        return False
+    content = plan_path.read_text(encoding='utf-8')
+    signoff = _get_section(content, 'Sign-off')
+    return bool(re.search(r'^\s*[-*]\s+\[[xX]\]\s+\S', signoff, re.MULTILINE))
+
+
+def _parse_plan_decision(plan_path: Path) -> str:
+    """Extract first ### heading from ## Decisions section of plan.md."""
+    if not plan_path.exists():
+        return ""
+    content = plan_path.read_text(encoding='utf-8')
+    decisions = _get_section(content, 'Decisions')
+    for line in decisions.split('\n'):
+        line = line.strip()
+        if line.startswith('### '):
+            return line[4:].strip()
+    return ""
+
+
+def _check_subagent_run(jsonl_path: Path, run_epoch: int) -> bool:
+    """Cross-check a run epoch against subagent-runs.jsonl within ±60 min window."""
+    try:
+        with open(jsonl_path) as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    d = json.loads(line)
+                    ts = d.get('ts', '')
+                    if not ts:
+                        continue
+                    entry_epoch = int(datetime.strptime(
+                        ts, '%Y-%m-%dT%H:%M:%SZ'
+                    ).replace(tzinfo=timezone.utc).timestamp())
+                    if abs(entry_epoch - run_epoch) <= 3600:
+                        return True
+                except Exception:
+                    pass
+    except Exception:
+        pass
+    return False
+
+
 def get_sprint_board(project_root: Path) -> Dict[str, Any]:
     """Combine ticket parsing and handoff parsing into a single structured response."""
-    tickets = parse_tickets(project_root / ".tickets")
+    tickets_dir = project_root / ".tickets"
+    tickets = parse_tickets(tickets_dir)
     handoff = parse_handoff(project_root / "HANDOFF.md")
     
+    ticket_list = []
+    for t in tickets:
+        plan_path = tickets_dir / t.id / "plan.md"
+        ticket_list.append({
+            "id": t.id,
+            "status": t.status,
+            "title": t.title,
+            "description": t.description,
+            "acceptance_criteria": t.acceptance_criteria,
+            "plan_approved": _parse_plan_approved(plan_path),
+            "plan_decision": _parse_plan_decision(plan_path),
+        })
+    
     return {
-        "tickets": [
-            {
-                "id": t.id,
-                "status": t.status,
-                "title": t.title,
-                "description": t.description,
-                "acceptance_criteria": t.acceptance_criteria
-            } for t in tickets
-        ],
+        "tickets": ticket_list,
         "handoff": handoff,
         "project_root": str(project_root)
     }
@@ -290,6 +355,9 @@ def get_ticket(tickets_dir: Path, ticket_id: str) -> Dict[str, Any]:
         fpath = ticket_dir / fname
         if fpath.exists():
             result["files"][fname] = fpath.read_text(encoding='utf-8')
+    plan_path = ticket_dir / "plan.md"
+    result["plan_approved"] = _parse_plan_approved(plan_path)
+    result["plan_decision"] = _parse_plan_decision(plan_path)
     return result
 
 
@@ -483,8 +551,74 @@ def close_sprint(project_root: Path) -> Dict[str, Any]:
             "message": f"Cannot close sprint. The following tickets are not terminal (closed/cancelled/archived): {', '.join(incomplete_tickets)}"
         }
     
+    # 1b. Validate evaluator-run-id for each closed ticket
+    for t in tickets:
+        if t.status.lower() != "closed":
+            continue
+        tdir = tickets_dir / t.id
+        plan_path = tdir / "plan.md"
+        report_path = tdir / "eval-report.md"
+        
+        # Skip trivial-tier sprints
+        if plan_path.exists():
+            plan_content = plan_path.read_text(encoding='utf-8')
+            if re.search(r'tier\s*:?\s*\*{0,2}trivial', plan_content, re.IGNORECASE):
+                continue
+        
+        if not report_path.exists():
+            return {
+                "status": "error",
+                "message": (
+                    f"Ticket {t.id} cannot close: eval-report.md is missing. "
+                    f"Run the evaluator (eval skill) before closing, or confirm trivial tier in plan.md."
+                )
+            }
+        
+        report_content = report_path.read_text(encoding='utf-8')
+        
+        # Check evaluator-run-id field
+        run_id_match = re.search(r'^evaluator-run-id:\s+(\S+)', report_content, re.MULTILINE)
+        if not run_id_match:
+            return {
+                "status": "error",
+                "message": (
+                    f"Ticket {t.id} cannot close: eval-report.md is missing evaluator-run-id field. "
+                    f"Ensure the evaluator subagent wrote the run-id before grading."
+                )
+            }
+        
+        run_id = run_id_match.group(1)
+        
+        # Cross-check against .claude/subagent-runs.jsonl
+        run_parts = run_id.split('-', 1)
+        run_epoch = run_parts[0] if run_parts else ""
+        jsonl_path = project_root / ".claude" / "subagent-runs.jsonl"
+        
+        if jsonl_path.exists() and run_epoch.isdigit():
+            matched = _check_subagent_run(jsonl_path, int(run_epoch))
+            if not matched:
+                return {
+                    "status": "error",
+                    "message": (
+                        f"Ticket {t.id} cannot close: evaluator-run-id '{run_id}' has no "
+                        f"matching subagent entry in .claude/subagent-runs.jsonl (±60 min window). "
+                        f"The eval must be run as a real subagent invocation — inline writes are not accepted."
+                    )
+                }
+        
+        # Check verdict is pass
+        if not re.search(r'^pass:', report_content, re.MULTILINE):
+            verdict_match = re.search(r'^(pass|fail):', report_content, re.MULTILINE)
+            verdict_text = verdict_match.group(0) if verdict_match else "(no verdict line found)"
+            return {
+                "status": "error",
+                "message": (
+                    f"Ticket {t.id} cannot close: eval-report.md verdict is not pass. "
+                    f"{verdict_text}"
+                )
+            }
+    
     # 2. Generate Delivery Receipt Table
-    # (Simplified for now, could be expanded to include more details)
     receipt_lines = ["## Delivery Receipt", "| Ticket ID | Status | Title |", "| --- | --- | --- |"]
     for t in tickets:
         receipt_lines.append(f"| {t.id} | {t.status} | {t.title} |")
@@ -492,11 +626,9 @@ def close_sprint(project_root: Path) -> Dict[str, Any]:
     receipt_content = "\n".join(receipt_lines)
     
     # 3. Update HANDOFF.md
-    # We'll append a new section for the final summary
     handoff_content = handoff_path.read_text(encoding='utf-8')
     summary_section = f"\n\n## Sprint Summary ({tickets[0].id if tickets else 'N/A'})\n{receipt_content}\n"
     
-    # If summary already exists, we might want to replace it, but for now, just append.
     new_handoff_content = handoff_content.rstrip() + summary_section
     handoff_path.write_text(new_handoff_content, encoding='utf-8')
     
